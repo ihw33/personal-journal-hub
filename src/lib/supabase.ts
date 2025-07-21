@@ -1,9 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+
+// API 라우트용 클라이언트 생성 함수
+export function createClient() {
+  return createSupabaseClient(supabaseUrl, supabaseAnonKey)
+}
 
 // 데이터베이스 타입 정의 (나중에 자동 생성 예정)
 export type Database = {

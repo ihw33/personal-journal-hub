@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { marked } from 'marked'
 
 interface JournalEditorProps {
   onCancel: () => void
@@ -10,18 +11,22 @@ interface JournalEditorProps {
     id: string
     title: string
     content: string
+    excerpt?: string
     category: string
-    published: boolean
+    status: string
   }
 }
 
 export default function JournalEditor({ onCancel, onSave, existingJournal }: JournalEditorProps) {
   const [title, setTitle] = useState(existingJournal?.title || '')
   const [content, setContent] = useState(existingJournal?.content || '')
+  const [excerpt, setExcerpt] = useState(existingJournal?.excerpt || '')
   const [category, setCategory] = useState(existingJournal?.category || '일상')
-  const [published, setPublished] = useState(existingJournal?.published || false)
+  const [status, setStatus] = useState(existingJournal?.status || 'draft')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [saveStatus, setSaveStatus] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,8 +37,10 @@ export default function JournalEditor({ onCancel, onSave, existingJournal }: Jou
       const journalData = {
         title,
         content,
+        excerpt: excerpt || content.slice(0, 120) + '...', // 자동 요약 생성
         category,
-        published,
+        status,
+        published_at: status === 'published' ? new Date().toISOString() : null,
         user_id: '00000000-0000-0000-0000-000000000000', // 관리자 고정 ID
       }
 
@@ -45,6 +52,7 @@ export default function JournalEditor({ onCancel, onSave, existingJournal }: Jou
           .eq('id', existingJournal.id)
 
         if (error) throw error
+        setSaveStatus('수정 완료!')
       } else {
         // 새 글 작성
         const { error } = await supabase
@@ -52,9 +60,12 @@ export default function JournalEditor({ onCancel, onSave, existingJournal }: Jou
           .insert([journalData])
 
         if (error) throw error
+        setSaveStatus('저장 완료!')
       }
 
-      onSave()
+      setTimeout(() => {
+        onSave()
+      }, 1000)
     } catch (err: any) {
       setError(err.message || '저장 중 오류가 발생했습니다.')
     } finally {
@@ -111,34 +122,93 @@ export default function JournalEditor({ onCancel, onSave, existingJournal }: Jou
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            내용
+            요약 (선택사항)
           </label>
           <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={15}
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            rows={3}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
-            placeholder="저널 내용을 작성하세요..."
-            required
+            placeholder="저널 미리보기용 요약을 입력하세요 (비어있으면 자동 생성)"
           />
         </div>
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="published"
-            checked={published}
-            onChange={(e) => setPublished(e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label htmlFor="published" className="ml-2 block text-sm text-gray-700">
-            바로 발행하기 (체크하지 않으면 임시저장)
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              내용 (마크다운 지원)
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPreview(false)}
+                className={`px-3 py-1 text-sm rounded ${!showPreview ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-800'}`}
+              >
+                편집
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPreview(true)}
+                className={`px-3 py-1 text-sm rounded ${showPreview ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-800'}`}
+              >
+                미리보기
+              </button>
+            </div>
+          </div>
+          
+          {showPreview ? (
+            <div className="w-full min-h-[400px] px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 prose max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: marked(content) }} />
+            </div>
+          ) : (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={15}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical font-mono"
+              placeholder="저널 내용을 작성하세요... (마크다운 문법 사용 가능)
+
+# 제목
+## 부제목
+**굵은 글씨**
+*기울임*
+- 목록 항목
+[링크](http://example.com)"
+              required
+            />
+          )}
+          
+          <div className="mt-2 text-xs text-gray-500">
+            💡 마크다운 문법을 사용할 수 있습니다. 미리보기 탭에서 결과를 확인하세요.
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            발행 상태
           </label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="draft">임시저장</option>
+            <option value="review">검토 대기</option>
+            <option value="published">발행됨</option>
+            <option value="private">비공개</option>
+            <option value="archived">보관됨</option>
+          </select>
         </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
+          </div>
+        )}
+
+        {saveStatus && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+            {saveStatus}
           </div>
         )}
 

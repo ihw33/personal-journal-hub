@@ -1,16 +1,22 @@
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="container mx-auto px-4 py-16">
+        {/* 히어로 섹션 */}
+        <section className="text-center max-w-4xl mx-auto mb-16">
+          <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto mb-8 flex items-center justify-center">
+            <span className="text-white text-5xl font-bold">👋</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+            안녕하세요, 저는 디지털 노마드입니다
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
+            기술과 삶의 균형을 찾아가는 여정을 기록하고, <br/>
+            배운 것들을 나누며 함께 성장하고 싶습니다.
+          </p>
+        </section>
+
         <div className="max-w-4xl mx-auto">
-          <header className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              소개
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              개인 저널 허브에 대해 알아보세요
-            </p>
-          </header>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">

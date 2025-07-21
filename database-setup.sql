@@ -18,10 +18,12 @@ create table public.journals (
   user_id uuid references public.users(id) on delete cascade not null,
   title text not null,
   content text not null,
+  excerpt text, -- 저널 요약/미리보기
   category text,
   tags text[],
-  published boolean default false,
+  status text default 'draft', -- 'draft', 'review', 'published', 'private', 'archived'
   featured_image text,
+  published_at timestamp with time zone, -- 실제 발행 시간
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -70,9 +72,26 @@ create table public.newsletter_subscriptions (
   id uuid default gen_random_uuid() primary key,
   email text unique not null,
   name text,
-  is_active boolean default true,
+  is_active boolean default false, -- 이메일 확인 후 true
+  is_confirmed boolean default false, -- 이메일 확인 여부
+  confirmation_token text unique, -- 확인 토큰
+  confirmation_sent_at timestamp with time zone,
+  confirmed_at timestamp with time zone,
   subscribed_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unsubscribed_at timestamp with time zone
+);
+
+-- 뉴스레터 발송 기록 테이블
+create table public.newsletter_campaigns (
+  id uuid default gen_random_uuid() primary key,
+  subject text not null,
+  content text not null,
+  journal_id uuid references public.journals(id) on delete set null,
+  sent_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  recipient_count integer default 0,
+  success_count integer default 0,
+  failure_count integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- 설문조사 테이블
@@ -122,9 +141,9 @@ create policy "Users can update own journals" on public.journals
 create policy "Users can delete own journals" on public.journals
   for delete using (auth.uid() = user_id);
 
--- 공개된 저널은 모든 사용자가 볼 수 있음
+-- 발행된 저널은 모든 사용자가 볼 수 있음
 create policy "Published journals are viewable by everyone" on public.journals
-  for select using (published = true);
+  for select using (status = 'published');
 
 -- 소셜 계정은 본인만 접근
 create policy "Users can manage own social accounts" on public.social_accounts

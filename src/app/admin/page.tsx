@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import JournalEditor from '@/components/admin/JournalEditor'
+import NewsletterManager from '@/components/admin/NewsletterManager'
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [showEditor, setShowEditor] = useState(false)
+  const [showNewsletter, setShowNewsletter] = useState(false)
   const [journals, setJournals] = useState<any[]>([])
   const [editingJournal, setEditingJournal] = useState<any>(null)
 
@@ -121,15 +123,27 @@ export default function AdminPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">📧 뉴스레터</h3>
             <p className="text-gray-600 mb-4">뉴스레터 작성 및 발송</p>
-            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-              뉴스레터 작성
+            <button 
+              onClick={() => {
+                setShowEditor(false)
+                setShowNewsletter(true)
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              뉴스레터 관리
             </button>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">👥 구독자 관리</h3>
             <p className="text-gray-600 mb-4">이메일 구독자 현황</p>
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+            <button 
+              onClick={() => {
+                setShowEditor(false)
+                setShowNewsletter(true)
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
               구독자 보기
             </button>
           </div>
@@ -148,6 +162,19 @@ export default function AdminPage() {
               fetchJournals()
             }}
           />
+        ) : showNewsletter ? (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">뉴스레터 관리</h2>
+              <button
+                onClick={() => setShowNewsletter(false)}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                뒤로가기
+              </button>
+            </div>
+            <NewsletterManager />
+          </div>
         ) : (
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">최근 저널</h2>
@@ -162,7 +189,10 @@ export default function AdminPage() {
                         <h3 className="font-semibold text-gray-900">{journal.title}</h3>
                         <p className="text-gray-600 text-sm">
                           {new Date(journal.created_at).toLocaleDateString('ko-KR')} • {journal.category}
-                          {journal.published ? ' • 발행됨' : ' • 임시저장'}
+                          • {journal.status === 'published' ? '발행됨' : 
+                             journal.status === 'draft' ? '임시저장' :
+                             journal.status === 'review' ? '검토 대기' :
+                             journal.status === 'private' ? '비공개' : '보관됨'}
                         </p>
                         <p className="text-gray-700 text-sm mt-1 line-clamp-2">
                           {journal.content.slice(0, 100)}...
