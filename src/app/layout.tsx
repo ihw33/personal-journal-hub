@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "개인 저널 허브",
-  description: "개인 블로그와 소셜 미디어를 연결하는 통합 플랫폼",
+  title: "Idea Work Lab",
+  description: "아이디어가 현실이 되는 창작 공간 - 개발, 디자인, 창작 프로젝트의 허브",
 };
 
 export default function RootLayout({
@@ -39,8 +39,8 @@ export default function RootLayout({
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-4 md:mb-0">
-                <h3 className="font-semibold">개인 저널 허브</h3>
-                <p className="text-gray-400 text-sm">일상의 소중한 순간들을 기록하고 공유하세요</p>
+                <h3 className="font-semibold">Idea Work Lab</h3>
+                <p className="text-gray-400 text-sm">아이디어가 현실이 되는 창작 공간</p>
               </div>
               <div className="flex gap-6 text-sm">
                 <a href="/about" className="text-gray-400 hover:text-white transition-colors">
@@ -55,7 +55,7 @@ export default function RootLayout({
               </div>
             </div>
             <div className="border-t border-gray-700 mt-6 pt-4 text-center text-gray-400 text-sm">
-              © {new Date().getFullYear()} 개인 저널 허브. All rights reserved.
+              © {new Date().getFullYear()} Idea Work Lab. All rights reserved.
             </div>
           </div>
         </footer>

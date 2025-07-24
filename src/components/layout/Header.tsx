@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,9 +16,16 @@ export default function Header() {
           <div className="flex items-center">
             <Link 
               href="/" 
-              className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 transition-colors"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
-              개인 저널 허브
+              <Image
+                src="/imasges/iwl-logo-main.png"
+                alt="Idea Work Lab"
+                width={140}
+                height={32}
+                priority
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
 
