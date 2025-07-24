@@ -7,7 +7,7 @@ import JournalContent from '@/components/journal/JournalContent'
 
 interface JournalPageProps {
   params: Promise<{
-    slug: string
+    id: string
   }>
 }
 
@@ -27,21 +27,21 @@ interface Journal {
 export default function JournalPage({ params }: JournalPageProps) {
   const [journal, setJournal] = useState<Journal | null>(null)
   const [loading, setLoading] = useState(true)
-  const [slug, setSlug] = useState<string>('')
+  const [journalId, setJournalId] = useState<string>('')
 
   useEffect(() => {
-    const getSlug = async () => {
+    const getId = async () => {
       const resolvedParams = await params
-      setSlug(resolvedParams.slug)
+      setJournalId(resolvedParams.id)
     }
-    getSlug()
+    getId()
   }, [params])
 
   useEffect(() => {
-    if (slug) {
+    if (journalId) {
       fetchJournal()
     }
-  }, [slug])
+  }, [journalId])
 
   const fetchJournal = async () => {
     try {
@@ -54,11 +54,11 @@ export default function JournalPage({ params }: JournalPageProps) {
       const result = await response.json()
       const journals = result.journals || []
       
-      console.log('Looking for slug:', slug)
+      console.log('Looking for ID:', journalId)
       console.log('Available journals:', journals.map((j: Journal) => ({ id: j.id, title: j.title, status: j.status })))
       
       // 발행된 저널 중에서 ID가 일치하는 것 찾기
-      const foundJournal = journals.find((j: Journal) => j.id === slug && j.status === 'published')
+      const foundJournal = journals.find((j: Journal) => j.id === journalId && j.status === 'published')
       
       console.log('Found journal:', foundJournal ? foundJournal.title : 'Not found')
       
