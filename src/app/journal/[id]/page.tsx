@@ -45,25 +45,24 @@ export default function JournalPage({ params }: JournalPageProps) {
 
   const fetchJournal = async () => {
     try {
-      const response = await fetch('/api/journals')
+      console.log('Fetching journal with ID:', journalId)
+      
+      const response = await fetch(`/api/journals/${journalId}`)
       
       if (!response.ok) {
+        if (response.status === 404) {
+          console.log('Journal not found (404)')
+          notFound()
+          return
+        }
         throw new Error('저널 불러오기 실패')
       }
       
       const result = await response.json()
-      const journals = result.journals || []
+      console.log('Journal fetched successfully:', result.journal?.title)
       
-      console.log('Looking for ID:', journalId)
-      console.log('Available journals:', journals.map((j: Journal) => ({ id: j.id, title: j.title, status: j.status })))
-      
-      // 발행된 저널 중에서 ID가 일치하는 것 찾기
-      const foundJournal = journals.find((j: Journal) => j.id === journalId && j.status === 'published')
-      
-      console.log('Found journal:', foundJournal ? foundJournal.title : 'Not found')
-      
-      if (foundJournal) {
-        setJournal(foundJournal)
+      if (result.journal) {
+        setJournal(result.journal)
       } else {
         notFound()
       }
