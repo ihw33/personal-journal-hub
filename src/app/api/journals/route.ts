@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
 
 export async function GET() {
   try {
@@ -59,6 +58,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, content, excerpt, category, status } = body
 
+    console.log('POST /api/journals called with data:', { title, category, status })
+
     if (!title || !content) {
       return NextResponse.json(
         { error: '제목과 내용은 필수입니다.' },
@@ -66,7 +67,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createClient()
+    // 환경 변수 확인
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase credentials')
+    }
     
     const newJournal = {
       title,
@@ -78,28 +85,42 @@ export async function POST(request: NextRequest) {
       user_id: '00000000-0000-0000-0000-000000000000'
     }
 
-    const { data: savedJournal, error } = await supabase
-      .from('journals')
-      .insert([newJournal])
-      .select()
-      .single()
+    console.log('Inserting journal:', { ...newJournal, content: newJournal.content.slice(0, 50) + '...' })
 
-    if (error) {
-      console.error('Supabase insert error:', error)
+    // HTTP fetch로 직접 삽입
+    const response = await fetch(`${supabaseUrl}/rest/v1/journals`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(newJournal)
+    })
+
+    console.log('Insert response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Insert error response:', errorText)
       return NextResponse.json(
-        { error: 'Database error', details: error.message },
+        { error: 'Database error', details: errorText },
         { status: 500 }
       )
     }
+
+    const savedJournal = await response.json()
+    console.log('Journal saved successfully:', savedJournal[0]?.id)
     
     return NextResponse.json({ 
-      journal: savedJournal,
+      journal: savedJournal[0],
       message: '저널이 성공적으로 저장되었습니다.'
     })
   } catch (error) {
     console.error('저널 저장 에러:', error)
     return NextResponse.json(
-      { error: '저널 저장 중 오류가 발생했습니다.' },
+      { error: '저널 저장 중 오류가 발생했습니다.', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
