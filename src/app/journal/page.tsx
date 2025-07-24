@@ -320,7 +320,7 @@ export default function JournalPage() {
                         </td>
                         <td className="px-6 py-4">
                           <Link 
-                            href={`/journal/${journal.id}`}
+                            href={`/journal/view?id=${journal.id}`}
                             className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium block"
                           >
                             {journal.title}
@@ -371,7 +371,7 @@ export default function JournalPage() {
                     </div>
                     
                     <Link 
-                      href={`/journal/${journal.id}`}
+                      href={`/journal/view?id=${journal.id}`}
                       className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium block mb-1"
                     >
                       {journal.title}

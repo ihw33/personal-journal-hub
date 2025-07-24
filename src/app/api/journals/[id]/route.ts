@@ -9,13 +9,16 @@ export async function GET(
     const { id } = await params
     const supabase = createClient()
     
-    // 단일 저널 조회
+    // 단일 저널 조회 - 모든 상태 포함해서 테스트
     const { data: journal, error } = await supabase
       .from('journals')
       .select('*')
       .eq('id', id)
-      .eq('status', 'published')
       .single()
+    
+    console.log('Querying journal with ID:', id)
+    console.log('Found journal:', journal ? { id: journal.id, title: journal.title, status: journal.status } : 'null')
+    console.log('Query error:', error)
     
     if (error || !journal) {
       return NextResponse.json(
