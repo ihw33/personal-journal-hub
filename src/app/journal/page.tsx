@@ -226,7 +226,7 @@ export default function JournalPage() {
                 <span className="text-sm text-gray-600 dark:text-gray-400">활성 필터:</span>
                 {searchTerm && (
                   <span className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
-                    검색: &quot;{searchTerm}&quot;
+                    검색: &ldquo;{searchTerm}&rdquo;
                     <button
                       onClick={() => setSearchTerm('')}
                       className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"
