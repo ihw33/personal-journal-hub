@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from '@/components/layout/Header';
+import Link from 'next/link';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,9 +49,9 @@ export default function RootLayout({
                 <a href="/privacy" className="text-gray-400 hover:text-white transition-colors">
                   개인정보처리방침
                 </a>
-                <a href="/journal" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/journal" className="text-gray-400 hover:text-white transition-colors">
                   저널
-                </a>
+                </Link>
               </div>
             </div>
             <div className="border-t border-gray-700 mt-6 pt-4 text-center text-gray-400 text-sm">

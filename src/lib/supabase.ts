@@ -7,7 +7,28 @@ export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
 
 // API 라우트용 클라이언트 생성 함수
 export function createClient() {
-  return createSupabaseClient(supabaseUrl, supabaseAnonKey)
+  console.log('Creating Supabase client with URL:', supabaseUrl)
+  console.log('API Key exists:', !!supabaseAnonKey)
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase credentials missing')
+  }
+  
+  try {
+    const client = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false
+      },
+      global: {
+        fetch: fetch
+      }
+    })
+    console.log('Supabase client created successfully')
+    return client
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error)
+    throw error
+  }
 }
 
 // 데이터베이스 타입 정의 (나중에 자동 생성 예정)

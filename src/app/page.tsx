@@ -1,61 +1,80 @@
+'use client';
+
 import Link from "next/link";
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect } from 'react';
 import NewsletterSubscribe from '@/components/newsletter/NewsletterSubscribe'
 
-async function getRecentJournals() {
-  // 임시 더미 데이터 (Supabase 연결 전까지)
-  const dummyJournals = [
-    {
-      id: '1',
-      title: '디지털 노마드로서의 첫 달',
-      excerpt: '새로운 라이프스타일에 적응하며 배운 것들을 공유합니다.',
-      content: '디지털 노마드로서의 첫 달을 보내며...',
-      category: '일상',
-      created_at: '2025-01-15',
-      published_at: '2025-01-15'
-    },
-    {
-      id: '2', 
-      title: '원격 근무 효율성을 높이는 방법',
-      excerpt: '생산성 향상을 위한 실용적인 팁들을 정리했습니다.',
-      content: '원격 근무를 하면서 깨달은...',
-      category: '개발',
-      created_at: '2025-01-10',
-      published_at: '2025-01-10'
-    },
-    {
-      id: '3',
-      title: '여행하며 일하기',
-      excerpt: '새로운 도시에서 일하며 얻은 영감들',
-      content: '여행과 일의 균형을 맞추는...',
-      category: '여행',
-      created_at: '2025-01-05',
-      published_at: '2025-01-05'
-    }
-  ]
-
-  try {
-    const { data: journals, error } = await supabase
-      .from('journals')
-      .select('id, title, excerpt, content, category, created_at, published_at')
-      .eq('status', 'published')
-      .order('published_at', { ascending: false })
-      .limit(6)
-
-    if (error) {
-      console.error('저널 불러오기 실패, 더미 데이터 사용:', error)
-      return dummyJournals
-    }
-
-    return journals || dummyJournals
-  } catch (error) {
-    console.error('Supabase 연결 실패, 더미 데이터 사용:', error)
-    return dummyJournals
-  }
+interface Journal {
+  id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  category: string;
+  status: string;
+  created_at: string;
+  published_at?: string;
 }
 
-export default async function Home() {
-  const recentJournals = await getRecentJournals()
+export default function Home() {
+  const [recentJournals, setRecentJournals] = useState<Journal[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchJournals()
+  }, [])
+
+  const fetchJournals = async () => {
+    try {
+      const response = await fetch('/api/journals')
+      
+      if (!response.ok) {
+        throw new Error('저널 불러오기 실패')
+      }
+      
+      const result = await response.json()
+      
+      // 발행된 저널만 필터링하고 최신순으로 정렬
+      const publishedJournals = (result.journals || [])
+        .filter((journal: Journal) => journal.status === 'published')
+        .sort((a: Journal, b: Journal) => {
+          const dateA = new Date(a.published_at || a.created_at)
+          const dateB = new Date(b.published_at || b.created_at)
+          return dateB.getTime() - dateA.getTime()
+        })
+      
+      setRecentJournals(publishedJournals)
+    } catch (error) {
+      console.error('저널 불러오기 에러:', error)
+      
+      // 에러 발생 시 더미 데이터 사용
+      setRecentJournals([
+        {
+          id: '1',
+          title: '디지털 노마드로서의 첫 달',
+          excerpt: '새로운 라이프스타일에 적응하며 배운 것들을 공유합니다.',
+          content: '디지털 노마드로서의 첫 달을 보내며...',
+          category: '일상',
+          status: 'published',
+          created_at: '2025-01-15',
+          published_at: '2025-01-15'
+        }
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">저널을 불러오는 중...</p>
+        </div>
+      </div>
+    )
+  }
+
   const featuredJournal = recentJournals[0] // 가장 최신 저널을 피처드로 사용
   const otherJournals = recentJournals.slice(1, 4) // 나머지 3개
 
@@ -206,7 +225,7 @@ export default async function Home() {
             </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
-              {otherJournals.map((journal) => (
+              {otherJournals.map((journal: Journal) => (
                 <Link 
                   key={journal.id}
                   href={`/journal/${journal.id}`}

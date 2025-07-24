@@ -1,4 +1,6 @@
-import { supabase } from '@/lib/supabase'
+'use client';
+
+import { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import JournalContent from '@/components/journal/JournalContent'
@@ -9,55 +11,84 @@ interface JournalPageProps {
   }>
 }
 
-async function getJournal(slug: string) {
-  const { data: journal, error } = await supabase
-    .from('journals')
-    .select('*')
-    .eq('id', slug)
-    .eq('status', 'published')
-    .single()
+interface Journal {
+  id: string
+  title: string
+  content: string
+  excerpt?: string
+  category: string
+  status: string
+  created_at: string
+  updated_at?: string
+  published_at?: string
+  user_id: string
+}
 
-  if (error || !journal) {
-    return null
+export default function JournalPage({ params }: JournalPageProps) {
+  const [journal, setJournal] = useState<Journal | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [slug, setSlug] = useState<string>('')
+
+  useEffect(() => {
+    const getSlug = async () => {
+      const resolvedParams = await params
+      setSlug(resolvedParams.slug)
+    }
+    getSlug()
+  }, [params])
+
+  useEffect(() => {
+    if (slug) {
+      fetchJournal()
+    }
+  }, [slug])
+
+  const fetchJournal = async () => {
+    try {
+      const response = await fetch('/api/journals')
+      
+      if (!response.ok) {
+        throw new Error('저널 불러오기 실패')
+      }
+      
+      const result = await response.json()
+      const journals = result.journals || []
+      
+      console.log('Looking for slug:', slug)
+      console.log('Available journals:', journals.map((j: Journal) => ({ id: j.id, title: j.title, status: j.status })))
+      
+      // 발행된 저널 중에서 ID가 일치하는 것 찾기
+      const foundJournal = journals.find((j: Journal) => j.id === slug && j.status === 'published')
+      
+      console.log('Found journal:', foundJournal ? foundJournal.title : 'Not found')
+      
+      if (foundJournal) {
+        setJournal(foundJournal)
+      } else {
+        notFound()
+      }
+    } catch (error) {
+      console.error('저널 불러오기 에러:', error)
+      notFound()
+    } finally {
+      setLoading(false)
+    }
   }
 
-  return journal
-}
-
-async function getAdjacentJournals(currentId: string, publishedAt: string) {
-  const { data: nextJournal } = await supabase
-    .from('journals')
-    .select('id, title')
-    .eq('status', 'published')
-    .gt('published_at', publishedAt)
-    .order('published_at', { ascending: true })
-    .limit(1)
-    .single()
-
-  const { data: prevJournal } = await supabase
-    .from('journals')
-    .select('id, title')
-    .eq('status', 'published')
-    .lt('published_at', publishedAt)
-    .order('published_at', { ascending: false })
-    .limit(1)
-    .single()
-
-  return { nextJournal, prevJournal }
-}
-
-export default async function JournalPage({ params }: JournalPageProps) {
-  const { slug } = await params
-  const journal = await getJournal(slug)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">로딩 중...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!journal) {
-    notFound()
+    return notFound()
   }
-
-  const { nextJournal, prevJournal } = await getAdjacentJournals(
-    journal.id, 
-    journal.published_at || journal.created_at
-  )
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -74,17 +105,28 @@ export default async function JournalPage({ params }: JournalPageProps) {
 
         {/* 글 헤더 */}
         <header className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-sm px-3 py-1 rounded-full">
               {journal.category}
             </span>
-            <span className="text-gray-500 text-sm">
-              {new Date(journal.published_at || journal.created_at).toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
+            <div className="flex flex-col text-sm text-gray-500 dark:text-gray-400">
+              <span>
+                작성일: {new Date(journal.created_at).toLocaleDateString('ko-KR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
+              {journal.updated_at && journal.updated_at !== journal.created_at && (
+                <span>
+                  수정일: {new Date(journal.updated_at).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              )}
+            </div>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             {journal.title}
@@ -95,37 +137,6 @@ export default async function JournalPage({ params }: JournalPageProps) {
         <article className="max-w-4xl mx-auto">
           <JournalContent journal={journal} />
         </article>
-
-        {/* 이전/다음 글 네비게이션 */}
-        {(prevJournal || nextJournal) && (
-          <div className="mt-12 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center gap-4">
-              {prevJournal ? (
-                <Link 
-                  href={`/journal/${prevJournal.id}`}
-                  className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-                >
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">← 이전 글</div>
-                  <div className="font-medium text-gray-900 dark:text-white line-clamp-2">{prevJournal.title}</div>
-                </Link>
-              ) : (
-                <div className="flex-1"></div>
-              )}
-              
-              {nextJournal ? (
-                <Link 
-                  href={`/journal/${nextJournal.id}`}
-                  className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow text-right"
-                >
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">다음 글 →</div>
-                  <div className="font-medium text-gray-900 dark:text-white line-clamp-2">{nextJournal.title}</div>
-                </Link>
-              ) : (
-                <div className="flex-1"></div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* 하단 네비게이션 */}
         <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
@@ -153,15 +164,4 @@ export default async function JournalPage({ params }: JournalPageProps) {
       </div>
     </div>
   )
-}
-
-export async function generateStaticParams() {
-  const { data: journals } = await supabase
-    .from('journals')
-    .select('id')
-    .eq('status', 'published')
-
-  return journals?.map((journal) => ({
-    slug: journal.id,
-  })) || []
 }

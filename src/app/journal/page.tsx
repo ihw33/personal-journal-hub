@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 interface Journal {
@@ -11,7 +10,9 @@ interface Journal {
   excerpt?: string
   category: string
   created_at: string
+  updated_at?: string
   published_at?: string
+  status?: string
 }
 
 export default function JournalPage() {
@@ -33,61 +34,59 @@ export default function JournalPage() {
   }, [journals, searchTerm, selectedCategory, sortBy])
 
   const fetchJournals = async () => {
-    // 임시 더미 데이터
-    const dummyJournals = [
-      {
-        id: '1',
-        title: '디지털 노마드로서의 첫 달',
-        excerpt: '새로운 라이프스타일에 적응하며 배운 것들을 공유합니다.',
-        content: '디지털 노마드로서의 첫 달을 보내며 많은 것을 배웠습니다. 자유로운 라이프스타일의 장점과 도전 과제들을 경험하며...',
-        category: '일상',
-        created_at: '2025-01-15',
-        published_at: '2025-01-15'
-      },
-      {
-        id: '2', 
-        title: '원격 근무 효율성을 높이는 방법',
-        excerpt: '생산성 향상을 위한 실용적인 팁들을 정리했습니다.',
-        content: '원격 근무를 하면서 깨달은 효율성 증대 방법들을 공유합니다. 시간 관리부터 도구 활용까지...',
-        category: '개발',
-        created_at: '2025-01-10',
-        published_at: '2025-01-10'
-      },
-      {
-        id: '3',
-        title: '여행하며 일하기',
-        excerpt: '새로운 도시에서 일하며 얻은 영감들',
-        content: '여행과 일의 균형을 맞추는 것은 쉽지 않지만, 새로운 환경에서 얻는 영감은 정말 값진 것 같습니다...',
-        category: '여행',
-        created_at: '2025-01-05',
-        published_at: '2025-01-05'
-      },
-      {
-        id: '4',
-        title: 'Next.js 15 마이그레이션 경험기',
-        excerpt: 'App Router와 Turbopack 도입 과정에서 겪은 이슈들',
-        content: 'Next.js 15로 업그레이드하면서 겪은 다양한 이슈들과 해결 방법을 공유합니다...',
-        category: '개발',
-        created_at: '2025-01-01',
-        published_at: '2025-01-01'
-      }
-    ]
-
     try {
-      const { data, error } = await supabase
-        .from('journals')
-        .select('id, title, content, excerpt, category, created_at, published_at')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false })
-
-      if (error) {
-        console.error('저널 불러오기 실패, 더미 데이터 사용:', error)
-        setJournals(dummyJournals)
-      } else {
-        setJournals(data || dummyJournals)
+      // API를 통해 실제 저널 데이터 가져오기
+      const response = await fetch('/api/journals')
+      
+      if (!response.ok) {
+        throw new Error('저널 불러오기 실패')
       }
+      
+      const result = await response.json()
+      
+      // 발행된 저널만 필터링
+      const publishedJournals = (result.journals || []).filter(
+        (journal: Journal) => journal.status === 'published'
+      )
+      
+      setJournals(publishedJournals)
     } catch (error) {
-      console.error('Supabase 연결 실패, 더미 데이터 사용:', error)
+      console.error('저널 불러오기 에러:', error)
+      
+      // 에러 발생 시 임시 더미 데이터 사용
+      const dummyJournals = [
+        {
+          id: '1',
+          title: '디지털 노마드로서의 첫 달',
+          excerpt: '새로운 라이프스타일에 적응하며 배운 것들을 공유합니다.',
+          content: '디지털 노마드로서의 첫 달을 보내며 많은 것을 배웠습니다. 자유로운 라이프스타일의 장점과 도전 과제들을 경험하며...',
+          category: '일상',
+          status: 'published',
+          created_at: '2025-01-15',
+          published_at: '2025-01-15'
+        },
+        {
+          id: '2', 
+          title: '원격 근무 효율성을 높이는 방법',
+          excerpt: '생산성 향상을 위한 실용적인 팁들을 정리했습니다.',
+          content: '원격 근무를 하면서 깨달은 효율성 증대 방법들을 공유합니다. 시간 관리부터 도구 활용까지...',
+          category: '개발',
+          status: 'published',
+          created_at: '2025-01-10',
+          published_at: '2025-01-10'
+        },
+        {
+          id: '3',
+          title: '여행하며 일하기',
+          excerpt: '새로운 도시에서 일하며 얻은 영감들',
+          content: '여행과 일의 균형을 맞추는 것은 쉽지 않지만, 새로운 환경에서 얻는 영감은 정말 값진 것 같습니다...',
+          category: '여행',
+          status: 'published',
+          created_at: '2025-01-05',
+          published_at: '2025-01-05'
+        }
+      ]
+      
       setJournals(dummyJournals)
     } finally {
       setLoading(false)
@@ -190,9 +189,9 @@ export default function JournalPage() {
               {/* 카테고리 필터 */}
               <div className="flex flex-wrap gap-2">
                 {categories.map(category => (
-                  <button
+                  <Link
                     key={category}
-                    onClick={() => setSelectedCategory(category === '전체' ? '' : category)}
+                    href={category === '전체' ? '/journal/category/all' : `/journal/category/${encodeURIComponent(category)}`}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                       (selectedCategory === '' && category === '전체') || selectedCategory === category
                         ? 'bg-blue-600 text-white'
@@ -200,7 +199,7 @@ export default function JournalPage() {
                     }`}
                   >
                     {category}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -227,7 +226,7 @@ export default function JournalPage() {
                 <span className="text-sm text-gray-600 dark:text-gray-400">활성 필터:</span>
                 {searchTerm && (
                   <span className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
-                    검색: "{searchTerm}"
+                    검색: &quot;{searchTerm}&quot;
                     <button
                       onClick={() => setSearchTerm('')}
                       className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"
@@ -267,9 +266,10 @@ export default function JournalPage() {
 
         <div className="max-w-6xl mx-auto">
           {filteredJournals.length === 0 ? (
-            <div className="text-center py-16">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-16 text-center">
               {journals.length === 0 ? (
                 <>
+                  <div className="text-6xl mb-4">📝</div>
                   <p className="text-gray-500 text-lg mb-4">아직 발행된 저널이 없습니다.</p>
                   <Link 
                     href="/"
@@ -280,13 +280,14 @@ export default function JournalPage() {
                 </>
               ) : (
                 <>
+                  <div className="text-6xl mb-4">🔍</div>
                   <p className="text-gray-500 text-lg mb-4">검색 조건에 맞는 저널을 찾을 수 없습니다.</p>
                   <button 
                     onClick={() => {
                       setSearchTerm('')
                       setSelectedCategory('')
                     }}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
                   >
                     필터 초기화
                   </button>
@@ -294,79 +295,94 @@ export default function JournalPage() {
               )}
             </div>
           ) : (
-            <div className="grid gap-8">
-              {/* 그리드 레이아웃: 데스크톱에서는 카드 스타일, 모바일에서는 리스트 스타일 */}
-              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredJournals.map((journal) => (
-                  <Link 
-                    key={journal.id}
-                    href={`/journal/${journal.id}`}
-                    className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-2"
-                  >
-                    <div className="p-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-medium px-3 py-1 rounded-full">
-                          {journal.category}
-                        </span>
-                        <span className="text-gray-500 text-xs">
-                          {new Date(journal.published_at || journal.created_at).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                        {journal.title}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-4 mb-6 leading-relaxed">
-                        {journal.excerpt || journal.content.slice(0, 150) + '...'}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium group">
-                          더 읽기
-                          <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                          </svg>
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {Math.ceil(journal.content.length / 200)}분 읽기
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-
-              {/* 모바일 리스트 레이아웃 */}
-              <div className="md:hidden space-y-6">
-                {filteredJournals.map((journal) => (
-                  <Link 
-                    key={journal.id}
-                    href={`/journal/${journal.id}`}
-                    className="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-medium px-2 py-1 rounded-full">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+              {/* 데스크톱 테이블 */}
+              <div className="hidden md:block">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">카테고리</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">제목</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">작성일</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">수정일</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {filteredJournals.map((journal) => (
+                      <tr 
+                        key={journal.id} 
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <span className="inline-block px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900 dark:text-blue-200 rounded-full">
                             {journal.category}
                           </span>
-                          <span className="text-gray-500 text-xs">
-                            {new Date(journal.published_at || journal.created_at).toLocaleDateString('ko-KR')}
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                          {journal.title}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-3 mb-3">
-                          {journal.excerpt || journal.content.slice(0, 120) + '...'}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-blue-600 text-sm font-medium">더 읽기 →</span>
-                          <span className="text-xs text-gray-400">
-                            {Math.ceil(journal.content.length / 200)}분
-                          </span>
-                        </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Link 
+                            href={`/journal/${journal.id}`}
+                            className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium block"
+                          >
+                            {journal.title}
+                          </Link>
+                          {journal.excerpt && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                              {journal.excerpt}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {new Date(journal.created_at).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                          })}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {journal.updated_at ? 
+                            new Date(journal.updated_at).toLocaleDateString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit'
+                            })
+                            : '-'
+                          }
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 모바일 리스트 */}
+              <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-600">
+                {filteredJournals.map((journal) => (
+                  <div key={journal.id} className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <span className="inline-block px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900 dark:text-blue-200 rounded">
+                        {journal.category}
+                      </span>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        <div>작성: {new Date(journal.created_at).toLocaleDateString('ko-KR')}</div>
+                        {journal.updated_at && (
+                          <div>수정: {new Date(journal.updated_at).toLocaleDateString('ko-KR')}</div>
+                        )}
                       </div>
                     </div>
-                  </Link>
+                    
+                    <Link 
+                      href={`/journal/${journal.id}`}
+                      className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium block mb-1"
+                    >
+                      {journal.title}
+                    </Link>
+                    
+                    {journal.excerpt && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                        {journal.excerpt}
+                      </p>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>

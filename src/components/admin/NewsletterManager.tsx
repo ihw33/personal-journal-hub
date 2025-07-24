@@ -108,7 +108,7 @@ export default function NewsletterManager() {
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key as 'send' | 'subscribers' | 'history')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               activeTab === tab.key
                 ? 'bg-blue-600 text-white'
