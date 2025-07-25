@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Plus, Search, Filter, Calendar, Clock, Eye, Heart, MessageCircle, BookOpen } from 'lucide-react'
 
 interface Journal {
   id: string
@@ -137,257 +142,117 @@ export default function JournalPage() {
     )
   }
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* 히어로 섹션 */}
-        <section className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-12 mb-12">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              모든 저널
-            </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              디지털 노마드의 여정과 인사이트가 담긴 이야기들을 만나보세요
-            </p>
-
-            {/* 검색창 */}
-            <div className="relative max-w-2xl mx-auto">
-              <input
-                type="text"
-                placeholder="제목이나 내용으로 검색해보세요..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-6 py-4 pl-14 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg shadow-lg"
-              />
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
+    <div className="min-h-screen bg-gray-50">
+      {/* Page Header */}
+      <div className="bg-white border-b">
+        <div className="container py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl lg:text-4xl text-iwl-gradient font-bold mb-2">AI와 함께하는 새로운 생각정리</h1>
+              <p className="text-gray-600 text-lg">깊이 있는 사고의 기록과 AI 협력 저널링</p>
             </div>
+            <Button className="bg-iwl-gradient hover:opacity-90 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              새 저널 작성
+            </Button>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* 필터 및 정렬 바 */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* 검색 결과 및 필터 */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="text-gray-600 dark:text-gray-300 font-medium">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">{filteredJournals.length}</span>개의 저널
-              </div>
-              
-              {/* 카테고리 필터 */}
-              <div className="flex flex-wrap gap-2">
-                {categories.map(category => (
-                  <Link
-                    key={category}
-                    href={category === '전체' ? '/journal/category/all' : `/journal/category/${encodeURIComponent(category)}`}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      (selectedCategory === '' && category === '전체') || selectedCategory === category
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    {category}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* 정렬 */}
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600 dark:text-gray-300 text-sm">정렬:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              >
-                <option value="newest">최신순</option>
-                <option value="oldest">오래된순</option>
-                <option value="title">제목순</option>
-              </select>
-            </div>
+      {/* Content */}
+      <div className="container py-8">
+        {/* Search and Filter */}
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="저널 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-
-          {/* 활성 필터 표시 */}
-          {(searchTerm || selectedCategory) && (
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-gray-600 dark:text-gray-400">활성 필터:</span>
-                {searchTerm && (
-                  <span className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
-                    검색: &ldquo;{searchTerm}&rdquo;
-                    <button
-                      onClick={() => setSearchTerm('')}
-                      className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"
-                    >
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </span>
-                )}
-                {selectedCategory && (
-                  <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm">
-                    카테고리: {selectedCategory}
-                    <button
-                      onClick={() => setSelectedCategory('')}
-                      className="hover:bg-green-200 dark:hover:bg-green-800 rounded-full p-0.5"
-                    >
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </span>
-                )}
-                <button
-                  onClick={() => {
-                    setSearchTerm('')
-                    setSelectedCategory('')
-                  }}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                >
-                  모든 필터 지우기
-                </button>
-              </div>
-            </div>
-          )}
+          <Button variant="outline" size="sm">
+            <Filter className="w-4 h-4 mr-2" />
+            필터
+          </Button>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          {filteredJournals.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-16 text-center">
-              {journals.length === 0 ? (
-                <>
-                  <div className="text-6xl mb-4">📝</div>
-                  <p className="text-gray-500 text-lg mb-4">아직 발행된 저널이 없습니다.</p>
-                  <Link 
-                    href="/"
-                    className="text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    홈으로 돌아가기
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <div className="text-6xl mb-4">🔍</div>
-                  <p className="text-gray-500 text-lg mb-4">검색 조건에 맞는 저널을 찾을 수 없습니다.</p>
-                  <button 
-                    onClick={() => {
-                      setSearchTerm('')
-                      setSelectedCategory('')
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
-                  >
-                    필터 초기화
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-              {/* 데스크톱 테이블 */}
-              <div className="hidden md:block">
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">카테고리</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">제목</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">작성일</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">수정일</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                    {filteredJournals.map((journal) => (
-                      <tr 
-                        key={journal.id} 
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <span className="inline-block px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900 dark:text-blue-200 rounded-full">
-                            {journal.category}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link 
-                            href={`/journal/${journal.id}`}
-                            className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium block"
-                          >
-                            {journal.title}
-                          </Link>
-                          {journal.excerpt && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
-                              {journal.excerpt}
-                            </p>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {new Date(journal.created_at).toLocaleDateString('ko-KR', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit'
-                          })}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {journal.updated_at ? 
-                            new Date(journal.updated_at).toLocaleDateString('ko-KR', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit'
-                            })
-                            : '-'
-                          }
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* 모바일 리스트 */}
-              <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-600">
-                {filteredJournals.map((journal) => (
-                  <div key={journal.id} className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="inline-block px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900 dark:text-blue-200 rounded">
-                        {journal.category}
-                      </span>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                        <div>작성: {new Date(journal.created_at).toLocaleDateString('ko-KR')}</div>
-                        {journal.updated_at && (
-                          <div>수정: {new Date(journal.updated_at).toLocaleDateString('ko-KR')}</div>
-                        )}
+        {/* Journal Grid */}
+        {filteredJournals.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📝</div>
+            <h3 className="text-xl text-gray-600 mb-2">저널이 없습니다</h3>
+            <p className="text-gray-500 mb-6">AI와 함께 첫 번째 저널을 작성해보세요</p>
+            <Button className="bg-iwl-gradient hover:opacity-90 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              새 저널 작성
+            </Button>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredJournals.map((journal, index) => (
+              <Card key={journal.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <Badge variant="secondary" className="bg-iwl-purple-50 text-iwl-purple">
+                      {journal.category}
+                    </Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="default" className="text-xs bg-green-100 text-green-700">
+                        발행됨
+                      </Badge>
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {5 + (index % 10)}분 읽기
                       </div>
                     </div>
-                    
-                    <Link 
-                      href={`/journal/${journal.id}`}
-                      className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium block mb-1"
-                    >
-                      {journal.title}
-                    </Link>
-                    
-                    {journal.excerpt && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {journal.excerpt}
-                      </p>
-                    )}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+                  <CardTitle className="group-hover:text-iwl-purple transition-colors duration-300 leading-tight">
+                    {journal.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-gray-600 mb-4 leading-relaxed line-clamp-3">
+                    {journal.excerpt || journal.content.slice(0, 100) + '...'}
+                  </p>
+                  
+                  {/* Stats */}
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center">
+                        <Eye className="w-4 h-4 mr-1" />
+                        {450 + (index * 123)}
+                      </div>
+                      <div className="flex items-center">
+                        <Heart className="w-4 h-4 mr-1 text-red-400" />
+                        {32 + (index * 7)}
+                      </div>
+                      <div className="flex items-center">
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        {8 + (index * 3)}
+                      </div>
+                    </div>
+                    <span className="text-xs">{new Date(journal.created_at).toLocaleDateString('ko-KR')}</span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <Link href={`/journal/${journal.id}`}>
+                      <Button variant="ghost" size="sm" className="text-iwl-purple hover:text-iwl-blue hover:bg-iwl-purple-50">
+                        <BookOpen className="w-4 h-4 mr-1" />
+                        읽기
+                      </Button>
+                    </Link>
+                    <Button variant="outline" size="sm">
+                      편집
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
