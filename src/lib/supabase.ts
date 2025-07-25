@@ -9,13 +9,22 @@ export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
 export function createClient() {
   console.log('Creating Supabase client with URL:', supabaseUrl)
   console.log('API Key exists:', !!supabaseAnonKey)
+  console.log('API Key length:', supabaseAnonKey?.length)
+  console.log('API Key preview:', supabaseAnonKey?.substring(0, 20) + '...')
   
-  if (!supabaseUrl || !supabaseAnonKey) {
+  // 추가 정리: 모든 보이지 않는 문자 제거
+  const cleanUrl = supabaseUrl.replace(/[\r\n\t\s]/g, '').trim()
+  const cleanKey = supabaseAnonKey.replace(/[\r\n\t\s]/g, '').trim()
+  
+  console.log('Cleaned URL:', cleanUrl)
+  console.log('Cleaned key length:', cleanKey?.length)
+  
+  if (!cleanUrl || !cleanKey) {
     throw new Error('Supabase credentials missing')
   }
   
   try {
-    const client = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+    const client = createSupabaseClient(cleanUrl, cleanKey, {
       auth: {
         persistSession: false
       },
