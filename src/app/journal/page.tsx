@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,23 +10,15 @@ import {
   PlayCircle, 
   Download, 
   Search, 
-  Filter, 
   Clock, 
   Eye, 
   BookOpen, 
-  Star,
   Award,
-  Users,
   TrendingUp,
   ExternalLink,
-  Heart,
-  MessageCircle,
-  Share2
+  Heart
 } from 'lucide-react';
 
-interface JournalPageProps {
-  language?: 'ko' | 'en';
-}
 
 // 모든 콘텐츠는 이상혁 저자가 직접 작성한 것으로 가정
 const journalContent = {
@@ -231,13 +224,13 @@ const sampleJournals = [
   }
 ];
 
-export default function JournalPage({ language = 'ko' }: JournalPageProps) {
+export default function JournalPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
   const [searchQuery, setSearchQuery] = useState('');
   const [email, setEmail] = useState('');
 
-  const content = journalContent[language];
+  const content = journalContent['ko'];
 
   // 필터링된 저널 데이터
   const filteredJournals = sampleJournals.filter(journal => {
@@ -388,10 +381,11 @@ export default function JournalPage({ language = 'ko' }: JournalPageProps) {
                 <div className="relative">
                   {/* 유튜브 썸네일 */}
                   <div className="relative aspect-video bg-gray-100">
-                    <img
+                    <Image
                       src={journal.thumbnail}
                       alt={journal.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                       <Button size="lg" className="bg-white/90 text-black hover:bg-white">
