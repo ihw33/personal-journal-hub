@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from 'react';
 import NewsletterSubscribe from '@/components/newsletter/NewsletterSubscribe'
 import { HeroSection } from '@/components/sections/HeroSection'
+import { ProcessSection } from '@/components/sections/ProcessSection'
 
 interface Journal {
   id: string;
@@ -83,6 +84,9 @@ export default function Home() {
     <div className="bg-white dark:bg-gray-900">
       {/* 새로운 히어로 섹션 */}
       <HeroSection language="ko" />
+
+      {/* AI 협력 프로세스 섹션 */}
+      <ProcessSection language="ko" />
 
       {/* 주요 기능 섹션 */}
       <section className="py-20 bg-gray-50 dark:bg-gray-800">
