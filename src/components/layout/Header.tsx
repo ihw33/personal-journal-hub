@@ -19,7 +19,7 @@ export default function Header() {
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <Image
-                src="/imasges/iwl-logo-main.png"
+                src="/images/iwl-logo-main.png"
                 alt="Idea Work Lab"
                 width={112}
                 height={26}
@@ -33,25 +33,25 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               href="/journal" 
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
             >
               저널
             </Link>
             <Link 
               href="/courses" 
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
             >
               강의/코스
             </Link>
             <Link 
               href="/#newsletter" 
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
             >
               뉴스레터
             </Link>
             <Link 
               href="/about" 
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
             >
               소개
             </Link>
@@ -62,7 +62,7 @@ export default function Header() {
             {/* 검색 버튼 */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors"
+              className="p-2 text-gray-700 dark:text-gray-300 hover:text-iwl-purple transition-colors"
               aria-label="검색"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@ export default function Header() {
             {/* 모바일 메뉴 버튼 */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors"
+              className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-iwl-purple transition-colors"
               aria-label="메뉴"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +132,7 @@ export default function Header() {
                 <input
                   type="text"
                   placeholder="저널 검색..."
-                  className="w-full px-4 py-3 pl-10 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 pl-10 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-iwl-purple"
                   autoFocus
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -151,28 +151,28 @@ export default function Header() {
             <nav className="py-4 space-y-4">
               <Link 
                 href="/journal" 
-                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+                className="block text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 저널
               </Link>
               <Link 
                 href="/courses" 
-                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+                className="block text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 강의/코스
               </Link>
               <Link 
                 href="/#newsletter" 
-                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+                className="block text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 뉴스레터
               </Link>
               <Link 
                 href="/about" 
-                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
+                className="block text-gray-700 dark:text-gray-300 hover:text-iwl-purple font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 소개
