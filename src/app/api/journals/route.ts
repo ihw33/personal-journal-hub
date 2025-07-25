@@ -95,7 +95,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, content, excerpt, category, status } = body
+    const { title, content, category, status } = body
 
     console.log('POST /api/journals called with data:', { 
       title: title?.slice(0, 50), 
@@ -111,17 +111,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 환경 변수 확인
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: '서버 설정 오류: 환경 변수가 없습니다.' },
+        { status: 500 }
+      )
+    }
+
     const supabase = createClient()
     
     const newJournal = {
       title,
       content,
-      category: category || '일상',
+      category: category || null,
       published: status === 'published',
       user_id: '00000000-0000-0000-0000-000000000000'
     }
 
-    console.log('Attempting to insert journal with supabase client...')
+    console.log('Attempting to insert journal:', { 
+      ...newJournal, 
+      content: newJournal.content.slice(0, 50) + '...' 
+    })
 
     const { data: savedJournal, error } = await supabase
       .from('journals')
@@ -134,7 +148,8 @@ export async function POST(request: NextRequest) {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code
+        code: error.code,
+        fullError: error
       })
       return NextResponse.json(
         { 
