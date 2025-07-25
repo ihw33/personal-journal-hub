@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import NewsletterSubscribe from '@/components/newsletter/NewsletterSubscribe'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { ProcessSection } from '@/components/sections/ProcessSection'
+import { FeaturedJournals } from '@/components/sections/FeaturedJournals'
 
 interface Journal {
   id: string;
@@ -87,6 +88,9 @@ export default function Home() {
 
       {/* AI 협력 프로세스 섹션 */}
       <ProcessSection language="ko" />
+
+      {/* 피처드 저널 섹션 */}
+      <FeaturedJournals language="ko" />
 
       {/* 주요 기능 섹션 */}
       <section className="py-20 bg-gray-50 dark:bg-gray-800">
