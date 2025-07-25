@@ -40,7 +40,6 @@ export async function GET() {
     const { data: journals, error } = await supabase
       .from('journals')
       .select('*')
-      .eq('published', true)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -141,7 +140,6 @@ export async function POST(request: NextRequest) {
       title: title,
       content: content,
       category: category || null,
-      published: status === 'published',
       user_id: '00000000-0000-0000-0000-000000000000'
     }
 
