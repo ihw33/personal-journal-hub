@@ -100,11 +100,10 @@ export async function POST(request: NextRequest) {
     console.log('2. Body parsed successfully:', { 
       hasTitle: !!body.title,
       hasContent: !!body.content,
-      category: body.category,
-      status: body.status
+      category: body.category
     })
     
-    const { title, content, category, status } = body
+    const { title, content, category } = body
 
     if (!title || !content) {
       console.log('3. Validation failed: missing title or content')
@@ -147,7 +146,6 @@ export async function POST(request: NextRequest) {
       title: newJournal.title?.slice(0, 30),
       contentLength: newJournal.content?.length,
       category: newJournal.category,
-      published: newJournal.published,
       user_id: newJournal.user_id
     })
 
