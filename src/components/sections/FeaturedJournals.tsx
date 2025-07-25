@@ -3,29 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
-import { Clock, Eye, Heart, MessageCircle, BookOpen } from 'lucide-react';
-
-interface Journal {
-  id: number;
-  title: string;
-  excerpt: string;
-  fullContent: string;
-  category: string;
-  readTime: number;
-  date: string;
-  views: number;
-  likes: number;
-  comments: number;
-  color: string;
-  image: string;
-}
+import { Calendar, Clock, User, Eye, Heart, MessageCircle, BookOpen, ArrowRight, X } from 'lucide-react';
 
 interface FeaturedJournalsProps {
   language: 'ko' | 'en';
 }
 
 export function FeaturedJournals({ language }: FeaturedJournalsProps) {
-  const [selectedJournal, setSelectedJournal] = useState<Journal | null>(null);
+  const [selectedJournal, setSelectedJournal] = useState<any>(null);
 
   const content = {
     ko: {
@@ -288,16 +273,16 @@ Journaling is no longer a solitary activity. It has become a journey of inner ex
 
   return (
     <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
-      <div className="container mx-auto">
+      <div className="container">
         <div className="text-center mb-16">
-          <h2 className="text-iwl-gradient mb-4 text-4xl lg:text-5xl font-bold">{t.title}</h2>
+          <h2 className="text-iwl-gradient mb-4">{t.title}</h2>
           <p className="text-gray-600 max-w-3xl mx-auto text-lg">
             {t.subtitle}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {t.journals.map((journal) => (
+          {t.journals.map((journal, index) => (
             <Card 
               key={journal.id} 
               className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden cursor-pointer transform hover:-translate-y-2"

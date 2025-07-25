@@ -28,11 +28,11 @@ export function NewsletterSection({ language }: NewsletterSectionProps) {
 
   return (
     <section className="py-20 bg-iwl-gradient">
-      <div className="container mx-auto">
+      <div className="container">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <Mail className="w-16 h-16 text-white/80 mx-auto mb-6" />
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+            <h2 className="text-white mb-4">
               {t.title}
             </h2>
             <p className="text-white/80 text-lg max-w-2xl mx-auto">

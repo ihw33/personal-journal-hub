@@ -100,7 +100,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
 
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="container mx-auto py-16">
+      <div className="container py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
@@ -116,28 +116,28 @@ export function Footer({ language, onNavigate }: FooterProps) {
             <div className="flex space-x-4">
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 className="text-gray-400 hover:text-white hover:bg-gray-800"
               >
                 <Twitter className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 className="text-gray-400 hover:text-white hover:bg-gray-800"
               >
                 <Github className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 className="text-gray-400 hover:text-white hover:bg-gray-800"
               >
                 <Linkedin className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 className="text-gray-400 hover:text-white hover:bg-gray-800"
               >
                 <Mail className="w-5 h-5" />
@@ -147,7 +147,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
 
           {/* Product Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-6 flex items-center">
+            <h3 className="mb-6 flex items-center">
               <BookOpen className="w-5 h-5 mr-2 text-iwl-purple" />
               {t.product}
             </h3>
@@ -171,7 +171,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-6 flex items-center">
+            <h3 className="mb-6 flex items-center">
               <Users className="w-5 h-5 mr-2 text-iwl-blue" />
               {t.company}
             </h3>
@@ -195,7 +195,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
 
           {/* Resources Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-6 flex items-center">
+            <h3 className="mb-6 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-iwl-purple" />
               {t.resources}
             </h3>
@@ -218,7 +218,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
         <div className="mt-12 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-6 md:mb-0">
-              <h3 className="text-lg font-semibold mb-2 flex items-center">
+              <h3 className="mb-2 flex items-center">
                 <Mail className="w-5 h-5 mr-2 text-iwl-blue" />
                 {t.newsletter}
               </h3>
