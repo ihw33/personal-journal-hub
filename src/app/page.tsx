@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect } from 'react';
-import NewsletterSubscribe from '@/components/newsletter/NewsletterSubscribe'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { ProcessSection } from '@/components/sections/ProcessSection'
 import { FeaturedJournals } from '@/components/sections/FeaturedJournals'
+import { NewsletterSection } from '@/components/sections/NewsletterSection'
 
 interface Journal {
   id: string;
@@ -224,21 +224,7 @@ export default function Home() {
       )}
 
       {/* 뉴스레터 구독 섹션 */}
-      <section id="newsletter" className="py-20 bg-iwl-gradient">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              AI 사고법 인사이트를 받아보세요!
-            </h2>
-            <p className="text-xl text-white/80 mb-8">
-              AI와 함께하는 깊이 있는 사고법과 실전 경험을 이메일로 만나보세요
-            </p>
-            <div className="bg-white rounded-2xl p-8 shadow-2xl">
-              <NewsletterSubscribe />
-            </div>
-          </div>
-        </div>
-      </section>
+      <NewsletterSection language="ko" />
 
       {/* 콘텐츠 크리에이터 소개 섹션 */}
       <section className="py-20">
