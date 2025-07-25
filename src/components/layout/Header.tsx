@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import Image from 'next/image';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,14 +17,10 @@ export default function Header() {
               href="/" 
               className="flex items-center hover:opacity-80 transition-opacity"
             >
-              <Image
-                src="/images/iwl-logo-main.png"
-                alt="Idea Work Lab"
-                width={112}
-                height={26}
-                priority
-                className="h-6 w-auto"
-              />
+              <div className="w-8 h-8 bg-iwl-gradient rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white text-sm font-bold">iWL</span>
+              </div>
+              <span className="text-xl font-semibold text-gray-800 dark:text-white">Idea Work Lab</span>
             </Link>
           </div>
 
