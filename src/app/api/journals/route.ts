@@ -5,50 +5,45 @@ export async function GET() {
   try {
     console.log('GET /api/journals called')
     
-    // 연결 테스트를 위한 더 간단한 접근
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabase = createClient()
     
-    console.log('Environment check:', {
-      url: !!supabaseUrl,
-      key: !!supabaseKey,
-      urlValue: supabaseUrl?.substring(0, 30) + '...'
-    })
+    console.log('Attempting to fetch journals with supabase client...')
     
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase credentials')
+    const { data: journals, error } = await supabase
+      .from('journals')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('Supabase select error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      return NextResponse.json(
+        { 
+          error: 'Database error', 
+          details: error.message,
+          hint: error.hint,
+          code: error.code
+        },
+        { status: 500 }
+      )
     }
     
-    // HTTP fetch 직접 사용해서 테스트
-    const response = await fetch(`${supabaseUrl}/rest/v1/journals?select=*&order=created_at.desc`, {
-      method: 'GET',
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      }
-    })
-    
-    console.log('Direct fetch response status:', response.status)
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Direct fetch error:', errorText)
-      throw new Error(`HTTP ${response.status}: ${errorText}`)
-    }
-    
-    const journals = await response.json()
-    console.log('Successfully fetched journals via direct fetch:', journals?.length || 0)
+    console.log('Successfully fetched journals:', journals?.length || 0)
+    console.log('Journal IDs:', journals?.map(j => ({ id: j.id, title: j.title?.slice(0, 30) })))
     
     return NextResponse.json({ journals: journals || [] })
   } catch (error) {
     console.error('GET /api/journals error:', error)
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack')
-    console.error('Error name:', error instanceof Error ? error.name : 'Unknown')
-    console.error('Full error object:', JSON.stringify(error, null, 2))
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
