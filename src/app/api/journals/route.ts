@@ -6,8 +6,8 @@ export async function GET() {
     console.log('GET /api/journals called')
     
     // 환경 변수 확인
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim()
+    const supabaseKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim()
     
     console.log('Environment check:', {
       hasUrl: !!supabaseUrl,
@@ -116,8 +116,8 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('4. Checking environment variables...')
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim()
+    const supabaseKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim()
     
     console.log('5. Environment check:', {
       hasUrl: !!supabaseUrl,
