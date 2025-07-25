@@ -236,6 +236,9 @@ export default function JournalEditor({ onCancel, onSave, existingJournal }: Jou
         setSaveStatus('수정 완료!')
       } else {
         // 새 글 작성 - API 라우트 사용
+        console.log('=== CLIENT: Sending POST request ===')
+        console.log('Journal data to send:', journalData)
+        
         const response = await fetch('/api/journals', {
           method: 'POST',
           headers: {
@@ -244,12 +247,18 @@ export default function JournalEditor({ onCancel, onSave, existingJournal }: Jou
           body: JSON.stringify(journalData)
         })
 
+        console.log('=== CLIENT: Response received ===')
+        console.log('Response status:', response.status)
+        console.log('Response ok:', response.ok)
+
         if (!response.ok) {
           const errorData = await response.json()
+          console.log('=== CLIENT: Error response data ===', errorData)
           throw new Error(errorData.error || '저장 중 오류가 발생했습니다.')
         }
 
         const result = await response.json()
+        console.log('=== CLIENT: Success response data ===', result)
         setSaveStatus(result.message || '저장 완료!')
       }
 
