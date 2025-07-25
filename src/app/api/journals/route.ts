@@ -93,50 +93,67 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('=== POST /api/journals START ===')
+  
   try {
+    console.log('1. Reading request body...')
     const body = await request.json()
+    console.log('2. Body parsed successfully:', { 
+      hasTitle: !!body.title,
+      hasContent: !!body.content,
+      category: body.category,
+      status: body.status
+    })
+    
     const { title, content, category, status } = body
 
-    console.log('POST /api/journals called with data:', { 
-      title: title?.slice(0, 50), 
-      category, 
-      status,
-      contentLength: content?.length 
-    })
-
     if (!title || !content) {
+      console.log('3. Validation failed: missing title or content')
       return NextResponse.json(
         { error: '제목과 내용은 필수입니다.' },
         { status: 400 }
       )
     }
 
-    // 환경 변수 확인
+    console.log('4. Checking environment variables...')
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     
+    console.log('5. Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      urlPreview: supabaseUrl?.substring(0, 30)
+    })
+    
     if (!supabaseUrl || !supabaseKey) {
+      console.log('6. Environment variables missing!')
       return NextResponse.json(
         { error: '서버 설정 오류: 환경 변수가 없습니다.' },
         { status: 500 }
       )
     }
 
+    console.log('7. Creating Supabase client...')
     const supabase = createClient()
+    console.log('8. Supabase client created successfully')
     
     const newJournal = {
-      title,
-      content,
+      title: title,
+      content: content,
       category: category || null,
       published: status === 'published',
       user_id: '00000000-0000-0000-0000-000000000000'
     }
 
-    console.log('Attempting to insert journal:', { 
-      ...newJournal, 
-      content: newJournal.content.slice(0, 50) + '...' 
+    console.log('9. Prepared journal data:', { 
+      title: newJournal.title?.slice(0, 30),
+      contentLength: newJournal.content?.length,
+      category: newJournal.category,
+      published: newJournal.published,
+      user_id: newJournal.user_id
     })
 
+    console.log('10. Attempting database insert...')
     const { data: savedJournal, error } = await supabase
       .from('journals')
       .insert([newJournal])
@@ -144,12 +161,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Supabase insert error:', {
+      console.error('11. Database insert failed:', {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code,
-        fullError: error
+        code: error.code
       })
       return NextResponse.json(
         { 
@@ -162,19 +178,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Journal saved successfully:', savedJournal?.id)
+    console.log('12. Database insert successful:', savedJournal?.id)
+    console.log('=== POST /api/journals SUCCESS ===')
     
     return NextResponse.json({ 
       journal: savedJournal,
       message: '저널이 성공적으로 저장되었습니다.'
     })
+    
   } catch (error) {
-    console.error('저널 저장 에러:', error)
+    console.error('=== POST /api/journals ERROR ===')
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    
     return NextResponse.json(
       { 
         error: '저널 저장 중 오류가 발생했습니다.', 
-        details: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
