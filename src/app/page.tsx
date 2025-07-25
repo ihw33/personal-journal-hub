@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/sections/HeroSection'
 import { ProcessSection } from '@/components/sections/ProcessSection'
 import { FeaturedJournals } from '@/components/sections/FeaturedJournals'
 import { NewsletterSection } from '@/components/sections/NewsletterSection'
+import { Footer } from '@/components/sections/Footer'
 
 interface Journal {
   id: string;
@@ -257,6 +258,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer language="ko" />
     </div>
   );
 }
