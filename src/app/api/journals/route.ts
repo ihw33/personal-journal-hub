@@ -23,10 +23,10 @@ export async function GET() {
           id: 'dummy-1',
           title: '환경 변수 설정 필요',
           content: 'Supabase 환경 변수가 설정되지 않았습니다.',
-          excerpt: 'Supabase 환경 변수가 설정되지 않았습니다.',
           category: '공지',
-          status: 'published',
+          published: true,
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ]
@@ -40,6 +40,7 @@ export async function GET() {
     const { data: journals, error } = await supabase
       .from('journals')
       .select('*')
+      .eq('published', true)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -57,10 +58,10 @@ export async function GET() {
           id: 'dummy-error-1',
           title: '데이터베이스 연결 오류',
           content: `데이터베이스 연결에 문제가 있습니다: ${error.message}`,
-          excerpt: `데이터베이스 연결에 문제가 있습니다: ${error.message}`,
           category: '오류',
-          status: 'published',
+          published: true,
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ]
@@ -80,10 +81,10 @@ export async function GET() {
         id: 'dummy-catch-1',
         title: '서버 오류 발생',
         content: `서버에서 오류가 발생했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        excerpt: `서버에서 오류가 발생했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`,
         category: '오류',
-        status: 'published',
+        published: true,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         user_id: '00000000-0000-0000-0000-000000000000'
       }
     ]
@@ -115,10 +116,8 @@ export async function POST(request: NextRequest) {
     const newJournal = {
       title,
       content,
-      excerpt: excerpt || content.slice(0, 120) + '...',
       category: category || '일상',
-      status: status || 'draft',
-      published_at: status === 'published' ? new Date().toISOString() : null,
+      published: status === 'published',
       user_id: '00000000-0000-0000-0000-000000000000'
     }
 
