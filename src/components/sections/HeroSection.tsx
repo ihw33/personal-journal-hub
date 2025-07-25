@@ -4,19 +4,20 @@ import { ArrowRight, BookOpen, Lightbulb, Brain, Sparkles, Zap } from 'lucide-re
 import Link from 'next/link';
 
 interface HeroSectionProps {
-  language?: 'ko' | 'en';
+  language: 'ko' | 'en';
+  onNavigate?: (page: 'journal' | 'courses') => void;
 }
 
-export function HeroSection({ language = 'ko' }: HeroSectionProps) {
+export function HeroSection({ language, onNavigate }: HeroSectionProps) {
   const content = {
     ko: {
-      badge: '생각과 AI가 만나는 곳',
+      badge: 'Where AI Meets Deep Thinking',
       title: 'AI와 함께하는',
-      titleHighlight: '깊이 있는 사고',
+      titleHighlight: '새로운 생각정리',
       subtitle: '현대인을 위한 AI 강화 사고법',
       description: 'AI 기반 도구로 인지적 잠재력을 해제하고, 사고 과정을 증폭시키며, 창의성을 향상시키고, 아이디어를 실행 가능한 통찰력으로 변환하세요.',
-      startJournal: '저널 시작하기',
-      exploreCourses: '강의 탐색하기',
+      startJournal: '🧠 AI 저널 시작하기',
+      exploreCourses: 'AI 사고법 더보기',
       deepAnalysis: '깊이 있는 분석',
       aiInsights: 'AI 통찰력',
       creativeFlow: '창의적 흐름',
@@ -33,8 +34,8 @@ export function HeroSection({ language = 'ko' }: HeroSectionProps) {
       titleHighlight: 'with AI',
       subtitle: 'AI-Enhanced Thinking for Modern Minds',
       description: 'Unlock your cognitive potential with AI-powered tools that amplify your thinking process, enhance creativity, and transform ideas into actionable insights.',
-      startJournal: 'Start Your Journal',
-      exploreCourses: 'Explore Courses',
+      startJournal: '🧠 Start AI Journal',
+      exploreCourses: 'Learn AI Thinking',
       deepAnalysis: 'Deep Analysis',
       aiInsights: 'AI Insights',
       creativeFlow: 'Creative Flow',
@@ -86,25 +87,23 @@ export function HeroSection({ language = 'ko' }: HeroSectionProps) {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/journal">
-                <Button 
-                  size="lg" 
-                  className="bg-iwl-gradient hover:opacity-90 text-white px-8 py-4 text-lg"
-                >
-                  {t.startJournal}
-                  <BookOpen className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/courses">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-iwl-purple text-iwl-purple hover:bg-iwl-purple-50 px-8 py-4 text-lg"
-                >
-                  {t.exploreCourses}
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-iwl-gradient hover:opacity-90 text-white px-8 py-4 text-lg"
+                onClick={() => onNavigate?.('journal')}
+              >
+                {t.startJournal}
+                <BookOpen className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-iwl-purple text-iwl-purple hover:bg-iwl-purple-50 px-8 py-4 text-lg"
+                onClick={() => onNavigate?.('courses')}
+              >
+                {t.exploreCourses}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
             </div>
 
             {/* Features grid */}
