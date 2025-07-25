@@ -21,10 +21,10 @@ export default function Header() {
               <Image
                 src="/imasges/iwl-logo-main.png"
                 alt="Idea Work Lab"
-                width={140}
-                height={32}
+                width={112}
+                height={26}
                 priority
-                className="h-8 w-auto"
+                className="h-6 w-auto"
               />
             </Link>
           </div>
