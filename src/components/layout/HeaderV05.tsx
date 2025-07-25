@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Menu, BookOpen, User, LogIn, Globe } from 'lucide-react';
+import { Menu, LogIn, Globe } from 'lucide-react';
 
 interface HeaderProps {
   language: 'ko' | 'en';

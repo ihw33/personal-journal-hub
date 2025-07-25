@@ -1,15 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Brain, Target, Users, Lightbulb, Heart, Star, Mail } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Brain, Target, Users, Lightbulb, Star, Mail } from 'lucide-react';
 
-interface AboutPageProps {
-  language?: 'ko' | 'en';
-}
-
-export default function AboutPage({ language = 'ko' }: AboutPageProps) {
+export default function AboutPage() {
+  const language = 'ko';
   const content = {
     ko: {
       title: 'Idea Work Lab 소개',

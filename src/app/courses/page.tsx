@@ -3,13 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Clock, Users, Play, BookOpen, Target, CheckCircle } from 'lucide-react';
+import { Star, Clock, Users, Play, Target, CheckCircle } from 'lucide-react';
 
-interface CoursesPageProps {
-  language?: 'ko' | 'en';
-}
-
-export default function CoursesPage({ language = 'ko' }: CoursesPageProps) {
+export default function CoursesPage() {
+  const language = 'ko';
   const content = {
     ko: {
       title: '아이디어를 위한 완벽한 도구들',

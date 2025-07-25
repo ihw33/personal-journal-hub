@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, BookOpen, Lightbulb, Brain, Sparkles, Zap } from 'lucide-react';
-import Link from 'next/link';
 
 interface HeroSectionProps {
   language: 'ko' | 'en';
