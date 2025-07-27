@@ -1,4 +1,4 @@
-import { AIPracticePage } from '@/components/sections/AIPracticePage';
+import { AIPracticePage } from '@/components/AIPracticePage';
 
 export default function AIPracticePageRoute() {
   return (

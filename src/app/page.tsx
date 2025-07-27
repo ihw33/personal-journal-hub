@@ -7,9 +7,9 @@ import { PersonalizedHeroSection } from '@/components/PersonalizedHeroSection';
 import { ProcessSection } from '@/components/ProcessSection';
 import { FeaturesSection } from '@/components/FeaturesSection';
 import { CreatorSection } from '@/components/CreatorSection';
-import { FeaturedJournals } from '@/components/sections/FeaturedJournals';
-import { NewsletterSection } from '@/components/sections/NewsletterSection';
-import { Footer } from '@/components/sections/Footer';
+import { FeaturedJournals } from '@/components/FeaturedJournals';
+import { NewsletterSection } from '@/components/NewsletterSection';
+import { Footer } from '@/components/Footer';
 
 export type Language = 'ko' | 'en';
 export type Page = 'home' | 'signup' | 'journal' | 'courses' | 'about';
