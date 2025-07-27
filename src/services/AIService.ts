@@ -1,4 +1,7 @@
 // AI 서비스 통합 관리
+import { JEJU_COURSE_DATA, AI_COLLABORATION_METHODOLOGY } from '@/components/course/data';
+import type { WeekData, PhaseData, AIPrompt, ChatSession, ChatMessage } from '@/components/course/types';
+import { callGeminiAPI, checkGeminiAPIKey } from '@/lib/gemini';
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
@@ -9,6 +12,13 @@ export interface AIMessage {
     phase: number;
     mode: 'guided' | 'self-directed';
     messageType?: 'introduction' | 'guidance' | 'feedback' | 'completion';
+    promptId?: string;
+    courseContext?: {
+      weekTitle: string;
+      phaseTitle: string;
+      objectives: string[];
+      resources: string[];
+    };
   };
 }
 
@@ -24,6 +34,10 @@ export interface AISession {
     completedTasks: string[];
     currentFocus: string;
     userLearningStyle: string;
+    courseData?: WeekData;
+    phaseData?: PhaseData;
+    availablePrompts?: AIPrompt[];
+    completedCheckpoints?: string[];
   };
   createdAt: Date;
   updatedAt: Date;
@@ -32,6 +46,8 @@ export interface AISession {
 export class AILearningService {
   private static instance: AILearningService;
   private sessions: Map<string, AISession> = new Map();
+  private courseData: WeekData[] = JEJU_COURSE_DATA;
+  private collaborationMethodology = AI_COLLABORATION_METHODOLOGY;
 
   static getInstance(): AILearningService {
     if (!AILearningService.instance) {
@@ -40,25 +56,63 @@ export class AILearningService {
     return AILearningService.instance;
   }
 
+  // 📚 코스 데이터 조회 메서드들
+  getWeekData(week: number): WeekData | undefined {
+    return this.courseData.find(w => w.id === week);
+  }
+
+  getPhaseData(week: number, phase: number): PhaseData | undefined {
+    const weekData = this.getWeekData(week);
+    return weekData?.phases.find(p => p.id === phase);
+  }
+
+  getAvailablePrompts(week: number, phase: number, mode: 'guided' | 'self-directed'): AIPrompt[] {
+    const phaseData = this.getPhaseData(week, phase);
+    if (!phaseData) return [];
+    
+    return phaseData.aiPrompts.filter(prompt => 
+      mode === 'guided' ? prompt.id.includes('guided') : prompt.id.includes('self')
+    );
+  }
+
+  getCollaborationTips(week: number, phase: number): string[] {
+    return this.collaborationMethodology.phaseSpecificTips[phase] || [];
+  }
+
   // 🤖 가이드형 vs 자기주도형 시스템 프롬프트 생성
   private generateSystemPrompt(week: number, phase: number, mode: 'guided' | 'self-directed'): string {
+    const weekData = this.getWeekData(week);
+    const phaseData = this.getPhaseData(week, phase);
+    const collaborationTips = this.getCollaborationTips(week, phase);
+    
     const baseContext = `
 당신은 제주도 여행 기획을 통해 AI 협업을 가르치는 전문 교육 도우미입니다.
 
 **현재 학습 상황:**
-- ${week}주차: ${week}주차 학습
-- ${phase}페이즈: ${phase}페이즈 실습
-- 학습 목표: AI와 함께하는 실습 학습
-- 예상 시간: 30분
+- ${week}주차: ${weekData?.title || `${week}주차 학습`}
+- ${phase}페이즈: ${phaseData?.title || `${phase}페이즈 실습`}
+- 학습 목표: ${weekData?.objectives.join(', ') || 'AI와 함께하는 실습 학습'}
+- 예상 시간: ${phaseData?.duration || '30분'}
+- 난이도: ${weekData?.difficulty || 'intermediate'}
+
+**이번 주차 목표:**
+${weekData?.objectives.map(obj => `- ${obj}`).join('\n') || ''}
+
+**현재 페이즈 설명:**
+${phaseData?.description || ''}
+
+**AI 협업 핵심 기법:**
+${collaborationTips.map(tip => `- ${tip}`).join('\n')}
 
 **과제 내용:**
 ${mode === 'guided' ? 
-  '단계별 가이드를 통한 체계적 학습을 진행합니다.' : 
-  '자기주도적 탐구를 통한 창의적 학습을 진행합니다.'
+  phaseData?.guidedContent?.description || '단계별 가이드를 통한 체계적 학습을 진행합니다.' : 
+  phaseData?.selfDirectedContent?.description || '자기주도적 탐구를 통한 창의적 학습을 진행합니다.'
 }
 `;
 
     if (mode === 'guided') {
+      const guidedContent = phaseData?.guidedContent;
       return `${baseContext}
 
 **🎯 가이드형 모드 - 당신의 역할:**
@@ -68,21 +122,31 @@ ${mode === 'guided' ?
 4. **체크포인트**: 각 단계 완료 시 이해도를 확인합니다
 5. **다음 단계 제시**: 현재 단계 완료 후 명확한 다음 단계를 제시합니다
 
+**이번 페이즈 목표:**
+${guidedContent?.objective || '단계별 체계적 학습을 통한 목표 달성'}
+
+**학습 진행 방식:**
+${guidedContent?.thinkingProcess || '체계적이고 논리적인 단계별 접근'}
+
+**핵심 가이드 질문들:**
+${guidedContent?.selfGuideQuestions?.map(q => `- ${q}`).join('\n') || ''}
+
+**주의사항:**
+${guidedContent?.warnings?.map(w => `- ${w}`).join('\n') || ''}
+
 **말하는 방식:**
 - "이제 [구체적 작업]을 해보겠습니다"
 - "다음 질문에 답해보세요: [구체적 질문]"
 - "훌륭합니다! 이제 [다음 단계]로 넘어가봅시다"
 - 단계별로 체계적이고 친절하게 안내
 
-**예시 대화 흐름:**
-"좋습니다! 제주도 여행 계획의 첫 단계로 여행 목적을 명확히 해보겠습니다. 
-다음 질문에 답해주세요:
-1. 이번 제주도 여행의 주요 목적은 무엇인가요? (휴식/관광/체험/기타)
-2. 함께 가는 사람은 누구인가요?
-3. 선호하는 여행 스타일은 어떤가요?
+**체크포인트:**
+${phaseData?.checkpoints?.map(cp => `- ${cp}`).join('\n') || ''}
 
-이 질문들에 답하시면 맞춤형 여행 계획을 세워보겠습니다!"`;
+**예상 결과물:**
+${phaseData?.deliverables?.map(d => `- ${d}`).join('\n') || ''}`;
     } else {
+      const selfDirectedContent = phaseData?.selfDirectedContent;
       return `${baseContext}
 
 **🚀 자기주도형 모드 - 당신의 역할:**
@@ -92,48 +156,70 @@ ${mode === 'guided' ?
 4. **사고 촉진**: 더 깊이 생각할 수 있도록 사고를 확장시킵니다
 5. **자율성 존중**: 학습자의 선택과 방향을 존중하며 지원합니다
 
+**이번 페이즈 목표:**
+${selfDirectedContent?.objective || '자기주도적 학습을 통한 창의적 문제 해결'}
+
+**사고 접근법:**
+${selfDirectedContent?.thinkingProcess || '창의적이고 자유로운 탐구 방식'}
+
+**탐구 가이드 질문들:**
+${selfDirectedContent?.selfGuideQuestions?.map(q => `- ${q}`).join('\n') || ''}
+
+**도움이 되는 팁들:**
+${selfDirectedContent?.tips?.map(t => `- ${t}`).join('\n') || ''}
+
+**주의사항:**
+${selfDirectedContent?.warnings?.map(w => `- ${w}`).join('\n') || ''}
+
 **말하는 방식:**
 - "어떤 방향으로 접근해보고 싶으신가요?"
 - "이런 관점도 고려해볼 수 있겠네요"
 - "흥미로운 접근이네요! 더 발전시켜보면 어떨까요?"
 - 학습자의 주도성을 존중하며 지원
 
-**예시 대화 흐름:**
-"제주도 여행 계획을 스스로 세워보는 실습을 시작해보겠습니다!
+**체크포인트:**
+${phaseData?.checkpoints?.map(cp => `- ${cp}`).join('\n') || ''}
 
-어떤 방향으로 계획을 세워보고 싶으신가요? 예를 들어:
-- 관심 지역부터 정하기
-- 여행 테마부터 설정하기  
-- 예산이나 일정부터 고려하기
-
-어떤 방법이든 좋습니다. 여러분만의 접근 방식으로 시작해보세요. 
-진행하면서 막히는 부분이 있으면 언제든 도움을 요청하세요!"`;
+**예상 결과물:**
+${phaseData?.deliverables?.map(d => `- ${d}`).join('\n') || ''}`;
     }
   }
 
-  // 🎨 실제 AI API 호출 시뮬레이션 (실제로는 OpenAI/Claude API 사용)
+  // 🤖 실제 AI API 호출 (Gemini API 사용)
   async generateAIResponse(
     userMessage: string, 
     session: AISession,
     conversationHistory: AIMessage[]
   ): Promise<string> {
-    // 실제 구현에서는 OpenAI API 호출
-    /*
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
-        { role: "user", content: userMessage }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    });
-    return response.choices[0].message.content;
-    */
+    try {
+      // Gemini API 키가 설정되어 있는지 확인
+      if (!checkGeminiAPIKey()) {
+        console.warn('Gemini API key not found, falling back to simulation mode');
+        return this.simulateAIResponse(userMessage, session, conversationHistory);
+      }
 
-    // 현재는 시뮬레이션으로 실제 AI 응답 스타일 구현
-    return this.simulateAIResponse(userMessage, session, conversationHistory);
+      // 시스템 프롬프트 생성
+      const systemPrompt = this.generateSystemPrompt(session.week, session.phase, session.mode);
+      
+      // 대화 히스토리를 Gemini 형식으로 변환 (시스템 메시지 제외)
+      const chatHistory = conversationHistory
+        .filter(msg => msg.role !== 'system')
+        .map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content
+        }));
+
+      // Gemini API 호출
+      const response = await callGeminiAPI(systemPrompt, chatHistory, userMessage);
+      
+      return response;
+      
+    } catch (error) {
+      console.error('AI Response Generation Error:', error);
+      
+      // 에러 발생 시 시뮬레이션 모드로 fallback
+      return this.simulateAIResponse(userMessage, session, conversationHistory);
+    }
   }
 
   // 📝 AI 응답 시뮬레이션 (실제 AI처럼 동작)
@@ -341,6 +427,9 @@ D) **북부 지역**: 용두암, 만장굴, 김녕해수욕장 (독특한 지형
     try {
       const sessionId = `${userId}-${week}-${phase}-${Date.now()}`;
       const systemPrompt = this.generateSystemPrompt(week, phase, mode);
+      const weekData = this.getWeekData(week);
+      const phaseData = this.getPhaseData(week, phase);
+      const availablePrompts = this.getAvailablePrompts(week, phase, mode);
       
       const session: AISession = {
         id: sessionId,
@@ -353,14 +442,29 @@ D) **북부 지역**: 용두암, 만장굴, 김녕해수욕장 (독특한 지형
             role: 'system',
             content: systemPrompt,
             timestamp: new Date(),
-            metadata: { week, phase, mode, messageType: 'introduction' }
+            metadata: { 
+              week, 
+              phase, 
+              mode, 
+              messageType: 'introduction',
+              courseContext: weekData ? {
+                weekTitle: weekData.title,
+                phaseTitle: phaseData?.title || '',
+                objectives: weekData.objectives,
+                resources: weekData.resources.map(r => r.title)
+              } : undefined
+            }
           }
         ],
         context: {
           learningProgress: 0,
           completedTasks: [],
-          currentFocus: `${week}주차 ${phase}페이즈`,
-          userLearningStyle: mode
+          currentFocus: `${weekData?.title || week + '주차'} - ${phaseData?.title || phase + '페이즈'}`,
+          userLearningStyle: mode,
+          courseData: weekData,
+          phaseData: phaseData,
+          availablePrompts: availablePrompts,
+          completedCheckpoints: []
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -449,6 +553,77 @@ D) **북부 지역**: 용두암, 만장굴, 김녕해수욕장 (독특한 지형
       console.error('Error saving session:', error);
       throw new Error('Failed to save session');
     }
+  }
+
+  // 🎯 향상된 코스 데이터 통합 메서드들
+  
+  // 특정 프롬프트 가져오기
+  getPromptById(promptId: string): AIPrompt | undefined {
+    for (const weekData of this.courseData) {
+      for (const phase of weekData.phases) {
+        const prompt = phase.aiPrompts.find(p => p.id === promptId);
+        if (prompt) return prompt;
+      }
+    }
+    return undefined;
+  }
+
+  // 체크포인트 완료 처리
+  markCheckpointCompleted(sessionId: string, checkpoint: string): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+
+    if (!session.context.completedCheckpoints?.includes(checkpoint)) {
+      session.context.completedCheckpoints = [
+        ...(session.context.completedCheckpoints || []),
+        checkpoint
+      ];
+      session.updatedAt = new Date();
+      return true;
+    }
+    return false;
+  }
+
+  // 학습 진행률 계산
+  calculatePhaseProgress(sessionId: string): number {
+    const session = this.sessions.get(sessionId);
+    if (!session?.context.phaseData) return 0;
+
+    const totalCheckpoints = session.context.phaseData.checkpoints.length;
+    const completedCheckpoints = session.context.completedCheckpoints?.length || 0;
+    
+    return totalCheckpoints > 0 ? Math.round((completedCheckpoints / totalCheckpoints) * 100) : 0;
+  }
+
+  // 다음 추천 프롬프트 가져오기
+  getNextRecommendedPrompt(sessionId: string): AIPrompt | undefined {
+    const session = this.sessions.get(sessionId);
+    if (!session?.context.availablePrompts) return undefined;
+
+    // 아직 사용하지 않은 프롬프트 중 첫 번째 반환
+    const usedPromptIds = session.messages
+      .filter(msg => msg.metadata?.promptId)
+      .map(msg => msg.metadata!.promptId!);
+
+    return session.context.availablePrompts.find(
+      prompt => !usedPromptIds.includes(prompt.id)
+    );
+  }
+
+  // 코스 리소스 가져오기
+  getCourseResources(week: number) {
+    const weekData = this.getWeekData(week);
+    return weekData?.resources || [];
+  }
+
+  // AI 협업 방법론 가져오기
+  getCollaborationMethodology() {
+    return this.collaborationMethodology;
+  }
+
+  // 전체 코스 데이터 가져오기 (관리자용)
+  getAllCourseData() {
+    return this.courseData;
   }
 }
 

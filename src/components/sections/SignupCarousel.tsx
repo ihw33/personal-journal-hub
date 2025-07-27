@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ImageWithFallback } from '../ui/ImageWithFallback';
 
 const carouselData = [
   {

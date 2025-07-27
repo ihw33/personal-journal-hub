@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { useAuth } from "../../contexts/AuthContext";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Checkbox } from "./ui/checkbox";
+} from "../ui/select";
+import { Checkbox } from "../ui/checkbox";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { SocialLoginButtons } from "./SocialLoginButtons";
 import { toast } from "sonner";

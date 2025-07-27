@@ -1,4 +1,7 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
+import { AILearningService } from '@/services/AIService';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -47,7 +50,9 @@ export function AIPracticePage({ language, onNavigate, week = 1, phase = 1, mode
   const [isLoading, setIsLoading] = useState(false);
   const [taskProgress, setTaskProgress] = useState(0);
   const [isTaskCompleted, setIsTaskCompleted] = useState(false);
+  const [aiSession, setAiSession] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const aiService = AILearningService.getInstance();
 
   const content = {
     ko: {
@@ -102,13 +107,22 @@ export function AIPracticePage({ language, onNavigate, week = 1, phase = 1, mode
 
   const t = content[language];
 
-  // 초기 AI 메시지
+  // AI 세션 초기화 및 초기 메시지
   useEffect(() => {
-    const initialMessage: AIMessage = {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: language === 'ko' 
-        ? `안녕하세요! 저는 제주도 여행 계획을 도와드릴 AI 어시스턴트입니다. 🌺
+    const initializeAISession = async () => {
+      try {
+        // AI 세션 생성
+        const session = await aiService.createSession(
+          `user-${Date.now()}`, // 임시 사용자 ID
+          week,
+          phase,
+          mode
+        );
+        setAiSession(session);
+
+        // 초기 AI 메시지 생성
+        const welcomeMessage = language === 'ko' 
+          ? `안녕하세요! 저는 제주도 여행 계획을 도와드릴 AI 어시스턴트입니다. 🌺
 
 ${week}주차 ${phase}단계에서는 AI와 협업하여 여행 계획의 기초를 다져보겠습니다.
 
@@ -118,7 +132,7 @@ ${week}주차 ${phase}단계에서는 AI와 협업하여 여행 계획의 기초
 3. 제주도에서 꼭 해보고 싶은 것이 있다면 무엇인가요?
 
 편하게 대화하듯이 말씀해 주세요! 😊`
-        : `Hello! I'm an AI assistant here to help you plan your Jeju Island trip. 🌺
+          : `Hello! I'm an AI assistant here to help you plan your Jeju Island trip. 🌺
 
 In Week ${week} Phase ${phase}, we'll work together to build the foundation of your travel plan.
 
@@ -127,12 +141,34 @@ Let's start with a few questions:
 2. What kind of trip atmosphere do you want? (relaxation, activities, cultural exploration, etc.)
 3. Is there anything you absolutely want to do in Jeju?
 
-Please talk to me naturally! 😊`,
-      timestamp: new Date(),
-      type: 'guidance'
+Please talk to me naturally! 😊`;
+
+        const initialMessage: AIMessage = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: welcomeMessage,
+          timestamp: new Date(),
+          type: 'guidance'
+        };
+
+        setMessages([initialMessage]);
+      } catch (error) {
+        console.error('Failed to initialize AI session:', error);
+        // 에러 시 기본 메시지로 fallback
+        const fallbackMessage: AIMessage = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: language === 'ko' 
+            ? '안녕하세요! AI 서비스 초기화 중 문제가 발생했습니다. 시뮬레이션 모드로 진행하겠습니다.'
+            : 'Hello! There was an issue initializing the AI service. We\'ll proceed in simulation mode.',
+          timestamp: new Date(),
+          type: 'guidance'
+        };
+        setMessages([fallbackMessage]);
+      }
     };
 
-    setMessages([initialMessage]);
+    initializeAISession();
   }, [week, phase, language]);
 
   // 메시지 전송
@@ -151,13 +187,14 @@ Please talk to me naturally! 😊`,
     setIsLoading(true);
 
     try {
-      // 실제 AI 서비스 연동 시 여기에 구현
-      // 현재는 시뮬레이션 응답
-      setTimeout(() => {
+      // 실제 AI 서비스를 사용한 메시지 처리
+      if (aiSession) {
+        const result = await aiService.processMessage(aiSession.id, currentMessage);
+        
         const aiResponse: AIMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: generateAIResponse(currentMessage, language),
+          content: result.aiResponse,
           timestamp: new Date(),
           type: 'feedback'
         };
@@ -171,7 +208,28 @@ Please talk to me naturally! 😊`,
         if (taskProgress >= 85) {
           setIsTaskCompleted(true);
         }
-      }, 2000);
+      } else {
+        // 세션이 없는 경우 시뮬레이션 모드로 fallback
+        setTimeout(() => {
+          const aiResponse: AIMessage = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: generateAIResponse(currentMessage, language),
+            timestamp: new Date(),
+            type: 'feedback'
+          };
+
+          setMessages(prev => [...prev, aiResponse]);
+          setIsLoading(false);
+          
+          // 진행률 업데이트
+          setTaskProgress(prev => Math.min(prev + 15, 100));
+          
+          if (taskProgress >= 85) {
+            setIsTaskCompleted(true);
+          }
+        }, 2000);
+      }
     } catch (error) {
       console.error('AI response error:', error);
       setIsLoading(false);
