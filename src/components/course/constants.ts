@@ -92,9 +92,19 @@ export const PHASE_SUBMISSION_CONTENT = {
   en: {
     title: "Practice Submission",
     subtitle: "Share your AI collaboration results",
+    
+    aiTools: {
+      claude: "Claude",
+      chatgpt: "ChatGPT", 
+      integrated: "Integrated AI Chatbot",
+      other: "Other"
+    },
+    
     submitButton: "Submit Phase",
     submittedTitle: "Phase Submitted!",
-    submittedMessage: "Your Phase results with AI conversation have been submitted successfully."
+    submittedMessage: "Your Phase results with AI conversation have been submitted successfully.",
+    backToCourse: "Back to Course",
+    viewFeedback: "View Feedback"
   }
 };
 

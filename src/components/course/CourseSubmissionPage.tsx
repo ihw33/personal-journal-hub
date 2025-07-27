@@ -165,12 +165,80 @@ export function CourseSubmissionPage({ language, week, onNavigate }: CourseSubmi
       title: `Week ${week} Assignment Submission`,
       subtitle: "Please share your AI conversation results and learning experience",
       
+      sections: {
+        basicInfo: "Basic Information",
+        learningMode: "Learning Method Information", 
+        aiConversation: "AI Conversation Results",
+        reflection: "Learning Reflection",
+        submission: "Submit"
+      },
+      
+      fields: {
+        studentName: "Name",
+        email: "Email",
+        week: "Week",
+        submissionDate: "Submission Date",
+        learningMode: "Primary Learning Method",
+        phaseBreakdown: "Phase Details",
+        aiToolUsed: "AI Tool Used",
+        conversationLinks: "Conversation Links",
+        reflection: "Learning Reflection",
+        challenges: "Challenges and Difficulties",
+        improvements: "Improvements and Suggestions",
+        overallSatisfaction: "Overall Satisfaction"
+      },
+      
+      modeOptions: {
+        guided: "Guided-focused",
+        selfDirected: "Self-directed-focused",
+        mixed: "Mixed (Different per Phase)"
+      },
+      
+      aiTools: {
+        claude: "Claude",
+        chatgpt: "ChatGPT",
+        both: "Both Used",
+        other: "Other"
+      },
+      
+      placeholders: {
+        studentName: "John Doe",
+        email: "student@example.com",
+        conversationLink: "https://claude.ai/chat/...",
+        reflection: "The most impressive aspect of this week was...",
+        challenges: "The most difficult part or unexpected aspects...",
+        improvements: "Suggestions for next week or course improvements..."
+      },
+      
+      phaseLabels: {
+        1: "Phase 1: Initial Exploration",
+        2: "Phase 2: Deep Exploration",
+        3: "Phase 3: Collection Organization"
+      },
+      
+      satisfactionLabels: {
+        1: "Very Unsatisfied",
+        2: "Unsatisfied",
+        3: "Neutral", 
+        4: "Satisfied",
+        5: "Very Satisfied"
+      },
+      
       submitButton: "Submit Assignment",
       submittedTitle: "Submission Complete!",
       submittedMessage: "Your assignment has been submitted successfully. You will receive feedback after instructor review.",
       
       backToCourse: "Back to Course",
-      viewFeedback: "View Feedback"
+      viewFeedback: "View Feedback",
+      
+      instructorInfo: {
+        title: "Instructor Review Information",
+        subtitle: "This is how the submitted information is delivered to the instructor",
+        learningPattern: "Learning Pattern",
+        timeSpent: "Time Spent",
+        toolPreference: "Tool Preference", 
+        engagementLevel: "Engagement Level"
+      }
     }
   };
 

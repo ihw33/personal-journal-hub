@@ -475,7 +475,8 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              {t.comparisonTitle}
+              {/* @ts-ignore */}
+              {t.comparisonTitle || "Course Comparison"}
             </h2>
             
             <div className="grid lg:grid-cols-2 gap-8">
