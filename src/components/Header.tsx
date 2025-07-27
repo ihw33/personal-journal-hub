@@ -32,7 +32,7 @@ export const Header = React.memo(({
   onLanguageToggle, 
   currentPage,
   onNavigate 
-}: HeaderProps) {
+}: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut, getUserType } = useAuth();
   const userType = getUserType();

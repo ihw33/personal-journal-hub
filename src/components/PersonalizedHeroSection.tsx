@@ -484,7 +484,7 @@ const GuestHeroSection = React.memo(({ language, onNavigate }: { language: 'ko' 
       </div>
     </section>
   );
-}
+});
 
 // 👤 일반 회원 히어로 섹션 (v118: 성능 최적화)
 const MemberHeroSection = React.memo(({ 
@@ -743,4 +743,4 @@ const MemberHeroSection = React.memo(({
       </div>
     </section>
   );
-}
+});
