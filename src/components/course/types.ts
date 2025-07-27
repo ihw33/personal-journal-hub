@@ -179,37 +179,3 @@ export interface Achievement {
   week?: number;
   phase?: number;
 }
-
-// 추가 타입 정의들
-export interface PhaseSubmissionData {
-  id: string;
-  phaseId: string;
-  studentId: string;
-  content: {
-    practiceResults: string;
-    reflections: string;
-    challenges: string;
-    insights: string;
-    nextSteps: string;
-  };
-  chatHistory: ChatMessage[];
-  submissionDate: Date;
-  status: 'draft' | 'submitted' | 'reviewed';
-}
-
-export interface ContentText {
-  title: string;
-  subtitle: string;
-  content: string;
-  type: 'text' | 'markdown' | 'html';
-}
-
-export interface PhaseInfo {
-  id: number;
-  title: string;
-  description: string;
-  estimatedTime: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  objectives: string[];
-  outcomes: string[];
-}

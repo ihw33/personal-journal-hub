@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { HeaderV05 } from '@/components/layout/HeaderV05';
-import { HeroSection } from '@/components/sections/HeroSection';
-import { PersonalizedHeroSection } from '@/components/sections/PersonalizedHeroSection';
-import { ProcessSection } from '@/components/sections/ProcessSection';
+import { HeroSection } from '@/components/HeroSection';
+import { PersonalizedHeroSection } from '@/components/PersonalizedHeroSection';
+import { ProcessSection } from '@/components/ProcessSection';
+import { FeaturesSection } from '@/components/FeaturesSection';
+import { CreatorSection } from '@/components/CreatorSection';
 import { FeaturedJournals } from '@/components/sections/FeaturedJournals';
 import { NewsletterSection } from '@/components/sections/NewsletterSection';
 import { Footer } from '@/components/sections/Footer';
@@ -61,7 +63,9 @@ export default function Home() {
           <HeroSection language={language} onNavigate={navigateTo} />
         )}
         
+        <FeaturesSection language={language} />
         <ProcessSection language={language} />
+        <CreatorSection language={language} />
         <FeaturedJournals language={language} />
         <NewsletterSection language={language} />
         

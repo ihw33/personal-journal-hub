@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
+import { Separator } from '../ui/separator';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -29,16 +29,30 @@ import {
   Video,
   Calendar
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface TrialCoursePageProps {
   language: 'ko' | 'en';
-  onNavigate?: (page: string, journalId?: string, category?: string, week?: number, phase?: number, mode?: 'guided' | 'self-directed') => void;
+  onNavigate: (page: string, journalId?: string, category?: string, week?: number, phase?: number, mode?: 'guided' | 'self-directed') => void;
 }
 
 export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) {
+  const { user, getUserType } = useAuth();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const userType = getUserType();
+
+  // 비로그인 사용자는 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (userType === 'guest') {
+      toast.info('체험강의는 회원가입 후 이용 가능합니다.');
+      onNavigate('auth');
+      return;
+    }
+  }, [userType, onNavigate]);
 
   const content = {
     ko: {
@@ -182,112 +196,7 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
       congratsTitle: '🎉 Congratulations on Completing the Trial!',
       congratsMessage: 'Now experience deeper AI collaboration in the full course',
       learnedTitle: 'What You Learned',
-      nextStepsTitle: 'Next Steps',
-      fullCourseFeatures: {
-        title: 'In the Full Course',
-        items: [
-          '8-week Complete Curriculum',
-          'Personal AI Mentor',
-          'Complete Travel Plan',
-          'Community Membership',
-          'Certificate of Completion'
-        ]
-      },
-      steps: [
-        {
-          id: 1,
-          title: 'First Meeting with AI',
-          description: 'Understand the basic principles of AI collaboration',
-          duration: '5 minutes',
-          type: 'introduction',
-          content: {
-            title: 'What is AI Collaboration?',
-            description: 'AI is a partner that expands your thinking',
-            keyPoints: [
-              'AI as collaboration partner, not just a tool',
-              'Human creativity + AI processing power',
-              'Synergy for better results',
-              'Efficient decision-making support'
-            ],
-            tips: [
-              'Ask clear questions',
-              'Provide specific information',
-              'Give and receive feedback',
-              'Develop creative ideas'
-            ]
-          }
-        },
-        {
-          id: 2,
-          title: 'Jeju Island Research',
-          description: 'Explore the charm of Jeju Island with AI',
-          duration: '10 minutes',
-          type: 'research',
-          content: {
-            title: 'Starting Your Jeju Travel Plan',
-            description: 'Discover hidden gems of Jeju Island with AI',
-            prompt: 'I\'m planning a 3-night, 4-day trip to Jeju Island. I\'m visiting in spring (April) and love natural scenery and local restaurants. Which areas should I focus on?',
-            expectedResponse: 'Content AI can suggest',
-            keyAreas: [
-              'Seogwipo - Cheonjiyeon Falls, Jeongbang Falls',
-              'Seongsan Ilchulbong - Sunrise Peak',
-              'Hallasan - Spring azaleas',
-              'Jeju City - Dongmun Market, Black pork street'
-            ]
-          }
-        },
-        {
-          id: 3,
-          title: 'Personalized Itinerary',
-          description: 'Design your unique travel itinerary through AI conversation',
-          duration: '10 minutes',
-          type: 'planning',
-          content: {
-            title: 'Your Personal Jeju Travel Itinerary',
-            description: 'Create a customized itinerary reflecting your preferences',
-            scenarios: [
-              {
-                title: 'Couple Travelers',
-                preference: 'Romantic spots, photo locations',
-                suggestion: 'Seongsan Sunrise → Seopjikoji → Woljeongri Beach'
-              },
-              {
-                title: 'Family Travelers',
-                preference: 'Kid-friendly places',
-                suggestion: 'Teddy Bear Museum → Hallasan Trail → Jeju Folk Village'
-              },
-              {
-                title: 'Solo Travelers',
-                preference: 'Healing and relaxing time',
-                suggestion: 'Cafe tour → Coastal walking paths → Reading spots'
-              }
-            ]
-          }
-        },
-        {
-          id: 4,
-          title: 'Trial Complete',
-          description: 'Congratulations! You\'ve experienced the potential of AI collaboration',
-          duration: '5 minutes',
-          type: 'completion',
-          content: {
-            title: 'Congratulations on Completing the Trial!',
-            description: 'Now start deeper learning in the full course',
-            achievements: [
-              'Understanding AI collaboration basics',
-              'Learning effective questioning techniques',
-              'Achieving personalized results',
-              'Experiencing creative AI conversation'
-            ],
-            nextSteps: [
-              'Take the full 8-week course',
-              '1:1 learning with personal AI mentor',
-              'Complete actual travel plans',
-              'Community participation and experience sharing'
-            ]
-          }
-        }
-      ]
+      nextStepsTitle: 'Next Steps'
     }
   };
 
@@ -305,21 +214,31 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
     
     if (!isLastStep) {
       setCurrentStep(currentStep + 1);
+    } else {
+      // 체험 완료 처리
+      toast.success('🎉 체험강의 완주를 축하합니다!');
     }
   };
 
   const handleStartAIPractice = () => {
     // AI 실습으로 이동 (체험용 특별 모드)
-    if (onNavigate) {
-      onNavigate('ai-practice', undefined, undefined, 0, 1, 'guided');
-    }
+    onNavigate('ai-practice', undefined, undefined, 0, 1, 'guided');
   };
 
   const handleUpgrade = () => {
-    if (onNavigate) {
-      onNavigate('course-jeju');
-    }
+    toast.info('정식 과정 등록 페이지로 이동합니다.');
+    onNavigate('course-jeju');
   };
+
+  // 로딩 중이거나 비로그인 상태에서는 로딩 표시
+  if (userType === 'guest') {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-iwl-purple mx-auto mb-4"></div>
+        <p>로그인 페이지로 이동 중...</p>
+      </div>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-iwl-purple-50 via-white to-iwl-blue-50">
@@ -328,15 +247,14 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button
-                  variant="ghost"
-                  className="text-gray-600 hover:text-iwl-purple"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t.backToHome}
-                </Button>
-              </Link>
+              <Button
+                variant="ghost"
+                onClick={() => onNavigate('home')}
+                className="text-gray-600 hover:text-iwl-purple"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                {t.backToHome}
+              </Button>
               <div className="border-l border-gray-300 pl-4">
                 <h1 className="text-xl font-bold text-gray-900">{t.title}</h1>
                 <p className="text-sm text-gray-600">{t.subtitle}</p>
@@ -490,12 +408,13 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
                     <div className="bg-gray-50 rounded-lg p-4 mb-4">
                       <p className="text-gray-700 italic">"{currentStepData.content.prompt}"</p>
                     </div>
-                    <Link href="/ai-practice">
-                      <Button className="w-full bg-iwl-gradient hover:opacity-90 text-white">
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        AI와 대화 시작하기
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={handleStartAIPractice}
+                      className="w-full bg-iwl-gradient hover:opacity-90 text-white"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      AI와 대화 시작하기
+                    </Button>
                   </div>
 
                   <div className="bg-gradient-to-r from-iwl-purple-50 to-iwl-blue-50 rounded-lg p-6">
@@ -604,25 +523,23 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link href="/course">
-                      <Button
-                        size="lg"
-                        className="bg-iwl-gradient hover:opacity-90 text-white font-semibold px-8 py-3"
-                      >
-                        <Sparkles className="w-5 h-5 mr-2" />
-                        {t.upgradeNow}
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </Link>
-                    <Link href="/">
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold px-8 py-3"
-                      >
-                        나중에 결정하기
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={handleUpgrade}
+                      size="lg"
+                      className="bg-iwl-gradient hover:opacity-90 text-white font-semibold px-8 py-3"
+                    >
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      {t.upgradeNow}
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                    <Button
+                      onClick={() => onNavigate('home')}
+                      variant="outline"
+                      size="lg"
+                      className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold px-8 py-3"
+                    >
+                      나중에 결정하기
+                    </Button>
                   </div>
                 </div>
               )}

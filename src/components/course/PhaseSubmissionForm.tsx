@@ -33,7 +33,7 @@ interface PhaseSubmissionFormProps {
   content: ContentText;
   phaseInfo: PhaseInfo;
   phase: number;
-  onInputChange: (field: keyof PhaseSubmissionData, value: unknown) => void;
+  onInputChange: (field: keyof PhaseSubmissionData, value: any) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
   showChatPreview: boolean;

@@ -22,7 +22,9 @@ import {
   Star,
   Calendar,
   Award,
-  BarChart3
+  BarChart3,
+  Lock,
+  AlertCircle
 } from 'lucide-react';
 
 import { JEJU_COURSE_DATA, WeekData } from './courseData';
@@ -69,6 +71,7 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
       completed: '완료됨',
       inProgress: '진행 중',
       notStarted: '시작 전',
+      locked: '잠금됨',
       weekProgress: '주차 진행률',
       nextWeek: '다음 주차',
       prevWeek: '이전 주차',
@@ -76,7 +79,10 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
       selfDirectedMode: '자기주도형',
       beginnerLevel: '초급',
       intermediateLevel: '중급',
-      advancedLevel: '고급'
+      advancedLevel: '고급',
+      phaseLockedMessage: '이전 페이즈를 완료하면 잠금 해제됩니다',
+      sequentialLearning: '순차 학습',
+      sequentialDesc: '페이즈는 순서대로 진행됩니다. 이전 페이즈를 완료해야 다음 페이즈를 시작할 수 있습니다.'
     },
     en: {
       title: `Week ${week} Learning`,
@@ -95,6 +101,7 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
       completed: 'Completed',
       inProgress: 'In Progress',
       notStarted: 'Not Started',
+      locked: 'Locked',
       weekProgress: 'Week Progress',
       nextWeek: 'Next Week',
       prevWeek: 'Previous Week',
@@ -102,7 +109,10 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
       selfDirectedMode: 'Self-Directed',
       beginnerLevel: 'Beginner',
       intermediateLevel: 'Intermediate',
-      advancedLevel: 'Advanced'
+      advancedLevel: 'Advanced',
+      phaseLockedMessage: 'Complete previous phase to unlock',
+      sequentialLearning: 'Sequential Learning',
+      sequentialDesc: 'Phases must be completed in order. Complete the previous phase to start the next one.'
     }
   };
 
@@ -115,6 +125,12 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
   const handlePhaseStart = (phaseId: number) => {
     if (!selectedMode) return;
     onNavigate('course-phase', undefined, undefined, week, phaseId, selectedMode);
+  };
+
+  // 페이즈 잠금 상태 확인
+  const isPhaseUnlocked = (phaseId: number) => {
+    if (phaseId === 1) return true; // 첫 번째 페이즈는 항상 열려있음
+    return completedPhases[phaseId - 1]; // 이전 페이즈가 완료되어야 함
   };
 
   const calculateProgress = () => {
@@ -158,6 +174,16 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
       case 'synthesis': return 'bg-green-100 text-green-700';
       case 'evaluation': return 'bg-orange-100 text-orange-700';
       default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getPhaseStatus = (phaseId: number) => {
+    if (completedPhases[phaseId]) {
+      return { status: 'completed', color: 'bg-green-100 text-green-700 border-green-300', text: t.completed };
+    } else if (!isPhaseUnlocked(phaseId)) {
+      return { status: 'locked', color: 'bg-gray-100 text-gray-500 border-gray-300', text: t.locked };
+    } else {
+      return { status: 'available', color: 'bg-blue-100 text-blue-700 border-blue-300', text: t.notStarted };
     }
   };
 
@@ -272,6 +298,19 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
             </CardContent>
           </Card>
 
+          {/* Sequential Learning Notice */}
+          <Card className="border-2 border-blue-200 bg-blue-50">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-6 h-6 text-blue-600 mt-1" />
+                <div>
+                  <h4 className="font-semibold text-blue-900 mb-2 text-lg">📚 {t.sequentialLearning}</h4>
+                  <p className="text-blue-800">{t.sequentialDesc}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Phase Learning */}
           <Card>
             <CardHeader>
@@ -283,73 +322,101 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {weekData.phases.map((phase, index) => (
-                  <Card 
-                    key={phase.id}
-                    className={`transition-all duration-200 border-2 ${
-                      selectedMode 
-                        ? 'border-iwl-purple/30 hover:border-iwl-purple/50 hover:shadow-md' 
-                        : 'border-gray-200 opacity-60'
-                    }`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-iwl-purple-100 rounded-full flex items-center justify-center">
-                            <span className="font-bold text-iwl-purple">P{phase.id}</span>
+                {weekData.phases.map((phase, index) => {
+                  const isUnlocked = isPhaseUnlocked(phase.id);
+                  const phaseStatus = getPhaseStatus(phase.id);
+                  
+                  return (
+                    <Card 
+                      key={phase.id}
+                      className={`transition-all duration-200 border-2 ${
+                        isUnlocked && selectedMode 
+                          ? 'border-iwl-purple/30 hover:border-iwl-purple/50 hover:shadow-md' 
+                          : !isUnlocked
+                          ? 'border-gray-200 bg-gray-50'
+                          : 'border-gray-200 opacity-60'
+                      }`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                              isUnlocked 
+                                ? completedPhases[phase.id] 
+                                  ? 'bg-green-100' 
+                                  : 'bg-iwl-purple-100'
+                                : 'bg-gray-100'
+                            }`}>
+                              {!isUnlocked ? (
+                                <Lock className="w-5 h-5 text-gray-400" />
+                              ) : completedPhases[phase.id] ? (
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                              ) : (
+                                <span className="font-bold text-iwl-purple">P{phase.id}</span>
+                              )}
+                            </div>
+                            <div className={`${!isUnlocked ? 'opacity-50' : ''}`}>
+                              <div className="flex items-center gap-3 mb-2">
+                                <h4 className="font-semibold text-gray-900 text-lg">{phase.title}</h4>
+                                <Badge className={getPhaseTypeColor(phase.type)}>
+                                  {getPhaseTypeIcon(phase.type)}
+                                  <span className="ml-1 capitalize">{phase.type}</span>
+                                </Badge>
+                              </div>
+                              <p className="text-gray-600 mb-2">{phase.subtitle}</p>
+                              <p className="text-sm text-gray-500">{phase.description}</p>
+                              <div className="flex items-center gap-4 mt-3">
+                                <div className="flex items-center gap-1 text-sm text-gray-500">
+                                  <Clock className="w-4 h-4" />
+                                  {phase.duration}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  체크포인트: {phase.checkpoints.length}개
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  결과물: {phase.deliverables.length}개
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="flex items-center gap-3 mb-2">
-                              <h4 className="font-semibold text-gray-900 text-lg">{phase.title}</h4>
-                              <Badge className={getPhaseTypeColor(phase.type)}>
-                                {getPhaseTypeIcon(phase.type)}
-                                <span className="ml-1 capitalize">{phase.type}</span>
-                              </Badge>
-                            </div>
-                            <p className="text-gray-600 mb-2">{phase.subtitle}</p>
-                            <p className="text-sm text-gray-500">{phase.description}</p>
-                            <div className="flex items-center gap-4 mt-3">
-                              <div className="flex items-center gap-1 text-sm text-gray-500">
-                                <Clock className="w-4 h-4" />
-                                {phase.duration}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                체크포인트: {phase.checkpoints.length}개
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                결과물: {phase.deliverables.length}개
-                              </div>
-                            </div>
+                          <div className="flex items-center gap-3">
+                            <Badge className={phaseStatus.color}>
+                              {phaseStatus.status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
+                              {phaseStatus.status === 'locked' && <Lock className="w-3 h-3 mr-1" />}
+                              {phaseStatus.text}
+                            </Badge>
+                            <Button
+                              onClick={() => handlePhaseStart(phase.id)}
+                              disabled={!selectedMode || !isUnlocked}
+                              className={`${
+                                selectedMode && isUnlocked
+                                  ? 'bg-iwl-purple hover:bg-iwl-purple/90 text-white' 
+                                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              {!isUnlocked ? (
+                                <Lock className="w-4 h-4 mr-2" />
+                              ) : (
+                                <Play className="w-4 h-4 mr-2" />
+                              )}
+                              {!isUnlocked ? t.locked : t.startPhase}
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {completedPhases[phase.id] ? (
-                            <Badge className="bg-green-100 text-green-700 border-green-300">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              {t.completed}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="border-gray-300 text-gray-600">
-                              {t.notStarted}
-                            </Badge>
-                          )}
-                          <Button
-                            onClick={() => handlePhaseStart(phase.id)}
-                            disabled={!selectedMode}
-                            className={`${
-                              selectedMode 
-                                ? 'bg-iwl-purple hover:bg-iwl-purple/90 text-white' 
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            }`}
-                          >
-                            <Play className="w-4 h-4 mr-2" />
-                            {t.startPhase}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        
+                        {/* 잠금된 페이즈 메시지 */}
+                        {!isUnlocked && (
+                          <div className="mt-4 p-3 bg-gray-100 rounded-lg border-l-4 border-gray-300">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <AlertCircle className="w-4 h-4" />
+                              {t.phaseLockedMessage}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

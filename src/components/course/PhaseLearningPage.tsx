@@ -10,14 +10,14 @@ import {
   CheckCircle,
   Clock,
   Play,
-  Eye
+  Eye,
+  Zap,
+  BookOpen
 } from 'lucide-react';
 
 import { PracticeBlock } from './ContentBlocks';
-import { IntegratedChatbot, FloatingChatButton } from './IntegratedChatbot';
 import { PhaseOverview } from './PhaseOverview';
 import { SubmissionOptions } from './SubmissionOptions';
-import { AICollaborationGuide } from './AICollaborationGuide';
 import { JEJU_COURSE_DATA, WeekData, PhaseData } from './courseData';
 import { ChatSession } from './types';
 import { getModeIcon, getModeColor, getPhaseTypeIcon, getPhaseTypeColor, PHASE_CONTENT } from './phaseHelpers';
@@ -32,9 +32,6 @@ interface PhaseLearningPageProps {
 
 export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: PhaseLearningPageProps) {
   const [completionStatus, setCompletionStatus] = useState<'not-started' | 'in-progress' | 'completed'>('not-started');
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [currentChatSession, setCurrentChatSession] = useState<ChatSession | null>(null);
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   // 실제 주차 및 Phase 데이터 가져오기
   const weekData: WeekData = JEJU_COURSE_DATA.find(w => w.id === week) || JEJU_COURSE_DATA[0];
@@ -55,9 +52,10 @@ export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: P
 
   const handleComplete = () => setCompletionStatus('completed');
   const handleModeChange = () => onNavigate('course-week', undefined, undefined, week);
-  const handleChatToggle = () => {
-    setIsChatOpen(!isChatOpen);
-    if (hasUnreadMessages) setHasUnreadMessages(false);
+
+  // AI 실습으로 이동하는 핸들러
+  const handleStartAIPractice = () => {
+    onNavigate('ai-practice', undefined, undefined, week, phase, mode);
   };
 
   const handleSubmissionChoice = (type: 'phase-submit' | 'weekly-submit' | 'continue') => {
@@ -71,16 +69,6 @@ export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: P
         onNavigate('course-phase', undefined, undefined, week, phase + 1, mode);
       } else {
         onNavigate('course-submit', undefined, undefined, week);
-      }
-    }
-  };
-
-  const handleChatSessionUpdate = (session: ChatSession) => {
-    setCurrentChatSession(session);
-    if (session.messages.length > 0) {
-      const lastMessage = session.messages[session.messages.length - 1];
-      if (lastMessage.role === 'assistant' && !isChatOpen) {
-        setHasUnreadMessages(true);
       }
     }
   };
@@ -130,18 +118,6 @@ export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: P
                 <RotateCcw className="w-4 h-4" />
                 {t.modeChange}
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleChatToggle}
-                className="gap-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white"
-              >
-                <MessageCircle className="w-4 h-4" />
-                {t.aiChatbot}
-                {hasUnreadMessages && (
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                )}
-              </Button>
               <div className="text-right">
                 <div className="text-sm text-gray-600">{t.estimatedTime}</div>
                 <div className="font-semibold text-iwl-purple">{phaseData.duration}</div>
@@ -162,31 +138,22 @@ export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: P
             language={language}
           />
 
-          {/* AI Collaboration Guide */}
-          <AICollaborationGuide
-            language={language}
-            onToggleChatbot={handleChatToggle}
-            hasUnreadMessages={hasUnreadMessages}
-          />
-
-          {/* Practice Section */}
+          {/* 📚 실습과제 내용 섹션 - 가장 먼저 표시 */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-iwl-purple-50 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-iwl-purple" />
+                <BookOpen className="w-5 h-5 text-iwl-purple" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">🛠️ {t.practiceTask}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">📚 실습과제 상세 내용</h3>
                 <p className="text-gray-600">
-                  {mode === 'guided' 
-                    ? t.guidedApproach
-                    : t.selfDirectedApproach
-                  }
+                  아래 과제 내용을 충분히 읽고 이해한 후, AI와 함께 실습을 진행하세요
                 </p>
               </div>
               <Badge variant="secondary" className="ml-auto">{t.title} {phase}</Badge>
             </div>
 
+            {/* 과제 내용 상세 */}
             <PracticeBlock
               phaseNumber={phase}
               title={practiceContent.title}
@@ -198,8 +165,83 @@ export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: P
               examplePrompts={phaseData.aiPrompts}
               tips={practiceContent.tips}
               warnings={practiceContent.warnings}
+              onStartPractice={handleStartAIPractice}
             />
           </div>
+
+          {/* 🤖 AI 실습 시작 섹션 - 과제 내용을 읽은 후에 배치 */}
+          <Card className="border-2 border-iwl-purple/20 bg-gradient-to-br from-iwl-purple-50 to-iwl-blue-50">
+            <CardContent className="p-8">
+              <div className="text-center space-y-6">
+                <div className="w-16 h-16 bg-iwl-gradient rounded-full flex items-center justify-center mx-auto">
+                  <MessageCircle className="w-8 h-8 text-white" />
+                </div>
+                
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    🤖 과제를 충분히 읽으셨나요?
+                  </h3>
+                  <p className="text-lg text-iwl-purple font-medium mb-3">
+                    이제 AI와 함께 실습을 시작해보세요!
+                  </p>
+                  <p className="text-gray-600 text-base leading-relaxed max-w-2xl mx-auto">
+                    위에서 읽은 과제 내용을 바탕으로 AI와의 실시간 대화를 통해 단계별로 실습을 진행합니다. 
+                    모든 대화 내용은 자동으로 저장되며, Phase가 바뀌어도 이전 대화 맥락이 유지됩니다.
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                  <div className="bg-white/80 rounded-lg p-4 border border-iwl-purple/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageCircle className="w-5 h-5 text-iwl-purple" />
+                      <span className="font-medium text-gray-900">연결된 대화</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Phase 1→2→3까지 하나의 연결된 대화로 진행되어 맥락이 끊어지지 않습니다.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white/80 rounded-lg p-4 border border-iwl-purple/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-5 h-5 text-iwl-blue" />
+                      <span className="font-medium text-gray-900">자동 저장</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      모든 대화 내용이 실시간으로 저장되어 제출 시 자동으로 포함됩니다.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white/60 rounded-lg p-6 border border-iwl-purple/30">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <div className="w-8 h-8 bg-iwl-purple-100 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-bold text-iwl-purple">{phase}</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900">{phaseData.title}</h4>
+                    <Badge className="bg-iwl-gradient text-white">{phaseData.duration}</Badge>
+                  </div>
+                  <p className="text-gray-700 mb-6 leading-relaxed">
+                    {practiceContent.description}
+                  </p>
+                  
+                  <Button 
+                    onClick={handleStartAIPractice}
+                    size="lg"
+                    className="bg-iwl-gradient hover:opacity-90 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Zap className="w-5 h-5 mr-2" />
+                    AI 실습 시작하기
+                  </Button>
+                </div>
+
+                <div className="text-sm text-gray-500 bg-white/50 rounded-lg p-4">
+                  💡 <strong>실습 진행 방법:</strong> 위 버튼을 클릭하면 AI 실습 페이지로 이동하여 
+                  해당 Phase의 과제를 AI와 함께 단계별로 진행할 수 있습니다. 
+                  과제 내용에서 제공된 질문들과 예시 프롬프트를 활용해보세요!
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Submission Options */}
           <SubmissionOptions
@@ -260,25 +302,6 @@ export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: P
           </Card>
         </div>
       </div>
-
-      {/* 통합 챗봇 */}
-      <IntegratedChatbot
-        week={week}
-        phase={phase}
-        mode={mode}
-        isOpen={isChatOpen}
-        onToggle={handleChatToggle}
-        onSessionUpdate={handleChatSessionUpdate}
-      />
-
-      {/* 플로팅 챗봇 버튼 */}
-      <FloatingChatButton
-        week={week}
-        phase={phase}
-        mode={mode}
-        onToggle={handleChatToggle}
-        hasUnreadMessages={hasUnreadMessages}
-      />
     </div>
   );
 }

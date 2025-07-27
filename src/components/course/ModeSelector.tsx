@@ -222,7 +222,6 @@ export function ModeSelector({
   };
 
   const t = content[language];
-  // @ts-expect-error - weeklyInsights may not exist in all language variants
   const weekInsight = t.weeklyInsights?.[week as keyof typeof t.weeklyInsights];
 
   const handleModeSelect = (mode: 'guided' | 'self-directed') => {
@@ -233,8 +232,7 @@ export function ModeSelector({
   const getBalanceRecommendation = () => {
     const diff = Math.abs(personalStats.guidedExperience - personalStats.selfDirectedExperience);
     if (diff < 20) {
-      // @ts-expect-error - personalStats may not exist in all language variants
-      return t.personalStats?.balanced || "Balanced approach recommended";
+      return t.personalStats.balanced;
     } else if (personalStats.guidedExperience > personalStats.selfDirectedExperience) {
       return "자기주도형을 시도해보시는 것은 어떨까요?";
     } else {
@@ -252,12 +250,10 @@ export function ModeSelector({
           <p className="text-gray-600 text-lg">{t.subtitle}</p>
           
           {/* Week-specific guidance */}
-          {/* @ts-expect-error - weekSpecificGuidance may not exist in all language variants */}
-          {t.weekSpecificGuidance?.[week as keyof typeof t.weekSpecificGuidance] && (
+          {t.weekSpecificGuidance[week as keyof typeof t.weekSpecificGuidance] && (
             <div className="mt-4">
               <Badge variant="outline" className="border-iwl-purple text-iwl-purple text-sm px-4 py-2">
-                {/* @ts-expect-error - weekSpecificGuidance may not exist in all language variants */}
-                💬 {t.weekSpecificGuidance?.[week as keyof typeof t.weekSpecificGuidance]}
+                💬 {t.weekSpecificGuidance[week as keyof typeof t.weekSpecificGuidance]}
               </Badge>
             </div>
           )}
@@ -497,16 +493,14 @@ export function ModeSelector({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-iwl-purple" />
-              {/* @ts-expect-error - personalStats may not exist in all language variants */}
-              {t.personalStats?.title || "Personal Stats"}
+              {t.personalStats.title}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  {/* @ts-expect-error - personalStats may not exist in all language variants */}
-                  <span className="text-sm text-gray-600">{t.personalStats?.guidedExperience || "Guided Experience"}</span>
+                  <span className="text-sm text-gray-600">{t.personalStats.guidedExperience}</span>
                   <span className="text-sm font-medium text-blue-600">
                     {personalStats.guidedExperience}%
                   </span>
@@ -516,8 +510,7 @@ export function ModeSelector({
               
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  {/* @ts-expect-error - personalStats may not exist in all language variants */}
-                  <span className="text-sm text-gray-600">{t.personalStats?.selfDirectedExperience || "Self-Directed Experience"}</span>
+                  <span className="text-sm text-gray-600">{t.personalStats.selfDirectedExperience}</span>
                   <span className="text-sm font-medium text-green-600">
                     {personalStats.selfDirectedExperience}%
                   </span>
@@ -539,8 +532,7 @@ export function ModeSelector({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Brain className="w-5 h-5 text-iwl-blue" />
-              {/* @ts-expect-error - aiInsights may not exist in all language variants */}
-              {t.aiInsights?.title || "AI Insights"}
+              {t.aiInsights.title}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -557,12 +549,10 @@ export function ModeSelector({
               
               <div className="text-center">
                 <Badge variant="outline" className="border-iwl-purple text-iwl-purple">
-                  {/* @ts-expect-error - phaseFlexibility may not exist in all language variants */}
-                  {t.phaseFlexibility || "Phase Flexibility"}
+                  {t.phaseFlexibility}
                 </Badge>
                 <p className="text-xs text-gray-600 mt-2">
-                  {/* @ts-expect-error - phaseFlexibilityDescription may not exist in all language variants */}
-                  {t.phaseFlexibilityDescription || "Switch between modes anytime during the course"}
+                  {t.phaseFlexibilityDescription}
                 </p>
               </div>
             </div>

@@ -229,7 +229,7 @@ export function ConceptBlock({ title, content, keyPoints }: ConceptBlockProps) {
   );
 }
 
-// Practice Block Component - 통합 챗봇 사용으로 업데이트
+// Practice Block Component - 통합 실습 버튼으로 간소화
 interface PracticeBlockProps {
   phaseNumber: number;
   title: string;
@@ -248,6 +248,7 @@ interface PracticeBlockProps {
   }>;
   tips: string[];
   warnings: string[];
+  onStartPractice?: () => void;
 }
 
 export function PracticeBlock({
@@ -260,23 +261,14 @@ export function PracticeBlock({
   selfGuideQuestions,
   examplePrompts,
   tips,
-  warnings
+  warnings,
+  onStartPractice
 }: PracticeBlockProps) {
   const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
 
   const copyPrompt = (content: string) => {
     navigator.clipboard.writeText(content);
-    toast.success('프롬프트가 복사되었습니다! AI 챗봇에 붙여넣기하세요.');
-  };
-
-  const openChatbot = () => {
-    // 플로팅 챗봇 버튼 클릭을 시뮬레이션
-    const chatButton = document.querySelector('[data-chat-toggle]') as HTMLElement;
-    if (chatButton) {
-      chatButton.click();
-    } else {
-      toast.info('오른쪽 하단의 AI 챗봇 버튼을 클릭해주세요!');
-    }
+    toast.success('프롬프트가 복사되었습니다! AI 실습에서 사용해보세요.');
   };
 
   return (
@@ -298,13 +290,6 @@ export function PracticeBlock({
               </div>
             </div>
           </div>
-          <Button 
-            onClick={openChatbot}
-            className="bg-iwl-gradient hover:opacity-90 text-white"
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            AI와 시작하기
-          </Button>
         </div>
       </CardHeader>
 
@@ -319,33 +304,6 @@ export function PracticeBlock({
               <div>
                 <span className="font-medium text-iwl-purple">목표: </span>
                 <span className="text-gray-700">{objective}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* AI 협력 안내 */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
-          <div className="flex items-start gap-3">
-            <MessageCircle className="w-5 h-5 text-green-600 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-green-900 mb-2">🤖 AI와 함께 실습하기</h4>
-              <p className="text-green-800 mb-3">
-                이 실습은 오른쪽 하단의 AI 챗봇을 활용하여 진행합니다. 
-                모든 대화는 자동으로 저장되며 Phase가 바뀌어도 맥락이 유지됩니다.
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm"
-                  onClick={openChatbot}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  챗봇 열기
-                </Button>
-                <Badge variant="outline" className="border-green-500 text-green-700">
-                  대화 자동 저장
-                </Badge>
               </div>
             </div>
           </div>
@@ -372,7 +330,7 @@ export function PracticeBlock({
           </div>
           <div className="mt-4 p-3 bg-iwl-purple-50 rounded-lg">
             <p className="text-sm text-iwl-purple">
-              💡 이 질문들을 AI 챗봇에게 하나씩 물어보며 대화를 시작해보세요!
+              💡 이 질문들을 AI 실습에서 하나씩 물어보며 대화를 시작해보세요!
             </p>
           </div>
         </div>
@@ -381,11 +339,11 @@ export function PracticeBlock({
         <div className="bg-white/80 rounded-lg p-4 border border-iwl-blue/20">
           <h4 className="font-semibold text-iwl-blue mb-3">💬 대화 시작 예시</h4>
           <p className="text-sm text-gray-600 mb-4">
-            아래 예시들을 참고하여 AI와 대화를 시작해보세요. 복사 버튼을 눌러 챗봇에 붙여넣을 수 있습니다.
+            아래 예시들을 참고하여 AI와 대화를 시작해보세요. 복사 버튼을 눌러 실습에서 사용할 수 있습니다.
           </p>
           
           <div className="space-y-3">
-            {examplePrompts.map((prompt) => (
+            {examplePrompts.slice(0, 3).map((prompt) => (
               <div key={prompt.id} className="border border-gray-200 rounded-lg overflow-hidden">
                 <div 
                   className="p-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
@@ -425,36 +383,28 @@ export function PracticeBlock({
                     <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-3 rounded-lg mb-3">
                       {prompt.content}
                     </pre>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-sm text-gray-600">통합 AI 챗봇에서 사용</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => copyPrompt(prompt.content)}
-                        >
-                          <Copy className="w-3 h-3 mr-1" />
-                          복사하기
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={openChatbot}
-                          className="bg-iwl-purple hover:bg-iwl-purple/90 text-white"
-                        >
-                          <MessageCircle className="w-3 h-3 mr-1" />
-                          챗봇에서 사용
-                        </Button>
-                      </div>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyPrompt(prompt.content)}
+                      className="w-full"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      복사하기
+                    </Button>
                   </div>
                 )}
               </div>
             ))}
           </div>
+          
+          {examplePrompts.length > 3 && (
+            <div className="mt-3 text-center">
+              <Badge variant="outline" className="text-xs">
+                +{examplePrompts.length - 3}개 더 많은 예시가 실습에서 제공됩니다
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Tips */}
@@ -490,22 +440,6 @@ export function PracticeBlock({
             </ul>
           </div>
         )}
-
-        {/* Action Button */}
-        <div className="bg-iwl-gradient rounded-lg p-4 text-center">
-          <h4 className="font-semibold text-white mb-2">🚀 실습 시작하기</h4>
-          <p className="text-white/90 text-sm mb-4">
-            AI 챗봇을 열어 Phase {phaseNumber} 실습을 시작하세요!
-          </p>
-          <Button 
-            onClick={openChatbot}
-            className="bg-white text-iwl-purple hover:bg-gray-100"
-            data-chat-toggle
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            AI 챗봇으로 실습하기
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

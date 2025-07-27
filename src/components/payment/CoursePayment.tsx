@@ -54,7 +54,7 @@ export function CoursePayment({ course, onSuccess, onCancel }: CoursePaymentProp
       // Stripe 결제 페이지로 리다이렉트
       await redirectToCheckout(sessionId);
       
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('결제 처리 오류:', error);
       toast.error(error.message || '결제 처리 중 오류가 발생했습니다.');
     } finally {

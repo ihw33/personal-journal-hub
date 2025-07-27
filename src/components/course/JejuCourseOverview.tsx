@@ -1,5 +1,6 @@
+"use client";
+
 import { useState } from 'react';
-import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -379,14 +380,13 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                     </div>
                   </div>
                   
-                  <Link href="/course/week/1">
-                    <Button 
-                      className="w-full bg-iwl-gradient hover:opacity-90 text-white font-semibold py-4 text-lg"
-                    >
-                      <Rocket className="w-5 h-5 mr-2" />
-                      {t.startCourse}
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={() => onNavigate('course-week', undefined, undefined, 1)}
+                    className="w-full bg-iwl-gradient hover:opacity-90 text-white font-semibold py-4 text-lg"
+                  >
+                    <Rocket className="w-5 h-5 mr-2" />
+                    {t.startCourse}
+                  </Button>
                 </div>
               </div>
 
@@ -477,8 +477,7 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              {/* @ts-expect-error - comparisonTitle may not exist in all language variants */}
-              {t.comparisonTitle || "Course Comparison"}
+              {t.comparisonTitle}
             </h2>
             
             <div className="grid lg:grid-cols-2 gap-8">
@@ -486,18 +485,15 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
               <Card className="border-2 border-blue-200 hover:shadow-lg transition-shadow">
                 <CardHeader className="bg-blue-50">
                   <CardTitle className="text-xl text-center">
-                    {/* @ts-expect-error - guidedMode may not exist in all language variants */}
-                    {t.guidedMode?.title || "Guided Mode"}
+                    {t.guidedMode.title}
                   </CardTitle>
                   <p className="text-center text-blue-600 font-medium">
-                    {/* @ts-expect-error - guidedMode may not exist in all language variants */}
-                    {t.guidedMode?.subtitle || "Guided learning experience"}
+                    {t.guidedMode.subtitle}
                   </p>
                 </CardHeader>
                 <CardContent className="p-6">
                   <ul className="space-y-3">
-                    {/* @ts-expect-error - guidedMode may not exist in all language variants */}
-                    {t.guidedMode?.features?.map((feature, index) => (
+                    {t.guidedMode.features.map((feature, index) => (
                       <li key={index} className="flex items-center gap-3">
                         <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
                         <span className="text-gray-700">{feature}</span>
@@ -511,18 +507,15 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
               <Card className="border-2 border-green-200 hover:shadow-lg transition-shadow">
                 <CardHeader className="bg-green-50">
                   <CardTitle className="text-xl text-center">
-                    {/* @ts-expect-error - selfDirectedMode may not exist in all language variants */}
-                    {t.selfDirectedMode?.title || "Self-Directed Mode"}
+                    {t.selfDirectedMode.title}
                   </CardTitle>
                   <p className="text-center text-green-600 font-medium">
-                    {/* @ts-expect-error - selfDirectedMode may not exist in all language variants */}
-                    {t.selfDirectedMode?.subtitle || "Self-paced learning experience"}
+                    {t.selfDirectedMode.subtitle}
                   </p>
                 </CardHeader>
                 <CardContent className="p-6">
                   <ul className="space-y-3">
-                    {/* @ts-expect-error - selfDirectedMode may not exist in all language variants */}
-                    {t.selfDirectedMode?.features?.map((feature, index) => (
+                    {t.selfDirectedMode.features.map((feature, index) => (
                       <li key={index} className="flex items-center gap-3">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span className="text-gray-700">{feature}</span>
@@ -541,13 +534,11 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              {/* @ts-expect-error - curriculumTitle may not exist in all language variants */}
-              {t.curriculumTitle || "Curriculum"}
+              {t.curriculumTitle}
             </h2>
             
             <div className="grid gap-6">
-              {/* @ts-expect-error - curriculum may not exist in all language variants */}
-              {t.curriculum?.map((week, index) => (
+              {t.curriculum.map((week, index) => (
                 <Card key={week.week} className={`${getWeekTypeColor(week.type)} border-2`}>
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
@@ -567,21 +558,20 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                         <h3 className="text-xl font-bold text-gray-900">{week.title}</h3>
                         <p className="text-iwl-purple font-medium">{week.subtitle}</p>
                       </div>
-                      <Link href={`/course/week/${week.week}`}>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          시작하기
-                        </Button>
-                      </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onNavigate('course-week', undefined, undefined, week.week)}
+                      >
+                        <Play className="w-4 h-4 mr-1" />
+                        시작하기
+                      </Button>
                     </div>
                     
                     <p className="text-gray-600 mb-4">{week.description}</p>
                     
                     <div className="flex flex-wrap gap-2">
-                      {week.topics?.map((topic: any, topicIndex: number) => (
+                      {week.topics.map((topic, topicIndex) => (
                         <Badge key={topicIndex} variant="secondary" className="text-xs">
                           {topic}
                         </Badge>
@@ -589,7 +579,7 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                     </div>
                   </CardContent>
                 </Card>
-              )) || []}
+              ))}
             </div>
           </div>
         </div>
@@ -600,13 +590,11 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              {/* @ts-expect-error - successTitle may not exist in all language variants */}
-              {t.successTitle || "Success Stories"}
+              {t.successTitle}
             </h2>
             
             <div className="grid md:grid-cols-3 gap-8">
-              {/* @ts-expect-error - successStories may not exist in all language variants */}
-              {t.successStories?.map((story: any, index: number) => (
+              {t.successStories.map((story, index) => (
                 <Card key={index} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="text-center mb-4">
@@ -621,7 +609,7 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                     </div>
                     
                     <blockquote className="text-sm text-gray-700 italic mb-4 leading-relaxed">
-                      &quot;{story.story}&quot;
+                      "{story.story}"
                     </blockquote>
                     
                     <div className="text-center">
@@ -631,7 +619,7 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                     </div>
                   </CardContent>
                 </Card>
-              )) || []}
+              ))}
             </div>
           </div>
         </div>
@@ -642,20 +630,18 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              {/* @ts-expect-error - faqTitle may not exist in all language variants */}
-              {t.faqTitle || "FAQ"}
+              {t.faqTitle}
             </h2>
             
             <div className="space-y-6">
-              {/* @ts-expect-error - faqs may not exist in all language variants */}
-              {t.faqs?.map((faq: any, index: number) => (
+              {t.faqs.map((faq, index) => (
                 <Card key={index} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <h4 className="font-bold text-gray-900 mb-3">{faq.q}</h4>
                     <p className="text-gray-700 leading-relaxed">{faq.a}</p>
                   </CardContent>
                 </Card>
-              )) || []}
+              ))}
             </div>
           </div>
         </div>
@@ -672,15 +658,14 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <Link href="/course/week/1">
-              <Button 
-                size="lg"
-                className="bg-white text-iwl-purple hover:bg-gray-50 font-semibold px-8 py-4"
-              >
-                <Rocket className="w-5 h-5 mr-2" />
-                {t.startCourse}
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => onNavigate('course-week', undefined, undefined, 1)}
+              size="lg"
+              className="bg-white text-iwl-purple hover:bg-gray-50 font-semibold px-8 py-4"
+            >
+              <Rocket className="w-5 h-5 mr-2" />
+              {t.startCourse}
+            </Button>
             <Button 
               size="lg"
               variant="outline"

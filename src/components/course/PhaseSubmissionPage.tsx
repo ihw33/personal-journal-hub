@@ -51,13 +51,13 @@ export function PhaseSubmissionPage({ language, week, phase, mode, onNavigate }:
           ...parsed,
           startTime: new Date(parsed.startTime),
           lastActivity: new Date(parsed.lastActivity),
-          messages: parsed.messages.map((msg: unknown) => ({
+          messages: parsed.messages.map((msg: any) => ({
             ...msg,
             timestamp: new Date(msg.timestamp)
           })),
           metadata: {
             ...parsed.metadata,
-            phaseTransitions: parsed.metadata.phaseTransitions.map((pt: unknown) => ({
+            phaseTransitions: parsed.metadata.phaseTransitions.map((pt: any) => ({
               ...pt,
               timestamp: new Date(pt.timestamp)
             }))
@@ -78,7 +78,7 @@ export function PhaseSubmissionPage({ language, week, phase, mode, onNavigate }:
   const content = PHASE_SUBMISSION_CONTENT[language] as ContentText;
   const phaseInfo = content.phaseInfo[phase];
 
-  const handleInputChange = (field: keyof PhaseSubmissionData, value: unknown) => {
+  const handleInputChange = (field: keyof PhaseSubmissionData, value: any) => {
     setSubmissionData(prev => ({
       ...prev,
       [field]: value
