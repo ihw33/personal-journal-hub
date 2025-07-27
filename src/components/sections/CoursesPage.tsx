@@ -351,14 +351,25 @@ export function CoursesPage({ language, onNavigate }: CoursesPageProps) {
                         </div>
                         <div className="text-sm text-gray-600">{t.featuredCourse.duration}</div>
                       </div>
-                      <Link href="/course">
-                        <Button 
-                          className="bg-iwl-purple hover:bg-iwl-purple/90 text-white px-8 py-3"
-                        >
-                          <Rocket className="w-4 h-4 mr-2" />
-                          {t.startJeju}
-                        </Button>
-                      </Link>
+                      <div className="flex gap-2">
+                        <Link href="/course/week/1" className="flex-1">
+                          <Button 
+                            className="w-full bg-iwl-purple hover:bg-iwl-purple/90 text-white px-6 py-3"
+                          >
+                            <Rocket className="w-4 h-4 mr-2" />
+                            {t.startJeju}
+                          </Button>
+                        </Link>
+                        <Link href="/course">
+                          <Button 
+                            variant="outline"
+                            className="px-6 py-3 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white"
+                          >
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            상세보기
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -528,7 +539,7 @@ export function CoursesPage({ language, onNavigate }: CoursesPageProps) {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/course">
+            <Link href="/course/week/1">
               <Button 
                 size="lg"
                 className="bg-white text-iwl-purple hover:bg-gray-50 font-semibold"
