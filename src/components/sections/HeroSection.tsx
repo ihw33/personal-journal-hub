@@ -128,25 +128,32 @@ export function HeroSection({ language }: HeroSectionProps) {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link href="/course">
+              <Link href="/trial">
                 <Button 
                   size="lg" 
                   className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
                 >
                   <MapPin className="w-5 h-5 mr-2" />
-                  {t.exploreCourses}
+                  무료 체험강의
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <Link href="/journal">
+              <Link href="/course">
                 <Button 
                   variant="outline" 
                   size="lg" 
                   className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4 transition-all w-full sm:w-auto"
                 >
                   <Brain className="w-5 h-5 mr-2" />
-                  {t.startJournal}
+                  {t.exploreCourses}
                 </Button>
+              </Link>
+            </div>
+            
+            {/* Secondary CTA */}
+            <div className="mb-8">
+              <Link href="/ai-practice" className="text-iwl-purple hover:text-iwl-purple/80 font-medium text-lg underline underline-offset-4">
+                AI 연습 바로 시작하기 →
               </Link>
             </div>
 
