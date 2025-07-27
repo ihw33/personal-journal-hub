@@ -26,10 +26,13 @@ import {
   Coffee,
   Lightbulb,
   FileText,
-  Video
+  Video,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
+import { useBetaFlag, BetaFeature } from '../../lib/betaFlags';
+import { BetaFeedback } from '../ui/BetaFeedback';
 
 interface TrialCoursePageProps {
   language: 'ko' | 'en';
@@ -42,6 +45,10 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // v115: 베타 기능 플래그 hooks
+  const { isEnabled: isTrialCourseEnabled, logUsage: logTrialCourseUsage } = useBetaFlag('trialCourse');
+  const { isEnabled: isFeedbackSystemEnabled } = useBetaFlag('feedbackSystem');
+
   const userType = getUserType();
 
   // 비로그인 사용자는 로그인 페이지로 리다이렉트
@@ -51,7 +58,12 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
       onNavigate('auth');
       return;
     }
-  }, [userType, onNavigate]);
+
+    // v115: 체험강의 접근 로깅
+    if (isTrialCourseEnabled) {
+      logTrialCourseUsage('page_loaded');
+    }
+  }, [userType, onNavigate, isTrialCourseEnabled, logTrialCourseUsage]);
 
   const content = {
     ko: {
@@ -211,11 +223,19 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
       setCompletedSteps([...completedSteps, currentStep]);
     }
     
+    // v115: 단계 완료 로깅
+    if (isTrialCourseEnabled) {
+      logTrialCourseUsage(`step_${currentStep + 1}_completed`);
+    }
+    
     if (!isLastStep) {
       setCurrentStep(currentStep + 1);
     } else {
       // 체험 완료 처리
       toast.success('🎉 체험강의 완주를 축하합니다!');
+      if (isTrialCourseEnabled) {
+        logTrialCourseUsage('trial_completed');
+      }
     }
   };
 
@@ -568,6 +588,22 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
               )}
             </CardContent>
           </Card>
+
+          {/* v115: 베타 피드백 수집 */}
+          <BetaFeature flagKey="feedbackSystem" fallback={null}>
+            <div className="mt-8">
+              <BetaFeedback
+                featureKey="trialCourse"
+                featureName="체험강의"
+                context={{
+                  currentStep: currentStep + 1,
+                  totalSteps: t.steps.length,
+                  completedSteps: completedSteps.length,
+                  stepType: currentStepData?.type
+                }}
+              />
+            </div>
+          </BetaFeature>
         </div>
       </div>
     </div>

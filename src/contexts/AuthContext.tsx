@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { BetaFlagService } from '../lib/betaFlags';
+import { BetaNotificationService } from '../lib/betaNotifications';
+import { createDefaultInviteCodes } from '../lib/betaWaitlist';
 
 export type UserRole = 'guest' | 'member' | 'admin';
 export type MembershipLevel = 'free' | 'basic' | 'premium' | 'vip';
@@ -69,6 +72,7 @@ interface AuthContextType {
   updatePersonalizationData: (data: Partial<PersonalizationData>) => Promise<{ error: any }>;
   getUserType: () => UserRole;
   refreshPersonalizationData: () => Promise<void>;
+  getBetaStatus: () => { isBetaTester: boolean; version: string; enabledFeatures: number; totalFeatures: number; };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -78,6 +82,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
+  // v116: 베타 시스템 초기화
+  useEffect(() => {
+    const initializeBetaSystems = () => {
+      try {
+        // 베타 알림 템플릿 초기화
+        const notificationService = BetaNotificationService.getInstance();
+        notificationService.initializeTemplates();
+
+        // 기본 초대 코드 생성
+        createDefaultInviteCodes();
+
+        console.log('🚀 Beta systems initialized');
+      } catch (error) {
+        console.error('Failed to initialize beta systems:', error);
+      }
+    };
+
+    initializeBetaSystems();
+  }, []);
 
   useEffect(() => {
     // 관리자 세션 확인
@@ -550,6 +574,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await loadUserProfile(user);
   };
 
+  // v115: 베타 테스트 상태 반환
+  const getBetaStatus = () => {
+    const betaService = BetaFlagService.getInstance();
+    return betaService.getBetaStatus();
+  };
+
   const value = {
     user,
     session,
@@ -564,7 +594,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateUserProfile,
     updatePersonalizationData,
     getUserType,
-    refreshPersonalizationData
+    refreshPersonalizationData,
+    getBetaStatus
   };
 
   return (

@@ -32,6 +32,8 @@ import { toast } from 'sonner';
 import { JEJU_COURSE_DATA } from './course/courseData';
 import type { WeekData, PhaseData } from './course/types';
 import { AILearningService, AIModeComparison, type AISession, type AIMessage } from './course/AIService';
+import { BetaFlagService, useBetaFlag, BetaFeature } from '../lib/betaFlags';
+import { BetaFeedback } from './ui/BetaFeedback';
 
 interface AIPracticePageProps {
   language: 'ko' | 'en';
@@ -51,7 +53,13 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
   const [currentSession, setCurrentSession] = useState<AISession | null>(null);
   const [initializationError, setInitializationError] = useState<string | null>(null);
 
-  // 인증 체크
+  // v115: 베타 기능 플래그 hooks
+  const { isEnabled: isAiChatbotEnabled, logUsage: logAiChatbotUsage } = useBetaFlag('aiChatbot');
+  const { isEnabled: isAiOptimizationEnabled } = useBetaFlag('aiOptimization');
+  const { isEnabled: isFeedbackSystemEnabled } = useBetaFlag('feedbackSystem');
+  const { isEnabled: isErrorReportingEnabled } = useBetaFlag('errorReporting');
+
+  // 인증 체크 및 베타 플래그 설정
   useEffect(() => {
     const userType = getUserType();
     if (userType === 'guest') {
@@ -59,7 +67,19 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
       onNavigate('auth');
       return;
     }
-  }, [user, getUserType, onNavigate]);
+
+    // v115: 베타 플래그 서비스에 사용자 컨텍스트 설정
+    const betaService = BetaFlagService.getInstance();
+    betaService.setUserContext(
+      user?.id || 'anonymous',
+      userType
+    );
+
+    // AI 챗봇 기능 사용 로깅
+    if (isAiChatbotEnabled) {
+      logAiChatbotUsage('page_loaded');
+    }
+  }, [user, getUserType, onNavigate, isAiChatbotEnabled, logAiChatbotUsage]);
 
   // AI 서비스 인스턴스
   const aiService = AILearningService.getInstance();
@@ -258,9 +278,15 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
     try {
       setIsLoading(true);
       setInitializationError(null);
+
+      // v115: AI 챗봇 기능이 비활성화된 경우 체크
+      if (!isAiChatbotEnabled) {
+        setInitializationError('AI 챗봇 기능이 현재 사용할 수 없습니다.');
+        return;
+      }
       
       const session = await aiService.createSession(
-        'user-demo', // 실제로는 로그인된 사용자 ID
+        user?.id || 'user-demo',
         week,
         phase,
         practiceMode
@@ -270,17 +296,38 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
       setMessages(session.messages.filter(msg => msg.role !== 'system'));
       setTaskProgress(session.context.learningProgress);
       
-      // v114: 캐시된 프롬프트로 성능 개선된 메시지 처리
-      const welcomeResult = await aiService.processMessage(session.id, '시작');
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: welcomeResult.aiResponse,
-        timestamp: new Date()
-      }]);
-      setCurrentSession(welcomeResult.updatedSession);
+      // v114: 캐시된 프롬프트로 성능 개선된 메시지 처리 (v115: 최적화 플래그 체크)
+      if (isAiOptimizationEnabled) {
+        const welcomeResult = await aiService.processMessage(session.id, '시작');
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: welcomeResult.aiResponse,
+          timestamp: new Date()
+        }]);
+        setCurrentSession(welcomeResult.updatedSession);
+      }
+
+      // v115: 세션 생성 로깅
+      logAiChatbotUsage('session_created');
       
     } catch (error) {
       console.error('Failed to initialize AI session:', error);
+      
+      // v115: 오류 리포팅 시스템
+      if (isErrorReportingEnabled) {
+        const errorData = {
+          timestamp: new Date().toISOString(),
+          userId: user?.id || 'anonymous',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          context: { week, phase, mode: practiceMode },
+          action: 'initialize_ai_session'
+        };
+        localStorage.setItem('beta-error-reports', JSON.stringify([
+          ...JSON.parse(localStorage.getItem('beta-error-reports') || '[]'),
+          errorData
+        ]));
+      }
+      
       setInitializationError(t.initializationError);
       toast.error(t.sessionError);
     } finally {
@@ -305,8 +352,11 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
       const savedMessage = currentMessage;
       setCurrentMessage('');
       
+      // v115: 메시지 전송 로깅
+      logAiChatbotUsage('message_sent');
+      
       // AI 응답 처리
-      // v114: 캐시된 프롬프트로 성능 개선된 메시지 처리
+      // v114: 캐시된 프롬프트로 성능 개선된 메시지 처리 (v115: 최적화 플래그 체크)
       const result = await aiService.processMessage(currentSession.id, savedMessage);
       
       // AI 응답 추가
@@ -323,10 +373,27 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
       // 완료 체크
       if (result.updatedSession.context.learningProgress >= 90) {
         setIsTaskCompleted(true);
+        logAiChatbotUsage('task_completed');
       }
       
     } catch (error) {
       console.error('Failed to process message:', error);
+      
+      // v115: 오류 리포팅 시스템
+      if (isErrorReportingEnabled) {
+        const errorData = {
+          timestamp: new Date().toISOString(),
+          userId: user?.id || 'anonymous',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          context: { week, phase, mode: practiceMode, messageLength: savedMessage.length },
+          action: 'send_message'
+        };
+        localStorage.setItem('beta-error-reports', JSON.stringify([
+          ...JSON.parse(localStorage.getItem('beta-error-reports') || '[]'),
+          errorData
+        ]));
+      }
+      
       toast.error('메시지 처리 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
@@ -553,6 +620,21 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
                 </div>
               </CardContent>
             </Card>
+
+            {/* v115: 베타 피드백 수집 */}
+            <BetaFeature flagKey="feedbackSystem" fallback={null}>
+              <BetaFeedback
+                featureKey="aiChatbot"
+                featureName="AI 챗봇"
+                context={{
+                  week,
+                  phase,
+                  mode: practiceMode,
+                  messagesCount: messages.length,
+                  progress: taskProgress
+                }}
+              />
+            </BetaFeature>
           </div>
 
           {/* Main Chat Area */}

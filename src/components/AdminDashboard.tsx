@@ -5,6 +5,8 @@ import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Progress } from './ui/progress';
+import { BetaDashboard } from './admin/BetaDashboard';
+import { BetaWaitlistManager } from './admin/BetaWaitlistManager';
 import {
   BarChart,
   Bar,
@@ -236,6 +238,8 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
     { id: 'editor', label: t.editor, icon: PenTool },
     { id: 'newsletter', label: t.newsletter, icon: Mail },
     { id: 'subscribers', label: t.subscribers, icon: Users },
+    { id: 'beta-dashboard', label: '베타 대시보드', icon: Target },
+    { id: 'beta-waitlist', label: '베타 대기열', icon: Clock },
     { id: 'settings', label: t.settings, icon: Settings }
   ];
 
@@ -650,6 +654,10 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
         return <div className="p-8 text-center">뉴스레터 관리 페이지 (개발 예정)</div>;
       case 'subscribers':
         return <div className="p-8 text-center">구독자 관리 페이지 (개발 예정)</div>;
+      case 'beta-dashboard':
+        return <BetaDashboard />;
+      case 'beta-waitlist':
+        return <BetaWaitlistManager />;
       case 'settings':
         return <div className="p-8 text-center">설정 페이지 (개발 예정)</div>;
       default:

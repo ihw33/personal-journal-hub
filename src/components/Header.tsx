@@ -18,7 +18,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 
 export type Language = 'ko' | 'en';
-export type Page = 'home' | 'journal' | 'courses' | 'about' | 'methodology' | 'admin' | 'dashboard' | 'auth';
+export type Page = 'home' | 'journal' | 'courses' | 'about' | 'methodology' | 'admin' | 'dashboard' | 'auth' | 'beta';
 
 interface HeaderProps {
   language: Language;
@@ -44,6 +44,7 @@ export function Header({
       courses: '강의',
       about: '소개',
       methodology: '방법론',
+      beta: '베타 테스트',
       login: '로그인',
       signup: '회원가입',
       dashboard: '대시보드',
@@ -81,6 +82,7 @@ export function Header({
     const baseItems = [
       { key: 'home', label: t.home, page: 'home' as Page },
       { key: 'courses', label: t.courses, page: 'courses' as Page },
+      { key: 'beta', label: t.beta, page: 'beta' as Page, badge: 'NEW' },
       { key: 'about', label: t.about, page: 'about' as Page }
     ];
 
@@ -170,13 +172,18 @@ export function Header({
               <button
                 key={item.key}
                 onClick={() => onNavigate(item.page)}
-                className={`text-sm font-medium transition-colors ${
+                className={`text-sm font-medium transition-colors flex items-center gap-2 ${
                   currentPage === item.page
                     ? 'text-iwl-purple border-b-2 border-iwl-purple pb-1'
                     : 'text-gray-700 hover:text-iwl-purple'
                 }`}
               >
                 {item.label}
+                {item.badge && (
+                  <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-0.5">
+                    {item.badge}
+                  </Badge>
+                )}
               </button>
             ))}
           </nav>
@@ -277,13 +284,18 @@ export function Header({
                     onNavigate(item.page);
                     setIsMenuOpen(false);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`block w-full text-left px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 ${
                     currentPage === item.page
                       ? 'text-iwl-purple bg-iwl-purple-50'
                       : 'text-gray-700 hover:text-iwl-purple hover:bg-gray-50'
                   }`}
                 >
                   {item.label}
+                  {item.badge && (
+                    <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-0.5">
+                      {item.badge}
+                    </Badge>
+                  )}
                 </button>
               ))}
 
