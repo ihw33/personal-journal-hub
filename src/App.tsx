@@ -193,18 +193,18 @@ function AppContent() {
   const renderPersonalizedHomePage = () => {
     const userType = getUserType();
     
-    // 개인화 데이터 준비
+    // 개인화 데이터 준비 (SSR 안전성 개선)
     const personalizedData = user?.personalizationData ? {
-      name: user.name,
-      email: user.email,
-      currentCourse: user.personalizationData.learningProgress.enrolledCourses[0] || '제주도 여행 기획 코스',
-      progress: user.personalizationData.learningProgress.completionRate,
-      completedPhases: user.personalizationData.learningProgress.completedPhases,
-      totalPhases: user.personalizationData.learningProgress.totalPhases,
-      lastActivity: user.lastActivity?.toLocaleDateString('ko-KR'),
-      streak: user.personalizationData.achievements.streak,
-      enrollmentDate: user.enrollmentDate,
-      membershipLevel: user.membershipLevel
+      name: user?.name || '사용자',
+      email: user?.email || '',
+      currentCourse: user.personalizationData.learningProgress?.enrolledCourses?.[0] || '제주도 여행 기획 코스',
+      progress: user.personalizationData.learningProgress?.completionRate || 0,
+      completedPhases: user.personalizationData.learningProgress?.completedPhases || 0,
+      totalPhases: user.personalizationData.learningProgress?.totalPhases || 8,
+      lastActivity: user.lastActivity?.toLocaleDateString('ko-KR') || new Date().toLocaleDateString('ko-KR'),
+      streak: user.personalizationData.achievements?.streak || 0,
+      enrollmentDate: user?.enrollmentDate || new Date().toISOString(),
+      membershipLevel: user?.membershipLevel || 'free'
     } : undefined;
 
     return (

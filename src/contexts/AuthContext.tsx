@@ -5,7 +5,6 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { BetaFlagService } from '../lib/betaFlags';
 import { BetaNotificationService } from '../lib/betaNotifications';
-import { createDefaultInviteCodes } from '../lib/betaWaitlist';
 import { logAdminLogin, logAdminLogout, logSecurityViolation } from '../lib/adminAuditLog';
 
 export type UserRole = 'guest' | 'member' | 'admin';
@@ -84,16 +83,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
-  // v116: 베타 시스템 초기화
+  // v116: 베타 시스템 초기화 (SSR 안전성 개선)
   useEffect(() => {
     const initializeBetaSystems = () => {
+      // SSR 에서는 실행하지 않음
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
       try {
         // 베타 알림 템플릿 초기화
         const notificationService = BetaNotificationService.getInstance();
         notificationService.initializeTemplates();
-
-        // 기본 초대 코드 생성
-        createDefaultInviteCodes();
 
         console.log('🚀 Beta systems initialized');
       } catch (error) {
@@ -101,11 +102,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initializeBetaSystems();
+    // 지연 실행으로 SSR 안정성 향상
+    setTimeout(initializeBetaSystems, 100);
   }, []);
 
   useEffect(() => {
-    // v117: 강화된 관리자 세션 확인
+    // v117: 강화된 관리자 세션 확인 (SSR 안전성)
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     const adminSession = localStorage.getItem('admin-session');
     const adminLoginTime = localStorage.getItem('admin-login-time');
     

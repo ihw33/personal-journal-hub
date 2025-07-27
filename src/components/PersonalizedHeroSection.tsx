@@ -476,7 +476,7 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
   );
 }
 
-// 👤 일반 회원 히어로 섹션
+// 👤 일반 회원 히어로 섹션 (SSR 안전성 개선)
 function MemberHeroSection({ 
   language, 
   onNavigate, 
@@ -486,6 +486,17 @@ function MemberHeroSection({
   onNavigate: (page: string) => void,
   userData?: any
 }) {
+  // SSR 안전성을 위한 userData 기본값 설정
+  const safeUserData = {
+    name: userData?.name || '회원',
+    membershipLevel: userData?.membershipLevel || 'free',
+    enrollmentDate: userData?.enrollmentDate || new Date().toISOString().split('T')[0],
+    currentCourse: userData?.currentCourse || '제주도 여행 기획 코스',
+    progress: userData?.progress || 0,
+    completedPhases: userData?.completedPhases || 0,
+    totalPhases: userData?.totalPhases || 8,
+    streak: userData?.streak || 0
+  };
   const membershipBadgeColors = {
     free: 'bg-gray-100 text-gray-700',
     basic: 'bg-blue-100 text-blue-700', 
@@ -501,7 +512,7 @@ function MemberHeroSection({
           <div>
             <div className="inline-flex items-center gap-2 bg-iwl-gradient rounded-full px-4 py-2 text-white mb-6">
               <Brain className="w-4 h-4" />
-              <span className="text-sm font-medium">환영합니다, {userData?.name || '회원'}님!</span>
+              <span className="text-sm font-medium">환영합니다, {safeUserData.name}님!</span>
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
@@ -515,17 +526,17 @@ function MemberHeroSection({
 
             {/* 멤버십 정보 */}
             <div className="flex items-center gap-3 mb-8">
-              <Badge className={membershipBadgeColors[userData?.membershipLevel || 'free']}>
-                {userData?.membershipLevel?.toUpperCase() || 'FREE'} 멤버
+              <Badge className={membershipBadgeColors[safeUserData.membershipLevel as keyof typeof membershipBadgeColors]}>
+                {safeUserData.membershipLevel.toUpperCase()} 멤버
               </Badge>
               <div className="text-sm text-gray-600">
-                가입일: {userData?.enrollmentDate || '2025-01-01'}
+                가입일: {safeUserData.enrollmentDate}
               </div>
             </div>
 
             <div className="flex flex-col gap-4 mb-8">
               {/* 체험강의 버튼 - 무료 멤버십에게 우선 표시 */}
-              {userData?.membershipLevel === 'free' && (
+              {safeUserData.membershipLevel === 'free' && (
                 <Button 
                   onClick={() => onNavigate('course-trial')}
                   size="lg" 
@@ -626,25 +637,25 @@ function MemberHeroSection({
                     <Badge className="bg-iwl-gradient text-white">진행 중</Badge>
                   </div>
                   <div className="text-lg font-semibold text-gray-900 mb-2">
-                    {userData?.currentCourse || '제주도 여행 기획 코스'}
+                    {safeUserData.currentCourse}
                   </div>
-                  <Progress value={userData?.progress || 45} className="h-3 mb-2" />
+                  <Progress value={safeUserData.progress} className="h-3 mb-2" />
                   <div className="text-sm text-gray-500">
-                    {userData?.progress || 45}% 완료 • {userData?.completedPhases || 3}/{userData?.totalPhases || 8} 페이즈
+                    {safeUserData.progress}% 완료 • {safeUserData.completedPhases}/{safeUserData.totalPhases} 페이즈
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-4 bg-white rounded-lg border border-iwl-purple/20">
                     <div className="text-2xl font-bold text-iwl-purple mb-1">
-                      {userData?.streak || 7}일
+                      {safeUserData.streak}일
                     </div>
                     <div className="text-sm text-gray-600">연속 학습</div>
                     <div className="text-lg mt-1">🔥</div>
                   </div>
                   <div className="text-center p-4 bg-white rounded-lg border border-iwl-blue/20">
                     <div className="text-2xl font-bold text-iwl-blue mb-1">
-                      {userData?.completedPhases || 3}개
+                      {safeUserData.completedPhases}개
                     </div>
                     <div className="text-sm text-gray-600">완료 페이즈</div>
                     <div className="text-lg mt-1">🎯</div>
