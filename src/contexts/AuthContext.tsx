@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { BetaFlagService } from '../lib/betaFlags';
 import { BetaNotificationService } from '../lib/betaNotifications';
 import { logAdminLogin, logAdminLogout, logSecurityViolation } from '../lib/adminAuditLog';
+import { SecurityMonitor } from '../lib/securityMonitor';
 
 export type UserRole = 'guest' | 'member' | 'admin';
 export type MembershipLevel = 'free' | 'basic' | 'premium' | 'vip';
@@ -346,6 +347,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 로그인
   const signIn = async (email: string, password: string) => {
+    const securityMonitor = SecurityMonitor.getInstance();
+    
+    // v120: 로그인 시도 검증
+    const validation = securityMonitor.validateLoginAttempt(email);
+    if (!validation.allowed) {
+      return { error: { message: validation.reason } };
+    }
+
     try {
       // Supabase가 설정되지 않은 경우 데모 로그인 처리
       if (!supabase) {
@@ -370,8 +379,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           setUser(demoUser);
           localStorage.setItem('demo-user', JSON.stringify(demoUser));
+          securityMonitor.recordSuccessfulLogin(email);
           return { error: null };
         } else {
+          securityMonitor.recordFailedLogin(email);
           return { error: { message: '데모 계정: demo@ideaworklab.com / demo123456' } };
         }
       }
@@ -380,6 +391,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       });
+      
+      if (error) {
+        securityMonitor.recordFailedLogin(email);
+      } else {
+        securityMonitor.recordSuccessfulLogin(email);
+      }
+      
       return { error };
     } catch (error) {
       console.error('Sign in error:', error);
@@ -462,6 +480,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // v117: 강화된 관리자 로그인
   const adminLogin = async (password: string) => {
+    const securityMonitor = SecurityMonitor.getInstance();
+    
+    // v120: 관리자 액세스 시도 검증
+    const validation = securityMonitor.validateAdminAccess();
+    if (!validation.allowed) {
+      return { error: { message: validation.reason } };
+    }
+
     try {
       // 관리자 비밀번호 확인
       if (password === 'ideaworklab2024') {

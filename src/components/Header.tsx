@@ -27,7 +27,7 @@ interface HeaderProps {
   onNavigate: (page: Page) => void;
 }
 
-export function Header({ 
+export const Header = React.memo(({ 
   language, 
   onLanguageToggle, 
   currentPage,
@@ -383,4 +383,4 @@ export function Header({
       </div>
     </header>
   );
-}
+});

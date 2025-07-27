@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import {
@@ -17,7 +18,7 @@ interface FooterProps {
   onNavigate?: (page: string) => void;
 }
 
-export function Footer({ language, onNavigate }: FooterProps) {
+export const Footer = React.memo(({ language, onNavigate }: FooterProps) => {
   const content = {
     ko: {
       description:
@@ -286,4 +287,4 @@ export function Footer({ language, onNavigate }: FooterProps) {
       </div>
     </footer>
   );
-}
+});

@@ -864,15 +864,6 @@ export function MethodologyPage({ language, onNavigate }: MethodologyPageProps) 
               <ArrowRight className="w-5 h-5 mr-2" />
               {t.secondaryCTA}
             </Button>
-            <Button 
-              onClick={() => onNavigate('ai-practice')}
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-iwl-purple font-semibold text-sm md:text-base px-6 md:px-8 py-3 md:py-4"
-            >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              {t.aiPracticeCTA}
-            </Button>
           </div>
         </div>
       </section>

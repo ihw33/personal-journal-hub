@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
@@ -55,29 +55,35 @@ interface PersonalizedHeroSectionProps {
   };
 }
 
-export function PersonalizedHeroSection({ 
+export const PersonalizedHeroSection = React.memo(({ 
   language, 
   onNavigate, 
   userType, 
   userData 
-}: PersonalizedHeroSectionProps) {
+}: PersonalizedHeroSectionProps) => {
   
-  // 🔥 신규 사용자 (Guest) 버전
-  if (userType === 'guest') {
-    return <GuestHeroSection language={language} onNavigate={onNavigate} />;
-  }
-  
-  // 👤 일반 회원 버전
-  if (userType === 'member') {
-    return <MemberHeroSection language={language} onNavigate={onNavigate} userData={userData} />;
-  }
+  // v118: 메모이제이션으로 성능 최적화
+  const HeroComponent = useMemo(() => {
+    // 🔥 신규 사용자 (Guest) 버전
+    if (userType === 'guest') {
+      return <GuestHeroSection language={language} onNavigate={onNavigate} />;
+    }
+    
+    // 👤 일반 회원 버전
+    if (userType === 'member') {
+      return <MemberHeroSection language={language} onNavigate={onNavigate} userData={userData} />;
+    }
 
-  return null;
-}
+    return null;
+  }, [language, userType, userData, onNavigate]);
 
-// 🔥 신규 사용자 히어로 섹션
-function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onNavigate: (page: string) => void }) {
-  const content = {
+  return HeroComponent;
+});
+
+// 🔥 신규 사용자 히어로 섹션 (v118: 성능 최적화)
+const GuestHeroSection = React.memo(({ language, onNavigate }: { language: 'ko' | 'en', onNavigate: (page: string) => void }) => {
+  // v118: 콘텐츠 메모이제이션
+  const content = useMemo(() => ({
     ko: {
       badge: "🔥 인기 강의",
       course: "제주도 여행 기획으로 배우는 AI 협업",
@@ -173,9 +179,13 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
         implementation: "89% Success Rate"
       }
     }
-  };
+  }), []);
 
   const t = content[language];
+
+  // v118: 콜백 메모이제이션
+  const handleNavigateAuth = useCallback(() => onNavigate('auth'), [onNavigate]);
+  const handleNavigateHelp = useCallback(() => onNavigate('help'), [onNavigate]);
 
   return (
     <section className="relative py-16 md:py-24 lg:py-32 bg-gradient-to-br from-iwl-purple-50 via-white to-iwl-blue-50 overflow-hidden">
@@ -452,7 +462,7 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
           <div className="text-center mt-12">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
-                onClick={() => onNavigate('auth')}
+                onClick={handleNavigateAuth}
                 size="lg"
                 className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
               >
@@ -460,7 +470,7 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
                 {t.cta.start}
               </Button>
               <Button 
-                onClick={() => onNavigate('help')}
+                onClick={handleNavigateHelp}
                 variant="outline"
                 size="lg"
                 className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold text-lg px-8 py-4 transition-all"
@@ -476,8 +486,8 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
   );
 }
 
-// 👤 일반 회원 히어로 섹션 (SSR 안전성 개선)
-function MemberHeroSection({ 
+// 👤 일반 회원 히어로 섹션 (v118: 성능 최적화)
+const MemberHeroSection = React.memo(({ 
   language, 
   onNavigate, 
   userData 
@@ -485,9 +495,9 @@ function MemberHeroSection({
   language: 'ko' | 'en', 
   onNavigate: (page: string) => void,
   userData?: any
-}) {
-  // SSR 안전성을 위한 userData 기본값 설정
-  const safeUserData = {
+}) => {
+  // v118: 메모이제이션으로 SSR 안전성 및 성능 개선
+  const safeUserData = useMemo(() => ({
     name: userData?.name || '회원',
     membershipLevel: userData?.membershipLevel || 'free',
     enrollmentDate: userData?.enrollmentDate || new Date().toISOString().split('T')[0],
@@ -496,13 +506,20 @@ function MemberHeroSection({
     completedPhases: userData?.completedPhases || 0,
     totalPhases: userData?.totalPhases || 8,
     streak: userData?.streak || 0
-  };
-  const membershipBadgeColors = {
+  }), [userData]);
+  // v118: 멤버십 배지 색상 메모이제이션
+  const membershipBadgeColors = useMemo(() => ({
     free: 'bg-gray-100 text-gray-700',
     basic: 'bg-blue-100 text-blue-700', 
     premium: 'bg-purple-100 text-purple-700',
     vip: 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
-  };
+  }), []);
+  
+  // v118: 콜백 메모이제이션
+  const handleCourseTrial = useCallback(() => onNavigate('course-trial'), [onNavigate]);
+  const handleCourseDashboard = useCallback(() => onNavigate('course-dashboard'), [onNavigate]);
+  const handleCourseJeju = useCallback(() => onNavigate('course-jeju'), [onNavigate]);
+  const handleJournal = useCallback(() => onNavigate('journal'), [onNavigate]);
 
   return (
     <section className="relative py-16 md:py-24 bg-gradient-to-br from-iwl-purple-50 via-white to-iwl-blue-50">
@@ -558,15 +575,6 @@ function MemberHeroSection({
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               
-              <Button 
-                onClick={() => onNavigate('ai-practice')}
-                variant="outline"
-                size="lg" 
-                className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4"
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                AI 실습하기
-              </Button>
             </div>
 
             {/* 빠른 액세스 버튼들 */}

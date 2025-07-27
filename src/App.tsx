@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { checkPageAccess, getAccessDeniedMessage } from './lib/adminAccessControl';
 import { logAdminPageAccess, logSecurityViolation } from './lib/adminAuditLog';
+import { PerformanceMonitor } from './lib/performanceMonitor';
+import { SecurityMonitor } from './lib/securityMonitor';
+import { MemoryLeakPrevention } from './lib/memoryLeakPrevention';
 import { Header } from './components/Header';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { toast } from 'sonner';
 import { HeroSection } from './components/HeroSection';
 import { PersonalizedHeroSection } from './components/PersonalizedHeroSection';
@@ -76,6 +80,27 @@ function AppContent() {
   const toggleLanguage = () => {
     setLanguage(language === 'ko' ? 'en' : 'ko');
   };
+
+  // v119: 성능 모니터링 초기화
+  useEffect(() => {
+    const performanceMonitor = PerformanceMonitor.getInstance();
+    
+    return () => {
+      // 컴포넌트 언마운트 시 성능 모니터링 정리
+      performanceMonitor.disconnect();
+    };
+  }, []);
+
+  // v120: 보안 모니터링 및 메모리 누수 방지 초기화
+  useEffect(() => {
+    const securityMonitor = SecurityMonitor.getInstance();
+    const memoryMonitor = MemoryLeakPrevention.getInstance();
+    
+    return () => {
+      // 컴포넌트 언마운트 시 모니터링 시스템 정리
+      memoryMonitor.cleanup();
+    };
+  }, []);
 
   // Custom navigation event listener for browser compatibility
   useEffect(() => {
@@ -460,8 +485,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
