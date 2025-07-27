@@ -29,8 +29,8 @@ interface MemberDashboardProps {
 
 export function MemberDashboard({ language, onNavigate }: MemberDashboardProps) {
   // const { userProfile, signOut } = useAuth();
-  const [enrollments, setEnrollments] = useState<any[]>([]);
-  const [recommendedCourses, setRecommendedCourses] = useState<any[]>([]);
+  const [enrollments, setEnrollments] = useState<unknown[]>([]);
+  const [recommendedCourses, setRecommendedCourses] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {

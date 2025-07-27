@@ -96,7 +96,7 @@ export function CreatorSection({ language }: CreatorSectionProps) {
                 <div className="mb-8 p-6 bg-iwl-purple-50 rounded-lg relative">
                   <Quote className="w-8 h-8 text-iwl-purple/30 absolute top-4 left-4" />
                   <p className="text-iwl-purple italic pl-8 leading-relaxed">
-                    "{creator.quote}"
+                    &quot;{creator.quote}&quot;
                   </p>
                 </div>
 

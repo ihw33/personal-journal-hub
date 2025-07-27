@@ -10,7 +10,7 @@ interface FeaturedJournalsProps {
 }
 
 export function FeaturedJournals({ language }: FeaturedJournalsProps) {
-  const [selectedJournal, setSelectedJournal] = useState<any>(null);
+  const [selectedJournal, setSelectedJournal] = useState<unknown>(null);
 
   const content = {
     ko: {

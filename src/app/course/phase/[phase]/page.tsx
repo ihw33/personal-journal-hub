@@ -1,14 +1,22 @@
 'use client';
 
+import { use } from 'react';
 import { PhaseLearningPage } from '@/components/course/PhaseLearningPage';
 
 interface Props {
-  params: {
+  params: Promise<{
     phase: string;
-  };
+  }>;
 }
 
 export default function PhasePage({ params }: Props) {
-  const phaseNumber = parseInt(params.phase);
-  return <PhaseLearningPage phase={phaseNumber} />;
+  const { phase } = use(params);
+  const phaseNumber = parseInt(phase);
+  return <PhaseLearningPage 
+    phase={phaseNumber} 
+    language="ko" 
+    week={1} 
+    mode="self-directed" 
+    onNavigate={() => {}} 
+  />;
 }

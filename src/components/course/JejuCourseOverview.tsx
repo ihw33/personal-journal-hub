@@ -607,7 +607,7 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                     </div>
                     
                     <blockquote className="text-sm text-gray-700 italic mb-4 leading-relaxed">
-                      "{story.story}"
+                      &quot;{story.story}&quot;
                     </blockquote>
                     
                     <div className="text-center">
