@@ -48,14 +48,16 @@ export function AICollaborationGuide({
             <h4 className="font-semibold text-green-900 mb-2 text-lg">🤖 {t.title}</h4>
             <p className="text-green-800 leading-relaxed mb-4">{t.description}</p>
             
-            <div className="grid md:grid-cols-2 gap-4">
-              {t.features?.map((feature, index) => (
-                <div key={index} className="bg-white rounded-lg p-4">
-                  <h5 className="font-medium text-green-900 mb-2">{feature.title}</h5>
-                  <p className="text-sm text-green-700">{feature.description}</p>
-                </div>
-              ))}
-            </div>
+            {('features' in t) && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {t.features.map((feature, index) => (
+                  <div key={index} className="bg-white rounded-lg p-4">
+                    <h5 className="font-medium text-green-900 mb-2">{feature.title}</h5>
+                    <p className="text-sm text-green-700">{feature.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
             
             <div className="mt-4">
               <Button 

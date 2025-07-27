@@ -13,7 +13,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
-  const { signIn, loading } = useAuth();
+  const { login, loading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -32,9 +32,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     try {
       setIsSubmitting(true);
       
-      const result = await signIn(formData.email, formData.password);
+      const result = await login(formData.email, formData.password);
       
-      if (result.success) {
+      if (result) {
         toast.success('로그인 성공!', {
           description: '대시보드로 이동합니다.'
         });
@@ -43,7 +43,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           onSuccess();
         }
       } else {
-        toast.error(result.error || '로그인에 실패했습니다.');
+        toast.error('로그인에 실패했습니다.');
       }
     } catch (error: unknown) {
       console.error('로그인 오류:', error);

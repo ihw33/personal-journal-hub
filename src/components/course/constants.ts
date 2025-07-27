@@ -1,4 +1,4 @@
-import { ContentText } from './types';
+// import { ContentText } from './types';
 
 export const PHASE_SUBMISSION_CONTENT = {
   ko: {
@@ -87,7 +87,7 @@ export const PHASE_SUBMISSION_CONTENT = {
     backToPhase: "Phase로 돌아가기",
     nextPhase: "다음 Phase 시작하기", 
     viewWeeklySubmission: "주차 전체 제출 보기"
-  } as ContentText,
+  },
   
   en: {
     title: "Practice Submission",
@@ -95,7 +95,7 @@ export const PHASE_SUBMISSION_CONTENT = {
     submitButton: "Submit Phase",
     submittedTitle: "Phase Submitted!",
     submittedMessage: "Your Phase results with AI conversation have been submitted successfully."
-  } as Partial<ContentText>
+  }
 };
 
 export const INITIAL_SUBMISSION_DATA = {

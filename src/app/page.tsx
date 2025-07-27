@@ -22,8 +22,8 @@ export default function Home() {
     setLanguage(language === 'ko' ? 'en' : 'ko');
   };
 
-  const navigateTo = (page: Page) => {
-    setCurrentPage(page);
+  const navigateTo = (page: string) => {
+    setCurrentPage(page as Page);
   };
 
   // Render page content based on current page

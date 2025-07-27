@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent } from './ui/card';
-import { Input } from './ui/input';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Input } from '../ui/input';
 import { ArrowLeft, Lock, Shield } from 'lucide-react';
 
 interface AdminLoginProps {
