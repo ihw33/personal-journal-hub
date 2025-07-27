@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -388,10 +389,12 @@ export default function JournalPage() {
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <Button size="lg" className="bg-white/90 text-black hover:bg-white">
-                        <PlayCircle className="w-6 h-6 mr-2" />
-                        영상 보기
-                      </Button>
+                      <a href={journal.videoUrl} target="_blank" rel="noopener noreferrer">
+                        <Button size="lg" className="bg-white/90 text-black hover:bg-white">
+                          <PlayCircle className="w-6 h-6 mr-2" />
+                          영상 보기
+                        </Button>
+                      </a>
                     </div>
                     {/* 카테고리 뱃지 */}
                     <Badge className="absolute top-3 left-3 bg-iwl-gradient text-white">
@@ -473,14 +476,18 @@ export default function JournalPage() {
 
                   {/* CTA 버튼 */}
                   <div className="flex space-x-3">
-                    <Button className="flex-1 bg-iwl-gradient hover:opacity-90">
-                      <PlayCircle className="w-4 h-4 mr-2" />
-                      영상 보기
-                    </Button>
-                    <Button variant="outline" className="flex-1 hover:border-iwl-purple">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      전체 글 읽기
-                    </Button>
+                    <a href={journal.videoUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                      <Button className="w-full bg-iwl-gradient hover:opacity-90">
+                        <PlayCircle className="w-4 h-4 mr-2" />
+                        영상 보기
+                      </Button>
+                    </a>
+                    <Link href={`/journal/${journal.id}`} className="flex-1">
+                      <Button variant="outline" className="w-full hover:border-iwl-purple">
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        전체 글 읽기
+                      </Button>
+                    </Link>
                   </div>
 
                   {/* 발행일 */}
@@ -512,13 +519,17 @@ export default function JournalPage() {
             {content.ctaSection.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-iwl-gradient hover:opacity-90">
-              {content.ctaSection.buttons[0].text}
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </Button>
-            <Button variant="outline" size="lg" className="hover:border-iwl-purple">
-              {content.ctaSection.buttons[1].text}
-            </Button>
+            <a href="mailto:contact@ideaworklab.com" target="_blank" rel="noopener noreferrer">
+              <Button size="lg" className="bg-iwl-gradient hover:opacity-90">
+                {content.ctaSection.buttons[0].text}
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </Button>
+            </a>
+            <Link href="/course">
+              <Button variant="outline" size="lg" className="hover:border-iwl-purple">
+                {content.ctaSection.buttons[1].text}
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

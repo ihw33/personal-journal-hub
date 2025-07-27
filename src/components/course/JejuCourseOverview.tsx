@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -378,13 +379,14 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                     </div>
                   </div>
                   
-                  <Button 
-                    onClick={() => onNavigate('course-week', undefined, undefined, 1)}
-                    className="w-full bg-iwl-gradient hover:opacity-90 text-white font-semibold py-4 text-lg"
-                  >
-                    <Rocket className="w-5 h-5 mr-2" />
-                    {t.startCourse}
-                  </Button>
+                  <Link href="/course/week/1">
+                    <Button 
+                      className="w-full bg-iwl-gradient hover:opacity-90 text-white font-semibold py-4 text-lg"
+                    >
+                      <Rocket className="w-5 h-5 mr-2" />
+                      {t.startCourse}
+                    </Button>
+                  </Link>
                 </div>
               </div>
 
@@ -565,14 +567,15 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                         <h3 className="text-xl font-bold text-gray-900">{week.title}</h3>
                         <p className="text-iwl-purple font-medium">{week.subtitle}</p>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onNavigate('course-week', undefined, undefined, week.week)}
-                      >
-                        <Play className="w-4 h-4 mr-1" />
-                        시작하기
-                      </Button>
+                      <Link href={`/course/week/${week.week}`}>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          시작하기
+                        </Button>
+                      </Link>
                     </div>
                     
                     <p className="text-gray-600 mb-4">{week.description}</p>
@@ -669,14 +672,15 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <Button 
-              onClick={() => onNavigate('course-week', undefined, undefined, 1)}
-              size="lg"
-              className="bg-white text-iwl-purple hover:bg-gray-50 font-semibold px-8 py-4"
-            >
-              <Rocket className="w-5 h-5 mr-2" />
-              {t.startCourse}
-            </Button>
+            <Link href="/course/week/1">
+              <Button 
+                size="lg"
+                className="bg-white text-iwl-purple hover:bg-gray-50 font-semibold px-8 py-4"
+              >
+                <Rocket className="w-5 h-5 mr-2" />
+                {t.startCourse}
+              </Button>
+            </Link>
             <Button 
               size="lg"
               variant="outline"
