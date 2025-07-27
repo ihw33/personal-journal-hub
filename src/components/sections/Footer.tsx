@@ -9,11 +9,12 @@ import {
   Users,
   FileText,
   Shield,
+  Settings,
 } from "lucide-react";
 
 interface FooterProps {
   language: "ko" | "en";
-  onNavigate?: (page: 'home' | 'journal' | 'courses' | 'about') => void;
+  onNavigate?: (page: string) => void;
 }
 
 export function Footer({ language, onNavigate }: FooterProps) {
@@ -23,31 +24,31 @@ export function Footer({ language, onNavigate }: FooterProps) {
         "AI와 함께하는 깊이 있는 사고를 위한 개인 저널 허브",
       product: "제품",
       productLinks: [
-        { name: "저널", href: "/journal" },
-        { name: "템플릿", href: "/templates" },
-        { name: "AI 도구", href: "/ai-tools" },
-        { name: "분석", href: "/analytics" },
+        { name: "저널", page: "journal" },
+        { name: "템플릿", page: "templates" },
+        { name: "AI 도구", page: "ai-tools" },
+        { name: "분석", page: "analytics" },
       ],
       company: "회사",
       companyLinks: [
-        { name: "소개", href: "/about" },
-        { name: "블로그", href: "/blog" },
-        { name: "채용", href: "/careers" },
-        { name: "연락처", href: "/contact" },
+        { name: "소개", page: "about" },
+        { name: "블로그", page: "blog" },
+        { name: "채용", page: "careers" },
+        { name: "연락처", page: "contact" },
       ],
       resources: "리소스",
       resourceLinks: [
-        { name: "도움말", href: "/help" },
-        { name: "커뮤니티", href: "/community" },
-        { name: "API 문서", href: "/docs" },
-        { name: "상태", href: "/status" },
+        { name: "도움말", page: "help" },
+        { name: "커뮤니티", page: "community" },
+        { name: "API 문서", page: "docs" },
+        { name: "상태", page: "status" },
       ],
       legal: "법적 고지",
       legalLinks: [
-        { name: "개인정보처리방침", href: "/privacy" },
-        { name: "이용약관", href: "/terms" },
-        { name: "쿠키 정책", href: "/cookies" },
-        { name: "라이선스", href: "/license" },
+        { name: "개인정보처리방침", page: "privacy" },
+        { name: "이용약관", page: "terms" },
+        { name: "쿠키 정책", page: "cookies" },
+        { name: "라이선스", page: "license" },
       ],
       newsletter: "뉴스레터",
       newsletterDesc: "최신 업데이트와 인사이트를 받아보세요",
@@ -55,37 +56,38 @@ export function Footer({ language, onNavigate }: FooterProps) {
       subscribe: "구독",
       copyright: "© 2024 Idea Work Lab. 모든 권리 보유.",
       madeWith: "Made with ❤️ in Korea",
+      admin: "관리",
     },
     en: {
       description:
         "Personal journal hub for deep thinking with AI",
       product: "Product",
       productLinks: [
-        { name: "Journal", href: "/journal" },
-        { name: "Templates", href: "/templates" },
-        { name: "AI Tools", href: "/ai-tools" },
-        { name: "Analytics", href: "/analytics" },
+        { name: "Journal", page: "journal" },
+        { name: "Templates", page: "templates" },
+        { name: "AI Tools", page: "ai-tools" },
+        { name: "Analytics", page: "analytics" },
       ],
       company: "Company",
       companyLinks: [
-        { name: "About", href: "/about" },
-        { name: "Blog", href: "/blog" },
-        { name: "Careers", href: "/careers" },
-        { name: "Contact", href: "/contact" },
+        { name: "About", page: "about" },
+        { name: "Blog", page: "blog" },
+        { name: "Careers", page: "careers" },
+        { name: "Contact", page: "contact" },
       ],
       resources: "Resources",
       resourceLinks: [
-        { name: "Help", href: "/help" },
-        { name: "Community", href: "/community" },
-        { name: "API Docs", href: "/docs" },
-        { name: "Status", href: "/status" },
+        { name: "Help", page: "help" },
+        { name: "Community", page: "community" },
+        { name: "API Docs", page: "docs" },
+        { name: "Status", page: "status" },
       ],
       legal: "Legal",
       legalLinks: [
-        { name: "Privacy Policy", href: "/privacy" },
-        { name: "Terms of Service", href: "/terms" },
-        { name: "Cookie Policy", href: "/cookies" },
-        { name: "License", href: "/license" },
+        { name: "Privacy Policy", page: "privacy" },
+        { name: "Terms of Service", page: "terms" },
+        { name: "Cookie Policy", page: "cookies" },
+        { name: "License", page: "license" },
       ],
       newsletter: "Newsletter",
       newsletterDesc: "Get the latest updates and insights",
@@ -93,6 +95,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
       subscribe: "Subscribe",
       copyright: "© 2024 Idea Work Lab. All rights reserved.",
       madeWith: "Made with ❤️ in Korea",
+      admin: "Admin",
     },
   };
 
@@ -155,11 +158,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
               {t.productLinks.map((link) => (
                 <li key={link.name}>
                   <button
-                    onClick={() => {
-                      if (link.name === '저널' || link.name === 'Journal') {
-                        onNavigate?.('journal');
-                      }
-                    }}
+                    onClick={() => onNavigate?.(link.page)}
                     className="text-gray-400 hover:text-white transition-colors text-left"
                   >
                     {link.name}
@@ -179,11 +178,7 @@ export function Footer({ language, onNavigate }: FooterProps) {
               {t.companyLinks.map((link) => (
                 <li key={link.name}>
                   <button
-                    onClick={() => {
-                      if (link.name === '소개' || link.name === 'About') {
-                        onNavigate?.('about');
-                      }
-                    }}
+                    onClick={() => onNavigate?.(link.page)}
                     className="text-gray-400 hover:text-white transition-colors text-left"
                   >
                     {link.name}
@@ -202,12 +197,12 @@ export function Footer({ language, onNavigate }: FooterProps) {
             <ul className="space-y-3">
               {t.resourceLinks.map((link) => (
                 <li key={link.name}>
-                  <a
-                    href={link.href}
+                  <button
+                    onClick={() => onNavigate?.(link.page)}
                     className="text-gray-400 hover:text-white transition-colors"
                   >
                     {link.name}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -252,12 +247,12 @@ export function Footer({ language, onNavigate }: FooterProps) {
                   key={link.name}
                   className="flex items-center"
                 >
-                  <a
-                    href={link.href}
+                  <button
+                    onClick={() => onNavigate?.(link.page)}
                     className="text-gray-400 hover:text-white transition-colors text-sm"
                   >
                     {link.name}
-                  </a>
+                  </button>
                   {index < t.legalLinks.length - 1 && (
                     <span className="text-gray-600 mx-2">
                       •
@@ -274,7 +269,18 @@ export function Footer({ language, onNavigate }: FooterProps) {
         {/* Copyright */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between text-sm text-gray-400">
           <p>{t.copyright}</p>
-          <p className="mt-2 md:mt-0">{t.madeWith}</p>
+          <div className="flex items-center space-x-4 mt-2 md:mt-0">
+            <p>{t.madeWith}</p>
+            {/* 관리자 링크 - 조용하게 배치 */}
+            <button
+              onClick={() => onNavigate?.('admin')}
+              className="flex items-center space-x-1 text-gray-500 hover:text-gray-400 transition-colors opacity-60 hover:opacity-100"
+              title={t.admin}
+            >
+              <Settings className="w-3 h-3" />
+              <span className="text-xs">{t.admin}</span>
+            </button>
+          </div>
         </div>
       </div>
     </footer>

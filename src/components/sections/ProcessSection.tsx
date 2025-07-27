@@ -1,7 +1,7 @@
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { ArrowRight, Brain, Lightbulb, Target, Sparkles, BookOpen } from 'lucide-react';
+import { ArrowRight, Brain, Lightbulb, Target, Sparkles, Zap, BookOpen } from 'lucide-react';
 
 interface ProcessSectionProps {
   language: 'ko' | 'en';
