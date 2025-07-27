@@ -131,40 +131,50 @@ export class BetaFlagService {
 
   // 기능 플래그 확인
   isFeatureEnabled(flagKey: string): boolean {
-    const flag = BETA_FLAGS.flags[flagKey];
-    if (!flag) return false;
+    // SSR 환경에서는 안전하게 false 반환
+    if (typeof window === 'undefined') {
+      return false;
+    }
 
-    // 기능이 비활성화된 경우
-    if (!flag.enabled) return false;
+    try {
+      const flag = BETA_FLAGS.flags[flagKey];
+      if (!flag) return false;
 
-    // 타겟 그룹 확인
-    if (flag.targetGroup) {
-      switch (flag.targetGroup) {
-        case 'admin':
-          if (this.userGroup !== 'admin') return false;
-          break;
-        case 'beta':
-          if (!['beta', 'admin'].includes(this.userGroup)) return false;
-          break;
-        case 'all':
-          break;
-        default:
-          return false;
+      // 기능이 비활성화된 경우
+      if (!flag.enabled) return false;
+
+      // 타겟 그룹 확인
+      if (flag.targetGroup) {
+        switch (flag.targetGroup) {
+          case 'admin':
+            if (this.userGroup !== 'admin') return false;
+            break;
+          case 'beta':
+            if (!['beta', 'admin'].includes(this.userGroup)) return false;
+            break;
+          case 'all':
+            break;
+          default:
+            return false;
+        }
       }
-    }
 
-    // 롤아웃 퍼센트 확인 (사용자 ID 기반)
-    if (flag.rolloutPercentage && flag.rolloutPercentage < 100) {
-      if (!this.userId) return false;
-      
-      // 사용자 ID를 해시하여 일관된 결과 생성
-      const hash = this.hashUserId(this.userId);
-      const percentage = hash % 100;
-      
-      return percentage < flag.rolloutPercentage;
-    }
+      // 롤아웃 퍼센트 확인 (사용자 ID 기반)
+      if (flag.rolloutPercentage && flag.rolloutPercentage < 100) {
+        if (!this.userId) return false;
+        
+        // 사용자 ID를 해시하여 일관된 결과 생성
+        const hash = this.hashUserId(this.userId);
+        const percentage = hash % 100;
+        
+        return percentage < flag.rolloutPercentage;
+      }
 
-    return true;
+      return true;
+    } catch (error) {
+      console.warn('Error checking feature flag:', error);
+      return false;
+    }
   }
 
   // 사용자 ID 해시 함수 (간단한 구현)

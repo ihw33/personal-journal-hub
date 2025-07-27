@@ -12,8 +12,8 @@ export default function BetaPage() {
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // 로그인된 베타 사용자가 온보딩을 완료하지 않은 경우
-  const shouldShowOnboarding = user && !localStorage.getItem('beta-onboarding-completed');
+  // 로그인된 베타 사용자가 온보딩을 완료하지 않은 경우 (SSR 안전)
+  const shouldShowOnboarding = user && typeof window !== 'undefined' && !localStorage.getItem('beta-onboarding-completed');
 
   const handleNavigate = (page: string) => {
     router.push(`/${page}`);

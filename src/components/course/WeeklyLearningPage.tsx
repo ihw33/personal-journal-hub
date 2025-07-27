@@ -56,12 +56,14 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
   }, [user, getUserType, onNavigate]);
 
   useEffect(() => {
-    // 로컬 스토리지에서 진행률 로드
-    const savedProgress = localStorage.getItem(`week-${week}-progress`);
-    if (savedProgress) {
-      const progress = JSON.parse(savedProgress);
-      setCompletedPhases(progress.phases || {});
-      setWeekProgress(progress.weekProgress || 0);
+    // 로컬 스토리지에서 진행률 로드 (SSR 안전)
+    if (typeof window !== 'undefined') {
+      const savedProgress = localStorage.getItem(`week-${week}-progress`);
+      if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        setCompletedPhases(progress.phases || {});
+        setWeekProgress(progress.weekProgress || 0);
+      }
     }
   }, [week]);
 

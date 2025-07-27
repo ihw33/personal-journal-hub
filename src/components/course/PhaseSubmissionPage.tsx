@@ -39,12 +39,13 @@ export function PhaseSubmissionPage({ language, week, phase, mode, onNavigate }:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showChatPreview, setShowChatPreview] = useState(false);
 
-  // Load chat session from localStorage
+  // Load chat session from localStorage (SSR 안전)
   useEffect(() => {
-    const sessionKey = `chat-session-${week}`;
-    const savedSession = localStorage.getItem(sessionKey);
-    
-    if (savedSession) {
+    if (typeof window !== 'undefined') {
+      const sessionKey = `chat-session-${week}`;
+      const savedSession = localStorage.getItem(sessionKey);
+      
+      if (savedSession) {
       try {
         const parsed = JSON.parse(savedSession);
         const session: ChatSession = {
@@ -69,8 +70,9 @@ export function PhaseSubmissionPage({ language, week, phase, mode, onNavigate }:
           chatSession: session,
           aiToolUsed: session.aiProvider
         }));
-      } catch (error) {
-        console.error('Failed to load chat session:', error);
+        } catch (error) {
+          console.error('Failed to load chat session:', error);
+        }
       }
     }
   }, [week]);

@@ -102,10 +102,11 @@ export function IntegratedChatbot({
   const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize or load existing session
+  // Initialize or load existing session (SSR 안전)
   useEffect(() => {
-    const sessionKey = `chat-session-${week}`;
-    const savedSession = localStorage.getItem(sessionKey);
+    if (typeof window !== 'undefined') {
+      const sessionKey = `chat-session-${week}`;
+      const savedSession = localStorage.getItem(sessionKey);
     
     if (savedSession) {
       const parsed = JSON.parse(savedSession);
@@ -149,6 +150,7 @@ export function IntegratedChatbot({
       };
       setSession(newSession);
       saveSession(newSession);
+    }
     }
   }, [week]);
 

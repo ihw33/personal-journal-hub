@@ -44,6 +44,11 @@ export class BetaWaitlistService {
 
   // 베타 대기열에 추가
   async addToWaitlist(entry: Omit<BetaWaitlistEntry, 'id' | 'status' | 'position'>): Promise<{ success: boolean; position?: number; error?: string }> {
+    // SSR 환경에서는 처리하지 않음
+    if (typeof window === 'undefined') {
+      return { success: false, error: 'Server-side rendering environment' };
+    }
+
     try {
       const waitlist = this.getWaitlist();
       
@@ -269,6 +274,8 @@ export class BetaWaitlistService {
 
   // 유틸리티 메서드들
   private getWaitlist(): BetaWaitlistEntry[] {
+    if (typeof window === 'undefined') return [];
+    
     try {
       return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
     } catch {
@@ -277,10 +284,14 @@ export class BetaWaitlistService {
   }
 
   private saveWaitlist(waitlist: BetaWaitlistEntry[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(waitlist));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(waitlist));
+    }
   }
 
   private getInviteCodes(): BetaInviteCode[] {
+    if (typeof window === 'undefined') return [];
+    
     try {
       return JSON.parse(localStorage.getItem(this.INVITE_CODES_KEY) || '[]');
     } catch {
@@ -289,7 +300,9 @@ export class BetaWaitlistService {
   }
 
   private saveInviteCodes(codes: BetaInviteCode[]): void {
-    localStorage.setItem(this.INVITE_CODES_KEY, JSON.stringify(codes));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(this.INVITE_CODES_KEY, JSON.stringify(codes));
+    }
   }
 
   private generateId(): string {
