@@ -102,6 +102,48 @@ function AppContent() {
     };
   }, []);
 
+  // URL 라우팅 처리
+  useEffect(() => {
+    const handleURLChange = () => {
+      const path = window.location.pathname;
+      
+      // URL 경로를 페이지로 매핑
+      const pathToPageMap: { [key: string]: Page } = {
+        '/': 'home',
+        '/admin': 'admin',
+        '/signup': 'signup',
+        '/journal': 'journal',
+        '/courses': 'courses',
+        '/about': 'about',
+        '/methodology': 'methodology',
+        '/auth': 'auth',
+        '/dashboard': 'dashboard',
+        '/ai-practice': 'ai-practice',
+        '/beta': 'beta',
+        '/privacy': 'privacy',
+        '/terms': 'terms',
+        '/cookies': 'cookies',
+        '/help': 'help',
+        '/sitemap': 'sitemap'
+      };
+
+      const page = pathToPageMap[path] || 'home';
+      if (page !== currentPage) {
+        setCurrentPage(page);
+      }
+    };
+
+    // 초기 URL 처리
+    handleURLChange();
+
+    // popstate 이벤트 리스너 (브라우저 뒤로가기/앞으로가기)
+    window.addEventListener('popstate', handleURLChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleURLChange);
+    };
+  }, [currentPage]);
+
   // Custom navigation event listener for browser compatibility
   useEffect(() => {
     const handleNavigation = (event: CustomEvent) => {
@@ -150,6 +192,52 @@ function AppContent() {
     
     // 접근 허용된 경우 정상 처리
     setCurrentPage(page);
+    
+    // URL 업데이트 (브라우저 히스토리에 추가)
+    const pageToPathMap: { [key in Page]: string } = {
+      'home': '/',
+      'admin': '/admin',
+      'signup': '/signup',
+      'journal': '/journal',
+      'journal-detail': '/journal',
+      'journal-write': '/journal',
+      'journal-category': '/journal',
+      'courses': '/courses',
+      'about': '/about',
+      'methodology': '/methodology',
+      'auth': '/auth',
+      'dashboard': '/dashboard',
+      'course-jeju': '/courses',
+      'course-trial': '/courses',
+      'course-week': '/courses',
+      'course-phase': '/courses',
+      'course-phase-submit': '/courses',
+      'course-submit': '/courses',
+      'course-feedback': '/courses',
+      'course-dashboard': '/courses',
+      'privacy': '/privacy',
+      'terms': '/terms',
+      'cookies': '/cookies',
+      'license': '/license',
+      'help': '/help',
+      'community': '/community',
+      'docs': '/docs',
+      'status': '/status',
+      'templates': '/templates',
+      'ai-tools': '/ai-tools',
+      'analytics': '/analytics',
+      'blog': '/blog',
+      'careers': '/careers',
+      'contact': '/contact',
+      'sitemap': '/sitemap',
+      'ai-practice': '/ai-practice',
+      'beta': '/beta'
+    };
+    
+    const newPath = pageToPathMap[page] || '/';
+    if (window.location.pathname !== newPath) {
+      window.history.pushState({ page }, '', newPath);
+    }
     if (journalId) {
       setSelectedJournalId(journalId);
     }
