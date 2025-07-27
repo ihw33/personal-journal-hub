@@ -1,9 +1,7 @@
-"use client";
-
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
-import { ArrowRight, Brain, Zap, TrendingUp, Users, Star, MapPin, MessageCircle } from 'lucide-react';
+import { ArrowRight, Brain, Zap, TrendingUp, Users, Star, MapPin } from 'lucide-react';
 
 interface HeroSectionProps {
   language: 'ko' | 'en';
@@ -18,7 +16,7 @@ export function HeroSection({ language, onNavigate }: HeroSectionProps) {
       description: "AI 기반 도구로 인지적 잠재력을 해제하고, 사고 과정을 증폭시키며, 창의성을 향상시키고, 아이디어를 실행 가능한 통찰력으로 변환하세요",
       startJournal: "저널 시작하기",
       exploreCourses: "제주도 과정 시작하기",
-      aiPractice: "AI와 바로 실습하기",
+
       
       // Featured Course Badge
       featuredBadge: "🔥 인기 강의",
@@ -57,7 +55,7 @@ export function HeroSection({ language, onNavigate }: HeroSectionProps) {
       description: "Unlock your cognitive potential with AI-powered tools. Amplify your thinking process, enhance creativity, and transform ideas into actionable insights.",
       startJournal: "Start Journaling",
       exploreCourses: "Start Jeju Course",
-      aiPractice: "Practice with AI Now",
+
       
       // Featured Course Badge
       featuredBadge: "🔥 Popular Course",
@@ -102,11 +100,7 @@ export function HeroSection({ language, onNavigate }: HeroSectionProps) {
     onNavigate('journal');
   };
 
-  const handleAIPractice = () => {
-    // TODO: 추후 사용자가 진행 중인 강의로 바로 가기 기능으로 변경 예정
-    // 현재는 일반 AI 실습 페이지로 연결 (기본값: 1주차 1페이즈)
-    onNavigate('ai-practice');
-  };
+
 
   return (
     <section className="relative py-16 md:py-24 lg:py-32 bg-gradient-to-br from-iwl-purple-50 via-white to-iwl-blue-50 overflow-hidden">
@@ -143,37 +137,24 @@ export function HeroSection({ language, onNavigate }: HeroSectionProps) {
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col gap-4 mb-8">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  onClick={handleJejuCourse}
-                  size="lg" 
-                  className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
-                >
-                  <MapPin className="w-5 h-5 mr-2" />
-                  {t.exploreCourses}
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Button 
-                  onClick={handleJournal}
-                  variant="outline" 
-                  size="lg" 
-                  className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4 transition-all"
-                >
-                  <Brain className="w-5 h-5 mr-2" />
-                  {t.startJournal}
-                </Button>
-              </div>
-              
-              {/* AI Practice Button - 향후 사용자 진행 중인 강의로 변경 예정 */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Button 
-                onClick={handleAIPractice}
+                onClick={handleJejuCourse}
                 size="lg" 
-                className="bg-gradient-to-r from-iwl-blue to-iwl-purple hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all border-2 border-transparent hover:scale-105"
+                className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
               >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                {t.aiPractice}
-                <Zap className="w-5 h-5 ml-2" />
+                <MapPin className="w-5 h-5 mr-2" />
+                {t.exploreCourses}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                onClick={handleJournal}
+                variant="outline" 
+                size="lg" 
+                className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4 transition-all"
+              >
+                <Brain className="w-5 h-5 mr-2" />
+                {t.startJournal}
               </Button>
             </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -36,12 +37,23 @@ interface WeeklyLearningPageProps {
 }
 
 export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearningPageProps) {
+  const { user, getUserType } = useAuth();
   const [selectedMode, setSelectedMode] = useState<'guided' | 'self-directed' | null>(null);
   const [completedPhases, setCompletedPhases] = useState<{ [key: number]: boolean }>({});
   const [weekProgress, setWeekProgress] = useState(0);
 
   // 실제 주차 데이터 가져오기
   const weekData: WeekData = JEJU_COURSE_DATA.find(w => w.id === week) || JEJU_COURSE_DATA[0];
+
+  // 인증 체크
+  useEffect(() => {
+    const userType = getUserType();
+    if (userType === 'guest') {
+      // 비로그인 사용자는 로그인 페이지로 리다이렉트
+      onNavigate('auth');
+      return;
+    }
+  }, [user, getUserType, onNavigate]);
 
   useEffect(() => {
     // 로컬 스토리지에서 진행률 로드
@@ -117,6 +129,32 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
   };
 
   const t = content[language];
+  const userType = getUserType();
+
+  // 비로그인 사용자인 경우 로딩 화면 표시
+  if (userType === 'guest') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            {language === 'ko' ? '로그인이 필요합니다' : 'Login Required'}
+          </h2>
+          <p className="text-gray-500 mb-6">
+            {language === 'ko' 
+              ? '주차별 학습에 접근하려면 먼저 로그인해주세요.' 
+              : 'Please log in to access weekly learning.'}
+          </p>
+          <Button 
+            onClick={() => onNavigate('auth')}
+            className="bg-iwl-gradient hover:opacity-90 text-white"
+          >
+            {language === 'ko' ? '로그인하기' : 'Go to Login'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleModeSelect = (mode: 'guided' | 'self-directed') => {
     setSelectedMode(mode);

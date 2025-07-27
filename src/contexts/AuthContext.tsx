@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-export type UserRole = 'guest' | 'member';
+export type UserRole = 'guest' | 'member' | 'admin';
 export type MembershipLevel = 'free' | 'basic' | 'premium' | 'vip';
 
 export interface PersonalizationData {
@@ -58,10 +58,13 @@ interface AuthContextType {
   user: ExtendedUser | null;
   session: Session | null;
   loading: boolean;
+  isAdminLoggedIn: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signInWithOAuth: (provider: 'google' | 'kakao' | 'naver') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  adminLogin: (password: string) => Promise<{ error: any }>;
+  adminLogout: () => void;
   updateUserProfile: (updates: Partial<ExtendedUser>) => Promise<{ error: any }>;
   updatePersonalizationData: (data: Partial<PersonalizationData>) => Promise<{ error: any }>;
   getUserType: () => UserRole;
@@ -74,8 +77,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   useEffect(() => {
+    // 관리자 세션 확인
+    const adminSession = localStorage.getItem('admin-session');
+    if (adminSession === 'true') {
+      setIsAdminLoggedIn(true);
+    }
+
     // 데모 사용자 확인
     const checkDemoUser = () => {
       const demoUserData = localStorage.getItem('demo-user');
@@ -93,30 +103,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Supabase 세션 확인
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        loadUserProfile(session.user);
-      } else {
+    // Supabase 세션 확인 (안전한 처리)
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        if (session?.user) {
+          loadUserProfile(session.user);
+        } else {
+          setLoading(false);
+        }
+      }).catch((error) => {
+        console.warn('Session check failed:', error);
         setLoading(false);
-      }
-    });
+      });
 
-    // 인증 상태 변경 리스너
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      if (session?.user) {
-        await loadUserProfile(session.user);
-      } else {
-        setUser(null);
-        setLoading(false);
-      }
-    });
+      // 인증 상태 변경 리스너
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          await loadUserProfile(session.user);
+        } else {
+          setUser(null);
+          setLoading(false);
+        }
+      });
 
-    return () => subscription?.unsubscribe();
+      return () => subscription?.unsubscribe();
+    } else {
+      // Supabase 없이도 앱이 동작하도록
+      setLoading(false);
+    }
   }, []);
 
   // 데모 사용자를 ExtendedUser로 변환
@@ -179,6 +197,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 사용자 프로필 로드
   const loadUserProfile = async (authUser: User) => {
     try {
+      // Supabase가 없는 경우 기본 처리
+      if (!supabase) {
+        const extendedUser: ExtendedUser = {
+          ...authUser,
+          role: 'member',
+          membershipLevel: 'free',
+          name: authUser.user_metadata?.name,
+          enrollmentDate: new Date().toISOString(),
+          lastActivity: new Date(),
+          personalizationData: generateDemoPersonalizationData()
+        };
+        setUser(extendedUser);
+        setLoading(false);
+        return;
+      }
+
       // 기본 프로필 정보 조회
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
@@ -259,19 +293,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 로그인
   const signIn = async (email: string, password: string) => {
     try {
+      // Supabase가 설정되지 않은 경우 데모 로그인 처리
+      if (!supabase) {
+        // 데모 계정 체크
+        if (email === 'demo@ideaworklab.com' && password === 'demo123456') {
+          const demoUser = {
+            id: 'demo-user-1',
+            email: 'demo@ideaworklab.com',
+            name: '데모 사용자',
+            role: 'member' as const,
+            membershipLevel: 'premium' as const,
+            enrollmentDate: new Date().toISOString(),
+            lastActivity: new Date(),
+            aud: 'authenticated',
+            created_at: new Date().toISOString(),
+            app_metadata: {},
+            user_metadata: { name: '데모 사용자' },
+            identities: [],
+            factors: [],
+            personalizationData: generateDemoPersonalizationData()
+          };
+          
+          setUser(demoUser);
+          localStorage.setItem('demo-user', JSON.stringify(demoUser));
+          return { error: null };
+        } else {
+          return { error: { message: '데모 계정: demo@ideaworklab.com / demo123456' } };
+        }
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       return { error };
     } catch (error) {
-      return { error };
+      console.error('Sign in error:', error);
+      return { error: { message: 'Failed to fetch. Please check your connection.' } };
     }
   };
 
   // 회원가입
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
+      // Supabase가 설정되지 않은 경우 데모 회원가입 처리
+      if (!supabase) {
+        const demoUser = {
+          id: `demo-user-${Date.now()}`,
+          email: email,
+          name: metadata?.name || '새 사용자',
+          role: 'member' as const,
+          membershipLevel: 'free' as const,
+          enrollmentDate: new Date().toISOString(),
+          lastActivity: new Date(),
+          aud: 'authenticated',
+          created_at: new Date().toISOString(),
+          app_metadata: {},
+          user_metadata: { name: metadata?.name || '새 사용자' },
+          identities: [],
+          factors: [],
+          personalizationData: generateDemoPersonalizationData()
+        };
+        
+        setUser(demoUser);
+        localStorage.setItem('demo-user', JSON.stringify(demoUser));
+        return { error: null };
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -281,13 +369,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       return { error };
     } catch (error) {
-      return { error };
+      console.error('Sign up error:', error);
+      return { error: { message: 'Failed to fetch. Please check your connection.' } };
     }
   };
 
   // 소셜 로그인
   const signInWithOAuth = async (provider: 'google' | 'kakao' | 'naver') => {
     try {
+      // Supabase가 설정되지 않은 경우
+      if (!supabase) {
+        return { 
+          error: new Error('소셜 로그인은 실제 Supabase 설정이 필요합니다. 데모 계정을 사용해주세요.') 
+        };
+      }
+
       // Google은 Supabase 기본 지원
       if (provider === 'google') {
         const { error } = await supabase.auth.signInWithOAuth({
@@ -305,8 +401,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error: new Error(`${provider} 로그인은 준비 중입니다.`) 
       };
     } catch (error) {
-      return { error };
+      console.error('OAuth error:', error);
+      return { error: { message: 'Failed to fetch. Please check your connection.' } };
     }
+  };
+
+  // 관리자 로그인
+  const adminLogin = async (password: string) => {
+    try {
+      // 관리자 비밀번호 확인
+      if (password === 'ideaworklab2024') {
+        setIsAdminLoggedIn(true);
+        localStorage.setItem('admin-session', 'true');
+        return { error: null };
+      } else {
+        return { error: { message: '잘못된 관리자 비밀번호입니다.' } };
+      }
+    } catch (error) {
+      console.error('Admin login error:', error);
+      return { error: { message: '관리자 로그인 중 오류가 발생했습니다.' } };
+    }
+  };
+
+  // 관리자 로그아웃
+  const adminLogout = () => {
+    setIsAdminLoggedIn(false);
+    localStorage.removeItem('admin-session');
   };
 
   // 로그아웃
@@ -314,8 +434,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 데모 사용자 정보 제거
     localStorage.removeItem('demo-user');
     
-    // Supabase 로그아웃
-    await supabase.auth.signOut();
+    // 관리자 세션 제거
+    adminLogout();
+    
+    // Supabase 로그아웃 (안전한 처리)
+    if (supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.warn('Logout error:', error);
+      }
+    }
     
     setUser(null);
     setSession(null);
@@ -334,6 +463,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 실제 사용자인 경우
+    if (!supabase) {
+      return { error: new Error('Database not configured') };
+    }
+
     const { error } = await supabase
       .from('user_profiles')
       .upsert({
@@ -370,6 +503,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 실제 사용자인 경우
+    if (!supabase) {
+      return { error: new Error('Database not configured') };
+    }
+
     const { error } = await supabase
       .from('user_personalization')
       .upsert({
@@ -393,6 +530,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 사용자 타입 반환
   const getUserType = (): UserRole => {
+    if (isAdminLoggedIn) return 'admin';
     if (!user) return 'guest';
     return user.role;
   };
@@ -416,10 +554,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
+    isAdminLoggedIn,
     signIn,
     signUp,
     signInWithOAuth,
     signOut,
+    adminLogin,
+    adminLogout,
     updateUserProfile,
     updatePersonalizationData,
     getUserType,

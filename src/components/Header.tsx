@@ -11,7 +11,9 @@ import {
   BookOpen,
   MessageCircle,
   BarChart3,
-  FileText
+  FileText,
+  Shield,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -49,7 +51,9 @@ export function Header({
       settings: '설정',
       logout: '로그아웃',
       myLearning: '내 학습',
-      aiChat: 'AI 챗봇'
+      aiChat: 'AI 챗봇',
+      admin: '관리자',
+      adminPanel: '관��자 패널'
     },
     en: {
       home: 'Home',
@@ -64,7 +68,9 @@ export function Header({
       settings: 'Settings',
       logout: 'Logout',
       myLearning: 'My Learning',
-      aiChat: 'AI Chat'
+      aiChat: 'AI Chat',
+      admin: 'Admin',
+      adminPanel: 'Admin Panel'
     }
   };
 
@@ -93,6 +99,17 @@ export function Header({
       ];
     }
 
+    if (userType === 'admin') {
+      // 관리자는 모든 기능 접근 가능
+      return [
+        ...baseItems,
+        { key: 'dashboard', label: t.myLearning, page: 'dashboard' as Page },
+        { key: 'ai-practice', label: t.aiChat, page: 'ai-practice' as Page },
+        { key: 'journal', label: t.journal, page: 'journal' as Page },
+        { key: 'admin', label: t.adminPanel, page: 'admin' as Page }
+      ];
+    }
+
     return baseItems;
   };
 
@@ -107,6 +124,17 @@ export function Header({
   };
 
   const getUserDisplayInfo = () => {
+    if (userType === 'admin') {
+      return {
+        name: '관리자',
+        email: 'admin@ideaworklab.com',
+        role: '관리자',
+        roleColor: 'bg-gradient-to-r from-red-500 to-orange-500 text-white',
+        RoleIcon: Shield,
+        isDemoUser: false
+      };
+    }
+
     if (!user) return null;
 
     return {
@@ -167,7 +195,7 @@ export function Header({
             </Button>
 
             {/* User Section */}
-            {user && userInfo ? (
+            {(user || userType === 'admin') && userInfo ? (
               <div className="hidden md:flex items-center space-x-3">
                 {/* User Info */}
                 <div className="flex items-center gap-2">

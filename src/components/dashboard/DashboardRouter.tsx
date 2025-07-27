@@ -46,11 +46,11 @@ export function DashboardRouter({ language, onNavigate }: DashboardRouterProps) 
     case 'member':
       return <MemberDashboard language={language} onNavigate={onNavigate} />;
     case 'instructor':
-      return <MemberDashboard language={language} onNavigate={onNavigate} />; // 임시로 멤버 대시보드 사용
+      return <MemberDashboard language={language} onNavigate={onNavigate} />; // v113에는 별도 instructor dashboard 없음
     case 'admin':
       return <AdminDashboard language={language} onNavigate={onNavigate} />;
     case 'master':
-      return <AdminDashboard language={language} onNavigate={onNavigate} />; // 임시로 어드민 대시보드 사용
+      return <AdminDashboard language={language} onNavigate={onNavigate} />; // v113에는 별도 master dashboard 없음
     default:
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">

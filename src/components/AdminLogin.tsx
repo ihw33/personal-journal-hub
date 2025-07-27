@@ -7,7 +7,7 @@ import { ArrowLeft, Lock, Shield } from 'lucide-react';
 interface AdminLoginProps {
   language: 'ko' | 'en';
   onNavigate: (page: string) => void;
-  onLoginSuccess: (success: boolean) => void;
+  onLoginSuccess: (password: string) => Promise<boolean>;
 }
 
 export function AdminLogin({ language, onNavigate, onLoginSuccess }: AdminLoginProps) {
@@ -42,18 +42,22 @@ export function AdminLogin({ language, onNavigate, onLoginSuccess }: AdminLoginP
     setIsLoading(true);
     setError('');
 
-    // 간단한 비밀번호 체크 (실제 환경에서는 서버 인증 사용)
-    if (password === 'ideaworklab2024') {
-      // 로그인 성공 - 관리자 대시보드로 이동
-      setTimeout(() => {
+    try {
+      // AuthContext의 adminLogin 함수를 통해 로그인 시도
+      const success = await onLoginSuccess(password);
+      
+      if (success) {
+        // 로그인 성공 - 관리자 대시보드로 이동
         setIsLoading(false);
-        onLoginSuccess(true);
-      }, 1000);
-    } else {
-      setTimeout(() => {
+      } else {
+        // 로그인 실패
         setError(t.errorMessage);
         setIsLoading(false);
-      }, 1000);
+      }
+    } catch (error) {
+      console.error('Admin login error:', error);
+      setError(t.errorMessage);
+      setIsLoading(false);
     }
   };
 

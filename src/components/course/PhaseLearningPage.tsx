@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -12,7 +13,8 @@ import {
   Play,
   Eye,
   Zap,
-  BookOpen
+  BookOpen,
+  Lock
 } from 'lucide-react';
 
 import { PracticeBlock } from './ContentBlocks';
@@ -31,6 +33,7 @@ interface PhaseLearningPageProps {
 }
 
 export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: PhaseLearningPageProps) {
+  const { user, getUserType } = useAuth();
   const [completionStatus, setCompletionStatus] = useState<'not-started' | 'in-progress' | 'completed'>('not-started');
 
   // 실제 주차 및 Phase 데이터 가져오기
@@ -38,9 +41,46 @@ export function PhaseLearningPage({ language, week, phase, mode, onNavigate }: P
   const phaseData: PhaseData = weekData.phases.find(p => p.id === phase) || weekData.phases[0];
   const t = PHASE_CONTENT[language];
 
+  // 인증 체크
+  useEffect(() => {
+    const userType = getUserType();
+    if (userType === 'guest') {
+      // 비로그인 사용자는 로그인 페이지로 리다이렉트
+      onNavigate('auth');
+      return;
+    }
+  }, [user, getUserType, onNavigate]);
+
   useEffect(() => {
     setCompletionStatus('in-progress');
   }, [phase, mode]);
+
+  const userType = getUserType();
+
+  // 비로그인 사용자인 경우 로딩 화면 표시
+  if (userType === 'guest') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            {language === 'ko' ? '로그인이 필요합니다' : 'Login Required'}
+          </h2>
+          <p className="text-gray-500 mb-6">
+            {language === 'ko' 
+              ? 'Phase 학습에 접근하려면 먼저 로그인해주세요.' 
+              : 'Please log in to access phase learning.'}
+          </p>
+          <Button 
+            onClick={() => onNavigate('auth')}
+            className="bg-iwl-gradient hover:opacity-90 text-white"
+          >
+            {language === 'ko' ? '로그인하기' : 'Go to Login'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!mode) {
     onNavigate('course-week', undefined, undefined, week);

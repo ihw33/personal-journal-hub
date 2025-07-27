@@ -49,9 +49,10 @@ import {
 interface AdminDashboardProps {
   language: 'ko' | 'en';
   onNavigate: (page: string) => void;
+  onLogout?: () => void;
 }
 
-export function AdminDashboard({ language, onNavigate }: AdminDashboardProps) {
+export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboardProps) {
   const [currentView, setCurrentView] = useState('dashboard');
   const [editorMode, setEditorMode] = useState('list');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -748,7 +749,7 @@ export function AdminDashboard({ language, onNavigate }: AdminDashboardProps) {
           {/* 로그아웃 버튼 */}
           <Button
             variant="ghost"
-            onClick={() => onNavigate('home')}
+            onClick={() => onLogout ? onLogout() : onNavigate('home')}
             className="w-full justify-start text-gray-600 hover:bg-gray-50"
           >
             <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />

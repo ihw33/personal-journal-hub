@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { HeaderV05 } from '@/components/layout/HeaderV05';
+import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { PersonalizedHeroSection } from '@/components/PersonalizedHeroSection';
 import { ProcessSection } from '@/components/ProcessSection';
@@ -44,7 +44,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Header is always visible on all pages */}
-      <HeaderV05 
+      <Header 
         language={language} 
         onLanguageToggle={toggleLanguage}
       />

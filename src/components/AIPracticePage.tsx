@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -24,7 +25,8 @@ import {
   Upload,
   Brain,
   Zap,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { JEJU_COURSE_DATA } from './course/courseData';
@@ -40,6 +42,7 @@ interface AIPracticePageProps {
 }
 
 export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPracticePageProps) {
+  const { user, getUserType } = useAuth();
   const [currentMessage, setCurrentMessage] = useState('');
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +50,16 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
   const [isTaskCompleted, setIsTaskCompleted] = useState(false);
   const [currentSession, setCurrentSession] = useState<AISession | null>(null);
   const [initializationError, setInitializationError] = useState<string | null>(null);
+
+  // 인증 체크
+  useEffect(() => {
+    const userType = getUserType();
+    if (userType === 'guest') {
+      // 비로그인 사용자는 로그인 페이지로 리다이렉트
+      onNavigate('auth');
+      return;
+    }
+  }, [user, getUserType, onNavigate]);
 
   // AI 서비스 인스턴스
   const aiService = AILearningService.getInstance();
@@ -207,6 +220,32 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
   };
 
   const t = content[language];
+  const userType = getUserType();
+
+  // 비로그인 사용자인 경우 로딩 화면 표시
+  if (userType === 'guest') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            {language === 'ko' ? '로그인이 필요합니다' : 'Login Required'}
+          </h2>
+          <p className="text-gray-500 mb-6">
+            {language === 'ko' 
+              ? 'AI 실습에 접근하려면 먼저 로그인해주세요.' 
+              : 'Please log in to access AI practice.'}
+          </p>
+          <Button 
+            onClick={() => onNavigate('auth')}
+            className="bg-iwl-gradient hover:opacity-90 text-white"
+          >
+            {language === 'ko' ? '로그인하기' : 'Go to Login'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // 🤖 AI 세션 초기화
   const initializeAISession = async () => {

@@ -1,6 +1,5 @@
-"use client";
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -25,7 +24,8 @@ import {
   MapPin,
   Lightbulb,
   Rocket,
-  ArrowLeft
+  ArrowLeft,
+  Lock
 } from 'lucide-react';
 
 interface JejuCourseOverviewProps {
@@ -34,7 +34,18 @@ interface JejuCourseOverviewProps {
 }
 
 export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewProps) {
+  const { user, getUserType } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'curriculum' | 'testimonials'>('overview');
+  
+  // 인증 체크
+  useEffect(() => {
+    const userType = getUserType();
+    if (userType === 'guest') {
+      // 비로그인 사용자는 로그인 페이지로 리다이렉트
+      onNavigate('auth');
+      return;
+    }
+  }, [user, getUserType, onNavigate]);
 
   const content = {
     ko: {
@@ -296,6 +307,32 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
   };
 
   const t = content[language];
+  const userType = getUserType();
+
+  // 비로그인 사용자인 경우 로딩 또는 빈 화면 표시
+  if (userType === 'guest') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            {language === 'ko' ? '로그인이 필요합니다' : 'Login Required'}
+          </h2>
+          <p className="text-gray-500 mb-6">
+            {language === 'ko' 
+              ? '코스에 접근하려면 먼저 로그인해주세요.' 
+              : 'Please log in to access the course.'}
+          </p>
+          <Button 
+            onClick={() => onNavigate('auth')}
+            className="bg-iwl-gradient hover:opacity-90 text-white"
+          >
+            {language === 'ko' ? '로그인하기' : 'Go to Login'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const getWeekTypeColor = (type: string) => {
     switch (type) {
@@ -381,7 +418,13 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                   </div>
                   
                   <Button 
-                    onClick={() => onNavigate('course-week', undefined, undefined, 1)}
+                    onClick={() => {
+                      if (userType === 'guest') {
+                        onNavigate('auth');
+                      } else {
+                        onNavigate('course-week', undefined, undefined, 1);
+                      }
+                    }}
                     className="w-full bg-iwl-gradient hover:opacity-90 text-white font-semibold py-4 text-lg"
                   >
                     <Rocket className="w-5 h-5 mr-2" />
@@ -561,7 +604,13 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => onNavigate('course-week', undefined, undefined, week.week)}
+                        onClick={() => {
+                          if (userType === 'guest') {
+                            onNavigate('auth');
+                          } else {
+                            onNavigate('course-week', undefined, undefined, week.week);
+                          }
+                        }}
                       >
                         <Play className="w-4 h-4 mr-1" />
                         시작하기
@@ -659,7 +708,13 @@ export function JejuCourseOverview({ language, onNavigate }: JejuCourseOverviewP
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
             <Button 
-              onClick={() => onNavigate('course-week', undefined, undefined, 1)}
+              onClick={() => {
+                if (userType === 'guest') {
+                  onNavigate('auth');
+                } else {
+                  onNavigate('course-week', undefined, undefined, 1);
+                }
+              }}
               size="lg"
               className="bg-white text-iwl-purple hover:bg-gray-50 font-semibold px-8 py-4"
             >

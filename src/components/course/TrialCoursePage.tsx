@@ -26,8 +26,7 @@ import {
   Coffee,
   Lightbulb,
   FileText,
-  Video,
-  Calendar
+  Video
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';

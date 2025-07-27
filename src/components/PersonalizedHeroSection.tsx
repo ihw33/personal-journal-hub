@@ -87,7 +87,7 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
       description: "AI 기반 도구로 인지적 잠재력을 해제하고, 사고 과정을 증폭시키며, 창의성을 향상시키고, 아이디어를 실행 가능한 통찰력으로 변환하세요",
       startCourse: "제주도 과정 시작하기",
       freeSignup: "무료 회원가입",
-      tryAI: "AI와 바로 실습하기",
+
       stats: {
         students: "500+ 수강생",
         satisfaction: "4.9/5 만족도", 
@@ -166,7 +166,7 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
       description: "Unlock your cognitive potential with AI-powered tools, amplify your thinking process, enhance creativity, and transform ideas into actionable insights",
       startCourse: "Start Jeju Course",
       freeSignup: "Free Sign Up",
-      tryAI: "Try AI Practice Now",
+
       stats: {
         students: "500+ Learners",
         satisfaction: "4.9/5 Rating",
@@ -208,36 +208,24 @@ function GuestHeroSection({ language, onNavigate }: { language: 'ko' | 'en', onN
             {t.description}
           </p>
 
-          <div className="flex flex-col gap-4 mb-8 items-center">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                onClick={() => onNavigate('course-jeju')}
-                size="lg" 
-                className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
-              >
-                <MapPin className="w-5 h-5 mr-2" />
-                {t.startCourse}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                onClick={() => onNavigate('auth')}
-                variant="outline" 
-                size="lg" 
-                className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4 transition-all"
-              >
-                <Brain className="w-5 h-5 mr-2" />
-                {t.freeSignup}
-              </Button>
-            </div>
-            
+          <div className="flex flex-col sm:flex-row gap-4 mb-8 items-center">
             <Button 
-              onClick={() => onNavigate('ai-practice')}
+              onClick={() => onNavigate('course-jeju')}
               size="lg" 
-              className="bg-gradient-to-r from-iwl-blue to-iwl-purple hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all border-2 border-transparent hover:scale-105"
+              className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              {t.tryAI}
-              <Zap className="w-5 h-5 ml-2" />
+              <MapPin className="w-5 h-5 mr-2" />
+              {t.startCourse}
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button 
+              onClick={() => onNavigate('auth')}
+              variant="outline" 
+              size="lg" 
+              className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4 transition-all"
+            >
+              <Brain className="w-5 h-5 mr-2" />
+              {t.freeSignup}
             </Button>
           </div>
 

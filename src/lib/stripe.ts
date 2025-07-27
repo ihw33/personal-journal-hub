@@ -1,7 +1,7 @@
 import { loadStripe } from '@stripe/stripe-js';
 
 // Browser-compatible Stripe configuration
-const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo_key';
+const stripePublishableKey = import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo_key';
 
 // Only load Stripe if we have a real key
 const stripePromise = stripePublishableKey !== 'pk_test_demo_key' 
