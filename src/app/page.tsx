@@ -7,53 +7,21 @@ import { ProcessSection } from '@/components/sections/ProcessSection';
 import { FeaturedJournals } from '@/components/sections/FeaturedJournals';
 import { NewsletterSection } from '@/components/sections/NewsletterSection';
 import { Footer } from '@/components/sections/Footer';
-import JournalPage from '@/app/journal/page';
-import CoursesPage from '@/app/courses/page';
-import AboutPage from '@/app/about/page';
 
 export type Language = 'ko' | 'en';
 export type Page = 'home' | 'signup' | 'journal' | 'courses' | 'about';
 
 export default function Home() {
   const [language, setLanguage] = useState<Language>('ko');
-  const [currentPage, setCurrentPage] = useState<Page>('home');
 
   const toggleLanguage = () => {
     setLanguage(language === 'ko' ? 'en' : 'ko');
   };
 
   const navigateTo = (page: string) => {
-    setCurrentPage(page as Page);
-  };
-
-  // Render page content based on current page
-  const renderPageContent = () => {
-    switch (currentPage) {
-      case 'home':
-        return (
-          <>
-            <HeroSection language={language} onNavigate={navigateTo} />
-            <ProcessSection language={language} />
-            <FeaturedJournals language={language} />
-            <NewsletterSection language={language} />
-          </>
-        );
-      case 'journal':
-        return <JournalPage />;
-      case 'courses':
-        return <CoursesPage />;
-      case 'about':
-        return <AboutPage />;
-      default:
-        return (
-          <>
-            <HeroSection language={language} onNavigate={navigateTo} />
-            <ProcessSection language={language} />
-            <FeaturedJournals language={language} />
-            <NewsletterSection language={language} />
-          </>
-        );
-    }
+    // This function is no longer needed for Header navigation
+    // but kept for HeroSection compatibility
+    console.log('Navigate to:', page);
   };
 
   return (
@@ -61,18 +29,19 @@ export default function Home() {
       {/* Header is always visible on all pages */}
       <HeaderV05 
         language={language} 
-        onLanguageToggle={toggleLanguage} 
-        currentPage={currentPage} 
-        onNavigate={navigateTo} 
+        onLanguageToggle={toggleLanguage}
       />
       
-      {/* Main content area */}
+      {/* Main content area - Home page only */}
       <main className="flex-1">
-        {renderPageContent()}
+        <HeroSection language={language} onNavigate={navigateTo} />
+        <ProcessSection language={language} />
+        <FeaturedJournals language={language} />
+        <NewsletterSection language={language} />
       </main>
       
-      {/* Footer only on home page */}
-      {currentPage === 'home' && <Footer language={language} />}
+      {/* Footer */}
+      <Footer language={language} />
     </div>
   );
 }

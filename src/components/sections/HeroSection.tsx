@@ -1,3 +1,5 @@
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
@@ -5,10 +7,10 @@ import { ArrowRight, Brain, Zap, TrendingUp, Users, Star, MapPin } from 'lucide-
 
 interface HeroSectionProps {
   language: 'ko' | 'en';
-  onNavigate: (page: string) => void;
+  onNavigate?: (page: string) => void; // Made optional for backward compatibility
 }
 
-export function HeroSection({ language, onNavigate }: HeroSectionProps) {
+export function HeroSection({ language }: HeroSectionProps) {
   const content = {
     ko: {
       mainTitle: "AI와 함께하는 새로운 생각정리",
@@ -90,14 +92,6 @@ export function HeroSection({ language, onNavigate }: HeroSectionProps) {
 
   const t = content[language];
 
-  const handleJejuCourse = () => {
-    onNavigate('course-jeju');
-  };
-
-  const handleJournal = () => {
-    onNavigate('journal');
-  };
-
   return (
     <section className="relative py-16 md:py-24 lg:py-32 bg-gradient-to-br from-iwl-purple-50 via-white to-iwl-blue-50 overflow-hidden">
       {/* Background Elements */}
@@ -134,24 +128,26 @@ export function HeroSection({ language, onNavigate }: HeroSectionProps) {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button 
-                onClick={handleJejuCourse}
-                size="lg" 
-                className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
-              >
-                <MapPin className="w-5 h-5 mr-2" />
-                {t.exploreCourses}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                onClick={handleJournal}
-                variant="outline" 
-                size="lg" 
-                className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4 transition-all"
-              >
-                <Brain className="w-5 h-5 mr-2" />
-                {t.startJournal}
-              </Button>
+              <Link href="/course">
+                <Button 
+                  size="lg" 
+                  className="bg-iwl-gradient hover:opacity-90 text-white font-semibold text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
+                >
+                  <MapPin className="w-5 h-5 mr-2" />
+                  {t.exploreCourses}
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link href="/journal">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-2 border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white font-semibold text-lg px-8 py-4 transition-all w-full sm:w-auto"
+                >
+                  <Brain className="w-5 h-5 mr-2" />
+                  {t.startJournal}
+                </Button>
+              </Link>
             </div>
 
             {/* Social Proof */}
@@ -243,13 +239,14 @@ export function HeroSection({ language, onNavigate }: HeroSectionProps) {
                     <div className="text-xs text-gray-500">{t.featuredSubtitle}</div>
                   </div>
                 </div>
-                <Button 
-                  onClick={handleJejuCourse}
-                  className="w-full bg-iwl-purple hover:bg-iwl-purple/90 text-white"
-                >
-                  <ArrowRight className="w-4 h-4 mr-2" />
-                  과정 둘러보기
-                </Button>
+                <Link href="/course">
+                  <Button 
+                    className="w-full bg-iwl-purple hover:bg-iwl-purple/90 text-white"
+                  >
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    과정 둘러보기
+                  </Button>
+                </Link>
               </div>
             </div>
 

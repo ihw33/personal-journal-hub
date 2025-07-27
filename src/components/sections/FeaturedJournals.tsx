@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -283,11 +284,10 @@ Journaling is no longer a solitary activity. It has become a journey of inner ex
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {t.journals.map((journal, index) => (
-            <Card 
-              key={journal.id} 
-              className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden cursor-pointer transform hover:-translate-y-2"
-              onClick={() => setSelectedJournal(journal)}
-            >
+            <Link key={journal.id} href={`/journal/${journal.id}`}>
+              <Card 
+                className="group hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden cursor-pointer transform hover:-translate-y-2"
+              >
               {/* Hero Image */}
               <div className="relative h-48 overflow-hidden">
                 <img
@@ -347,7 +347,16 @@ Journaling is no longer a solitary activity. It has become a journey of inner ex
                       <p className="text-xs text-gray-500">{journal.date}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-iwl-purple hover:text-iwl-blue hover:bg-iwl-purple-50">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-iwl-purple hover:text-iwl-blue hover:bg-iwl-purple-50"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedJournal(journal);
+                    }}
+                  >
                     <BookOpen className="w-4 h-4 mr-1" />
                     {t.readMore}
                   </Button>
@@ -357,6 +366,7 @@ Journaling is no longer a solitary activity. It has become a journey of inner ex
               {/* Hover overlay */}
               <div className={`absolute inset-0 bg-gradient-to-br ${journal.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500 pointer-events-none`} />
             </Card>
+            </Link>
           ))}
         </div>
 

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Menu, LogIn, Globe } from 'lucide-react';
@@ -8,11 +10,11 @@ import { Menu, LogIn, Globe } from 'lucide-react';
 interface HeaderProps {
   language: 'ko' | 'en';
   onLanguageToggle: () => void;
-  currentPage?: string;
-  onNavigate?: (page: 'home' | 'signup' | 'journal' | 'courses' | 'about') => void;
 }
 
-export function HeaderV05({ language, onLanguageToggle, currentPage, onNavigate }: HeaderProps) {
+export function HeaderV05({ language, onLanguageToggle }: HeaderProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
   const content = {
@@ -46,12 +48,12 @@ export function HeaderV05({ language, onLanguageToggle, currentPage, onNavigate 
       <div className="container flex h-16 items-center justify-between">
         {/* Logo + Language Toggle */}
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => onNavigate?.('home')}>
+          <Link href="/" className="flex items-center space-x-2 cursor-pointer">
             <div className="w-8 h-8 bg-iwl-gradient rounded-lg flex items-center justify-center">
               <span className="text-white text-sm font-bold">iWL</span>
             </div>
             <span className="text-xl text-gray-800 hidden sm:block">Idea Work Lab</span>
-          </div>
+          </Link>
           
           {/* Language Toggle Button */}
           <Button
@@ -68,30 +70,31 @@ export function HeaderV05({ language, onLanguageToggle, currentPage, onNavigate 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           {navigation.map((item) => (
-            <button
+            <Link
               key={item.name}
-              onClick={() => onNavigate?.(item.href.replace('/', '') as 'home' | 'journal' | 'courses' | 'about' || 'home')}
+              href={item.href}
               className={`text-gray-600 hover:text-iwl-purple transition-colors ${
-                currentPage === (item.href.replace('/', '') || 'home') ? 'text-iwl-purple' : ''
+                pathname === item.href ? 'text-iwl-purple font-medium' : ''
               }`}
             >
               {item.name}
-            </button>
+            </Link>
           ))}
         </nav>
 
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" className="text-gray-600 hover:text-iwl-purple">
-            <LogIn className="w-4 h-4 mr-2" />
-            {t.login}
-          </Button>
-          <Button 
-            className="bg-iwl-gradient hover:opacity-90 text-white"
-            onClick={() => onNavigate?.('signup')}
-          >
-            {t.getStarted}
-          </Button>
+          <Link href="/auth">
+            <Button variant="ghost" className="text-gray-600 hover:text-iwl-purple">
+              <LogIn className="w-4 h-4 mr-2" />
+              {t.login}
+            </Button>
+          </Link>
+          <Link href="/course">
+            <Button className="bg-iwl-gradient hover:opacity-90 text-white">
+              {t.getStarted}
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu + Language Toggle */}
@@ -123,31 +126,29 @@ export function HeaderV05({ language, onLanguageToggle, currentPage, onNavigate 
               </SheetHeader>
               <div className="flex flex-col space-y-4">
                 {navigation.map((item) => (
-                  <button
+                  <Link
                     key={item.name}
-                    onClick={() => {
-                      onNavigate?.(item.href.replace('/', '') as 'home' | 'journal' | 'courses' | 'about' || 'home');
-                      setIsOpen(false);
-                    }}
-                    className="text-lg text-gray-600 hover:text-iwl-purple transition-colors py-2 text-left"
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`text-lg transition-colors py-2 text-left ${
+                      pathname === item.href ? 'text-iwl-purple font-medium' : 'text-gray-600 hover:text-iwl-purple'
+                    }`}
                   >
                     {item.name}
-                  </button>
+                  </Link>
                 ))}
                 <hr className="my-4" />
-                <Button variant="ghost" className="justify-start text-gray-600 hover:text-iwl-purple">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  {t.login}
-                </Button>
-                <Button 
-                  className="bg-iwl-gradient hover:opacity-90 text-white"
-                  onClick={() => {
-                    onNavigate?.('signup');
-                    setIsOpen(false);
-                  }}
-                >
-                  {t.getStarted}
-                </Button>
+                <Link href="/auth" onClick={() => setIsOpen(false)}>
+                  <Button variant="ghost" className="justify-start text-gray-600 hover:text-iwl-purple w-full">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    {t.login}
+                  </Button>
+                </Link>
+                <Link href="/course" onClick={() => setIsOpen(false)}>
+                  <Button className="bg-iwl-gradient hover:opacity-90 text-white w-full">
+                    {t.getStarted}
+                  </Button>
+                </Link>
               </div>
             </SheetContent>
           </Sheet>
