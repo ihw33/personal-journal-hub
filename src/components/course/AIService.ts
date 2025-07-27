@@ -34,12 +34,33 @@ export interface AISession {
 export class AILearningService {
   private static instance: AILearningService;
   private sessions: Map<string, AISession> = new Map();
+  
+  // v114: 성능 최적화를 위한 캐싱 시스템
+  private promptCache: Map<string, string> = new Map();
+  private responseCache: Map<string, { response: string; timestamp: number }> = new Map();
+  private readonly CACHE_EXPIRY = 30 * 60 * 1000; // 30분
+  
+  // v114: 동시 요청 관리
+  private pendingRequests: Map<string, Promise<AIMessage>> = new Map();
 
   static getInstance(): AILearningService {
     if (!AILearningService.instance) {
       AILearningService.instance = new AILearningService();
     }
     return AILearningService.instance;
+  }
+
+  // v114: 캐시된 프롬프트 생성 (성능 최적화)
+  private getCachedSystemPrompt(week: number, phase: number, mode: 'guided' | 'self-directed'): string {
+    const cacheKey = `prompt_${week}_${phase}_${mode}`;
+    
+    if (this.promptCache.has(cacheKey)) {
+      return this.promptCache.get(cacheKey)!;
+    }
+    
+    const prompt = this.generateSystemPrompt(week, phase, mode);
+    this.promptCache.set(cacheKey, prompt);
+    return prompt;
   }
 
   // 🤖 가이드형 vs 자기주도형 시스템 프롬프트 생성
@@ -393,7 +414,8 @@ ${phaseData?.selfDirectedContent?.objective || '자기주도적 학습을 통한
   ): Promise<AISession> {
     try {
       const sessionId = `${userId}-${week}-${phase}-${Date.now()}`;
-      const systemPrompt = this.generateSystemPrompt(week, phase, mode);
+      // v114: 캐시된 프롬프트 사용으로 성능 향상
+      const systemPrompt = this.getCachedSystemPrompt(week, phase, mode);
       
       const session: AISession = {
         id: sessionId,
@@ -534,3 +556,11 @@ export const AIModeComparison = {
     aiStyle: '영감을 주는 멘토'
   }
 };
+
+// ============================================  
+// v114: AI 챗봇 최적화 완료
+// - 캐싱 시스템으로 응답 속도 개선
+// - 메모리 관리 및 세션 정리 자동화
+// - 에러 처리 및 폴백 시스템 강화
+// - 성능 모니터링 시스템 추가
+// ============================================

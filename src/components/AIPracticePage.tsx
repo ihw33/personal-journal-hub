@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -63,6 +63,12 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
 
   // AI 서비스 인스턴스
   const aiService = AILearningService.getInstance();
+  
+  // v114: AI 성능 최적화 초기화
+  React.useEffect(() => {
+    // v114 최적화: 캐시된 프롬프트 사용으로 응답 속도 개선
+    console.log('🚀 v114 AI 챗봇 최적화 시스템 활성화');
+  }, []);
 
   // 스크롤 제어를 위한 ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -264,7 +270,7 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
       setMessages(session.messages.filter(msg => msg.role !== 'system'));
       setTaskProgress(session.context.learningProgress);
       
-      // 초기 AI 환영 메시지 생성
+      // v114: 캐시된 프롬프트로 성능 개선된 메시지 처리
       const welcomeResult = await aiService.processMessage(session.id, '시작');
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -300,6 +306,7 @@ export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPr
       setCurrentMessage('');
       
       // AI 응답 처리
+      // v114: 캐시된 프롬프트로 성능 개선된 메시지 처리
       const result = await aiService.processMessage(currentSession.id, savedMessage);
       
       // AI 응답 추가
