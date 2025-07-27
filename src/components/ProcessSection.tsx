@@ -17,7 +17,6 @@ export function ProcessSection({ language, onNavigate }: ProcessSectionProps) {
       description: '단계별 가이드와 AI 도구로 당신의 사고 능력을 체계적으로 향상시키세요.',
       cta: '여정 시작하기',
       learnMore: '자세히 알아보기',
-      aiPractice: 'AI와 바로 실습하기',
       processes: [
         {
           step: 1,
@@ -67,7 +66,6 @@ export function ProcessSection({ language, onNavigate }: ProcessSectionProps) {
       description: 'Systematically improve your thinking abilities with step-by-step guides and AI tools.',
       cta: 'Start Journey',
       learnMore: 'Learn More',
-      aiPractice: 'Practice with AI Now',
       processes: [
         {
           step: 1,
@@ -209,40 +207,27 @@ export function ProcessSection({ language, onNavigate }: ProcessSectionProps) {
           ))}
         </div>
 
-        {/* CTA Buttons */}
+        {/* v117: CTA Buttons - AI 바로 실습하기 버튼 제거됨 */}
         <div className="text-center">
-          <div className="flex flex-col gap-4 justify-center items-center">
-            {/* Primary CTA - AI Practice */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-iwl-blue to-iwl-purple hover:opacity-90 text-white px-8 py-4 shadow-lg hover:shadow-xl transition-all hover:scale-105"
-              onClick={() => onNavigate?.('ai-practice')}
+              className="bg-iwl-gradient hover:opacity-90 text-white px-8 py-4 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              onClick={() => onNavigate?.('journal')}
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              {t.aiPractice}
-              <Zap className="w-5 h-5 ml-2" />
+              <Sparkles className="w-5 h-5 mr-2" />
+              {t.cta}
+              <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            
-            {/* Secondary CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
-                className="bg-iwl-gradient hover:opacity-90 text-white px-8 py-4"
-                onClick={() => onNavigate?.('journal')}
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                {t.cta}
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-iwl-purple text-iwl-purple hover:bg-iwl-purple-50 px-8 py-4"
-                onClick={() => onNavigate?.('courses')}
-              >
-                <BookOpen className="w-5 h-5 mr-2" />
-                {t.learnMore}
-              </Button>
-            </div>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-iwl-purple text-iwl-purple hover:bg-iwl-purple-50 px-8 py-4"
+              onClick={() => onNavigate?.('courses')}
+            >
+              <BookOpen className="w-5 h-5 mr-2" />
+              {t.learnMore}
+            </Button>
           </div>
         </div>
       </div>

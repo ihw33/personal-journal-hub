@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { BetaFlagService } from '../lib/betaFlags';
 import { BetaNotificationService } from '../lib/betaNotifications';
 import { createDefaultInviteCodes } from '../lib/betaWaitlist';
+import { logAdminLogin, logAdminLogout, logSecurityViolation } from '../lib/adminAuditLog';
 
 export type UserRole = 'guest' | 'member' | 'admin';
 export type MembershipLevel = 'free' | 'basic' | 'premium' | 'vip';
@@ -104,10 +105,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // 관리자 세션 확인
+    // v117: 강화된 관리자 세션 확인
     const adminSession = localStorage.getItem('admin-session');
+    const adminLoginTime = localStorage.getItem('admin-login-time');
+    
     if (adminSession === 'true') {
-      setIsAdminLoggedIn(true);
+      // v117: 관리자 세션 만료 체크 (24시간)
+      if (adminLoginTime) {
+        const loginTime = new Date(adminLoginTime);
+        const now = new Date();
+        const timeDiff = now.getTime() - loginTime.getTime();
+        const hoursDiff = timeDiff / (1000 * 3600);
+        
+        if (hoursDiff < 24) {
+          setIsAdminLoggedIn(true);
+          
+          // 베타 플래그 서비스에 관리자 컨텍스트 복원
+          const betaService = BetaFlagService.getInstance();
+          betaService.setUserContext('admin', 'admin');
+        } else {
+          // 세션 만료
+          localStorage.removeItem('admin-session');
+          localStorage.removeItem('admin-login-time');
+          console.log('🔒 Admin session expired');
+        }
+      } else {
+        setIsAdminLoggedIn(true);
+      }
     }
 
     // 데모 사용자 확인
@@ -430,15 +454,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 관리자 로그인
+  // v117: 강화된 관리자 로그인
   const adminLogin = async (password: string) => {
     try {
       // 관리자 비밀번호 확인
       if (password === 'ideaworklab2024') {
         setIsAdminLoggedIn(true);
         localStorage.setItem('admin-session', 'true');
+        localStorage.setItem('admin-login-time', new Date().toISOString());
+        
+        // v117: 베타 플래그 서비스에 관리자 컨텍스트 설정
+        const betaService = BetaFlagService.getInstance();
+        betaService.setUserContext('admin', 'admin');
+        
+        // v117: 관리자 로그인 감사 로깅
+        logAdminLogin('admin', true, { 
+          loginTime: new Date().toISOString(),
+          userAgent: typeof window !== 'undefined' ? navigator.userAgent : 'Unknown'
+        });
+        
+        console.log('🔑 Admin access granted - Enhanced security mode activated');
         return { error: null };
       } else {
+        // v117: 실패한 로그인 시도 기록
+        logAdminLogin('admin', false, { 
+          attemptTime: new Date().toISOString(),
+          reason: 'Invalid password'
+        });
+        
         return { error: { message: '잘못된 관리자 비밀번호입니다.' } };
       }
     } catch (error) {
@@ -447,10 +490,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 관리자 로그아웃
+  // v117: 강화된 관리자 로그아웃
   const adminLogout = () => {
     setIsAdminLoggedIn(false);
     localStorage.removeItem('admin-session');
+    localStorage.removeItem('admin-login-time');
+    
+    // v117: 베타 플래그 서비스 컨텍스트 정리
+    const betaService = BetaFlagService.getInstance();
+    betaService.setUserContext('guest', 'guest');
+    
+    // v117: 관리자 로그아웃 감사 로깅
+    logAdminLogout('admin');
+    
+    console.log('🔒 Admin session terminated - Security mode deactivated');
   };
 
   // 로그아웃

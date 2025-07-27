@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { checkPageAccess, getAccessDeniedMessage } from './lib/adminAccessControl';
+import { logAdminPageAccess, logSecurityViolation } from './lib/adminAuditLog';
 import { Header } from './components/Header';
+import { toast } from 'sonner';
 import { HeroSection } from './components/HeroSection';
 import { PersonalizedHeroSection } from './components/PersonalizedHeroSection';
 import { ProcessSection } from './components/ProcessSection';
@@ -93,8 +96,34 @@ function AppContent() {
     }
   }, [user]);
 
-  // navigateTo 함수에 phase와 mode 파라미터 포함
+  // v117: 강화된 navigateTo 함수 - 접근 제어 포함
   const navigateTo = (page: Page, journalId?: string, category?: string, week?: number, phase?: number, mode?: 'guided' | 'self-directed') => {
+    const userRole = getUserType();
+    
+    // v117: 페이지 접근 권한 확인
+    const accessCheck = checkPageAccess(page, userRole);
+    
+    if (!accessCheck.hasAccess) {
+      // v117: 보안 위반 로깅
+      logSecurityViolation(user?.id || 'anonymous', {
+        attemptedPage: page,
+        userRole,
+        reason: accessCheck.reason,
+        timestamp: new Date().toISOString()
+      });
+      
+      // 접근 거부 시 Toast 알림 표시
+      const message = getAccessDeniedMessage(accessCheck.reason || 'INSUFFICIENT_PERMISSIONS', userRole);
+      toast.error(message);
+      
+      // 리다이렉트 페이지로 이동
+      if (accessCheck.redirectPage) {
+        setCurrentPage(accessCheck.redirectPage as Page);
+      }
+      return;
+    }
+    
+    // 접근 허용된 경우 정상 처리
     setCurrentPage(page);
     if (journalId) {
       setSelectedJournalId(journalId);
@@ -110,6 +139,14 @@ function AppContent() {
     }
     if (mode) {
       setSelectedMode(mode);
+    }
+    
+    // v117: 관리자 페이지 접근 로깅
+    if (page === 'admin' && userRole === 'admin') {
+      logAdminPageAccess(user?.id || 'admin', page, true);
+      console.log('🔐 Admin dashboard access granted');
+    } else if (userRole === 'admin') {
+      logAdminPageAccess(user?.id || 'admin', page, true);
     }
   };
 
@@ -301,7 +338,7 @@ function AppContent() {
           </div>
         );
       
-      // Admin Page
+      // v117: 강화된 Admin Page
       case 'admin':
         if (!isAdminLoggedIn) {
           return (
@@ -310,6 +347,9 @@ function AppContent() {
               onNavigate={navigateTo}
               onLoginSuccess={async (password) => {
                 const result = await adminLogin(password);
+                if (!result.error) {
+                  toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
+                }
                 return !result.error;
               }}
             />
@@ -321,6 +361,7 @@ function AppContent() {
               onNavigate={navigateTo}
               onLogout={() => {
                 adminLogout();
+                toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
                 navigateTo('home');
               }}
             />
@@ -383,16 +424,26 @@ function AppContent() {
         />
       )}
 
-      {/* Demo Mode Indicator - Minimized */}
+      {/* v117: 강화된 데모 모드 표시 - 최소화 */}
       {(!process.env.REACT_APP_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL === 'your_supabase_project_url_here') && (
         <div className="fixed bottom-4 right-4 z-40">
           <button
             onClick={() => setShowEnvGuide(true)}
-            className="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-full p-2 shadow-sm transition-all duration-200 opacity-50 hover:opacity-100"
+            className="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full p-1.5 shadow-sm transition-all duration-200 opacity-30 hover:opacity-80"
             title={language === 'ko' ? '데모 모드 - 설정하기' : 'Demo Mode - Setup'}
           >
-            <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+            <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
           </button>
+        </div>
+      )}
+      
+      {/* v117: 관리자 모드 표시기 */}
+      {isAdminLoggedIn && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg flex items-center gap-1">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            {language === 'ko' ? '관리자 모드' : 'Admin Mode'}
+          </div>
         </div>
       )}
 
