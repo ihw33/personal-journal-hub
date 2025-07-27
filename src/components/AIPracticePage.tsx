@@ -45,6 +45,7 @@ interface AIPracticePageProps {
 
 export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPracticePageProps) {
   const { user, getUserType } = useAuth();
+  
   const [currentMessage, setCurrentMessage] = useState('');
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
