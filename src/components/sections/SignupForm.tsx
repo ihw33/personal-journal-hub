@@ -106,7 +106,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       } else {
         toast.error(result.error || '회원가입에 실패했습니다.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('회원가입 오류:', error);
       toast.error('회원가입 처리 중 오류가 발생했습니다.');
     } finally {

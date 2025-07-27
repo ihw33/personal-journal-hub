@@ -414,7 +414,7 @@ export function AdminDashboard({ language, onNavigate }: AdminDashboardProps) {
             <div className="p-3 bg-yellow-50 rounded-lg">
               <div className="text-sm font-medium">📝 글 작성 제안</div>
               <div className="text-xs text-muted-foreground mt-1">
-                "AI 도구 활용법" 카테고리에 새 글을 작성해보세요
+&quot;AI 도구 활용법&quot; 카테고리에 새 글을 작성해보세요
               </div>
             </div>
             <div className="p-3 bg-blue-50 rounded-lg">

@@ -114,13 +114,13 @@ export function IntegratedChatbot({
         ...parsed,
         startTime: new Date(parsed.startTime),
         lastActivity: new Date(parsed.lastActivity),
-        messages: parsed.messages.map((msg: any) => ({
+        messages: parsed.messages.map((msg: unknown) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         })),
         metadata: {
           ...parsed.metadata,
-          phaseTransitions: parsed.metadata.phaseTransitions.map((pt: any) => ({
+          phaseTransitions: parsed.metadata.phaseTransitions.map((pt: unknown) => ({
             ...pt,
             timestamp: new Date(pt.timestamp)
           }))

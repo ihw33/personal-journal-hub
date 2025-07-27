@@ -45,7 +45,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       } else {
         toast.error(result.error || '로그인에 실패했습니다.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('로그인 오류:', error);
       toast.error('로그인 처리 중 오류가 발생했습니다.');
     } finally {

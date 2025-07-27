@@ -176,14 +176,14 @@ export function CourseSubmissionPage({ language, week, onNavigate }: CourseSubmi
 
   const t = content[language];
 
-  const handleInputChange = (field: keyof SubmissionData, value: any) => {
+  const handleInputChange = (field: keyof SubmissionData, value: unknown) => {
     setSubmissionData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handlePhaseUpdate = (phaseIndex: number, field: keyof typeof submissionData.phaseBreakdown[0], value: any) => {
+  const handlePhaseUpdate = (phaseIndex: number, field: keyof typeof submissionData.phaseBreakdown[0], value: unknown) => {
     setSubmissionData(prev => ({
       ...prev,
       phaseBreakdown: prev.phaseBreakdown.map((phase, index) => 

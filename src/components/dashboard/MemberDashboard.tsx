@@ -19,7 +19,7 @@ import {
   User,
   Bell
 } from 'lucide-react';
-import { getCourseEnrollments, getCourses } from '../../lib/supabase';
+
 import { toast } from 'sonner';
 
 interface MemberDashboardProps {
@@ -28,7 +28,7 @@ interface MemberDashboardProps {
 }
 
 export function MemberDashboard({ language, onNavigate }: MemberDashboardProps) {
-  const { userProfile, signOut } = useAuth();
+  // const { userProfile, signOut } = useAuth();
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [recommendedCourses, setRecommendedCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,17 +41,13 @@ export function MemberDashboard({ language, onNavigate }: MemberDashboardProps) 
     try {
       setLoading(true);
       
-      // 수강 중인 강의 로드
-      const { data: enrollmentData, error: enrollmentError } = await getCourseEnrollments(userProfile!.id);
-      if (enrollmentError) throw enrollmentError;
-      setEnrollments(enrollmentData || []);
+      // 수강 중인 강의 로드 (임시 데이터)
+      setEnrollments([]);
 
-      // 추천 강의 로드 (공개된 강의 중 랜덤)
-      const { data: coursesData, error: coursesError } = await getCourses({ status: 'published' });
-      if (coursesError) throw coursesError;
-      setRecommendedCourses((coursesData || []).slice(0, 3));
+      // 추천 강의 로드 (임시 데이터)
+      setRecommendedCourses([]);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('대시보드 데이터 로드 실패:', error);
       toast.error('데이터를 불러오는데 실패했습니다.');
     } finally {
@@ -60,20 +56,12 @@ export function MemberDashboard({ language, onNavigate }: MemberDashboardProps) 
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    // await signOut();
     onNavigate('home');
   };
 
   const getSubscriptionBadge = () => {
-    const status = userProfile?.subscription_status;
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-700 border-green-300">프리미엄</Badge>;
-      case 'trial':
-        return <Badge className="bg-blue-100 text-blue-700 border-blue-300">체험판</Badge>;
-      default:
-        return <Badge variant="outline">무료</Badge>;
-    }
+    return <Badge variant="outline">무료</Badge>;
   };
 
   const calculateOverallProgress = () => {
@@ -111,7 +99,7 @@ export function MemberDashboard({ language, onNavigate }: MemberDashboardProps) 
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
-                  안녕하세요, {userProfile?.full_name || '회원'}님!
+                  안녕하세요, 회원님!
                 </h1>
                 <div className="flex items-center gap-2">
                   {getSubscriptionBadge()}
