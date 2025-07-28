@@ -453,6 +453,20 @@ function AppContent() {
       
       // v117: 강화된 Admin Page
       case 'admin':
+        // URL 파라미터로 강제 로그아웃 지원
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'true') {
+          adminLogout();
+          window.history.replaceState({}, '', '/admin'); // URL에서 파라미터 제거
+        }
+        
+        // 관리자 세션 상태 로깅
+        console.log('Admin page debug:', {
+          isAdminLoggedIn,
+          adminSession: typeof window !== 'undefined' ? localStorage.getItem('admin-session') : null,
+          adminLoginTime: typeof window !== 'undefined' ? localStorage.getItem('admin-login-time') : null
+        });
+        
         if (!isAdminLoggedIn) {
           return (
             <AdminLogin 

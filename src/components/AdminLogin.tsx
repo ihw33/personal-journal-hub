@@ -15,6 +15,9 @@ export function AdminLogin({ language, onNavigate, onLoginSuccess }: AdminLoginP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 디버깅: 컴포넌트 렌더링 확인
+  console.log('AdminLogin component rendered');
+
   const contentText = {
     ko: {
       title: "관리자 로그인",
