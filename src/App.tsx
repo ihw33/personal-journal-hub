@@ -453,38 +453,27 @@ function AppContent() {
           </div>
         );
       
-      // v117: 강화된 Admin Page - 극단적 로그인 페이지 강제 표시
+      // v117: Admin Page - 완전히 하드코딩된 로그인 페이지
       case 'admin':
-        console.log('🔐 Admin page accessed - FORCE SHOWING LOGIN');
-        console.log('Current isAdminLoggedIn state:', isAdminLoggedIn);
-        console.log('localStorage admin keys:', Object.keys(localStorage).filter(k => k.includes('admin')));
+        console.log('🔐 Admin page accessed - HARDCODED LOGIN PAGE');
+        console.log('isAdminLoggedIn state (IGNORED):', isAdminLoggedIn);
         
-        // 즉시 관리자 상태 무효화
-        if (isAdminLoggedIn) {
-          console.log('⚠️ Found admin session - DESTROYING IT');
-          adminLogout();
-        }
-        
+        // isAdminLoggedIn 상태를 완전히 무시하고 항상 로그인 페이지 표시
         return (
-          <div key={Date.now()}> {/* 강제 리렌더링 */}
-            <AdminLogin 
-              language={language} 
-              onNavigate={navigateTo}
-              onLoginSuccess={async (password) => {
-                console.log('🔑 Login attempt with password');
-                const result = await adminLogin(password);
-                if (!result.error) {
-                  toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                  console.log('✅ Login successful - redirecting to dashboard');
-                  // 캐시 무효화를 위한 타임스탬프 추가
-                  window.location.href = '/admin-dashboard?t=' + Date.now();
-                } else {
-                  console.log('❌ Login failed:', result.error);
-                }
-                return !result.error;
-              }}
-            />
-          </div>
+          <AdminLogin 
+            language={language} 
+            onNavigate={navigateTo}
+            onLoginSuccess={async (password) => {
+              console.log('🔑 Login attempt');
+              const result = await adminLogin(password);
+              if (!result.error) {
+                toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
+                console.log('✅ Login successful - redirecting');
+                window.location.href = '/admin-dashboard';
+              }
+              return !result.error;
+            }}
+          />
         );
       
       // Admin Dashboard Page
