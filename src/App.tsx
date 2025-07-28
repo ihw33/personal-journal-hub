@@ -354,26 +354,43 @@ function AppContent() {
     );
   };
 
-  // Render page content based on current page
+  // Render page content based on current page  
   const renderPageContent = () => {
+    // 🚨 SUPER URGENT ADMIN OVERRIDE - 코드 실행 확인
+    console.log('🔥 RENDER PAGE CONTENT CALLED - NEW VERSION');
+    console.log('🔥 Current pathname:', typeof window !== 'undefined' ? window.location.pathname : 'SSR');
+    console.log('🔥 Current page state:', currentPage);
+    
     // ⚠️ EMERGENCY ADMIN OVERRIDE - /admin URL 강제 처리 (SSR 안전)
     if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
-      console.log('🚨 EMERGENCY ADMIN OVERRIDE - URL is /admin, forcing login page');
+      console.log('🚨🚨🚨 EMERGENCY ADMIN OVERRIDE TRIGGERED - SHOWING RED SCREEN');
       return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-          <AdminLogin 
-            language={language} 
-            onNavigate={navigateTo}
-            onLoginSuccess={async (password) => {
-              console.log('🔑 Emergency login attempt');
-              const result = await adminLogin(password);
-              if (!result.error) {
-                toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                window.location.href = '/admin-dashboard';
-              }
-              return !result.error;
-            }}
-          />
+        <div style={{ 
+          minHeight: '100vh', 
+          backgroundColor: '#ff0000', // 빨간 배경으로 강제 표시
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '24px',
+          fontWeight: 'bold'
+        }}>
+          🚨 ADMIN OVERRIDE ACTIVE - NEW CODE WORKING! 🚨
+          <div style={{ position: 'absolute', top: '50px', left: '50px' }}>
+            <AdminLogin 
+              language={language} 
+              onNavigate={navigateTo}
+              onLoginSuccess={async (password) => {
+                console.log('🔑 Emergency login attempt');
+                const result = await adminLogin(password);
+                if (!result.error) {
+                  toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
+                  window.location.href = '/admin-dashboard';
+                }
+                return !result.error;
+              }}
+            />
+          </div>
         </div>
       );
     }
