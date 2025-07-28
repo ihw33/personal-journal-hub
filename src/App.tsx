@@ -455,9 +455,13 @@ function AppContent() {
       case 'admin':
         // URL 파라미터로 강제 로그아웃 지원
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('logout') === 'true') {
+        if (urlParams.get('logout') === 'true' || urlParams.get('reset') === 'true') {
+          // 강제 세션 초기화
+          localStorage.removeItem('admin-session');
+          localStorage.removeItem('admin-login-time');
           adminLogout();
           window.history.replaceState({}, '', '/admin'); // URL에서 파라미터 제거
+          console.log('🔄 Admin session force reset');
         }
         
         // 관리자 세션 상태 로깅

@@ -116,6 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const adminSession = localStorage.getItem('admin-session');
     const adminLoginTime = localStorage.getItem('admin-login-time');
     
+    console.log('🔍 Admin session check:', { adminSession, adminLoginTime }); // 디버깅
+    
     if (adminSession === 'true') {
       // v117: 관리자 세션 만료 체크 (24시간)
       if (adminLoginTime) {
@@ -124,8 +126,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const timeDiff = now.getTime() - loginTime.getTime();
         const hoursDiff = timeDiff / (1000 * 3600);
         
+        console.log('⏰ Session time check:', { hoursDiff, expired: hoursDiff >= 24 }); // 디버깅
+        
         if (hoursDiff < 24) {
           setIsAdminLoggedIn(true);
+          console.log('✅ Admin session restored');
           
           // 베타 플래그 서비스에 관리자 컨텍스트 복원
           const betaService = BetaFlagService.getInstance();
@@ -134,11 +139,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // 세션 만료
           localStorage.removeItem('admin-session');
           localStorage.removeItem('admin-login-time');
-          console.log('🔒 Admin session expired');
+          setIsAdminLoggedIn(false);
+          console.log('🔒 Admin session expired and cleared');
         }
       } else {
-        setIsAdminLoggedIn(true);
+        // 로그인 시간이 없으면 세션 무효화 (보안 강화)
+        localStorage.removeItem('admin-session');
+        setIsAdminLoggedIn(false);
+        console.log('❌ Admin session invalid - no login time');
       }
+    } else {
+      setIsAdminLoggedIn(false);
+      console.log('❌ No admin session found');
     }
 
     // 데모 사용자 확인
