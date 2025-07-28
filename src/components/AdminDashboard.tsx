@@ -757,7 +757,17 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
           {/* 로그아웃 버튼 */}
           <Button
             variant="ghost"
-            onClick={() => onLogout ? onLogout() : onNavigate('home')}
+            onClick={() => {
+              console.log('Logout button clicked'); // 디버깅 로그
+              if (onLogout) {
+                onLogout();
+              } else {
+                // 강제 로그아웃 처리
+                localStorage.removeItem('admin-session');
+                localStorage.removeItem('admin-login-time');
+                window.location.href = '/admin?reset=true';
+              }
+            }}
             className="w-full justify-start text-gray-600 hover:bg-gray-50"
           >
             <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />

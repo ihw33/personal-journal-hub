@@ -113,6 +113,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     
+    // 강제 세션 초기화 체크
+    const forceReset = window.location.search.includes('reset=true') || window.location.search.includes('logout=true');
+    if (forceReset) {
+      localStorage.removeItem('admin-session');
+      localStorage.removeItem('admin-login-time');
+      setIsAdminLoggedIn(false);
+      console.log('🔄 Admin session force reset from URL');
+      return;
+    }
+    
     const adminSession = localStorage.getItem('admin-session');
     const adminLoginTime = localStorage.getItem('admin-login-time');
     
