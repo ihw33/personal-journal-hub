@@ -356,70 +356,9 @@ function AppContent() {
 
   // Render page content based on current page  
   const renderPageContent = () => {
-    // 🚨 SUPER URGENT ADMIN OVERRIDE - 코드 실행 확인
-    console.log('🔥 RENDER PAGE CONTENT CALLED - NEW VERSION');
-    console.log('🔥 Current pathname:', typeof window !== 'undefined' ? window.location.pathname : 'SSR');
-    console.log('🔥 Current page state:', currentPage);
-    
-    // ⚠️ EMERGENCY ADMIN OVERRIDE - /admin URL 강제 처리 (SSR 안전)
-    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
-      console.log('🚨🚨🚨 EMERGENCY ADMIN OVERRIDE TRIGGERED - SHOWING RED SCREEN');
-      return (
-        <div style={{ 
-          minHeight: '100vh', 
-          backgroundColor: '#ff0000', // 빨간 배경으로 강제 표시
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: '24px',
-          fontWeight: 'bold'
-        }}>
-          🚨 ADMIN OVERRIDE ACTIVE - NEW CODE WORKING! 🚨
-          <div style={{ position: 'absolute', top: '50px', left: '50px' }}>
-            <AdminLogin 
-              language={language} 
-              onNavigate={navigateTo}
-              onLoginSuccess={async (password) => {
-                console.log('🔑 Emergency login attempt');
-                const result = await adminLogin(password);
-                if (!result.error) {
-                  toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                  window.location.href = '/admin-dashboard';
-                }
-                return !result.error;
-              }}
-            />
-          </div>
-        </div>
-      );
-    }
-
     switch (currentPage) {
       case 'home':
-        // 🚨 DEPLOYMENT TEST - 홈페이지를 빨간색으로 만들어 배포 확인
-        console.log('🚨 HOME PAGE ACCESSED - SHOWING DEPLOYMENT TEST');
-        return (
-          <div style={{ 
-            minHeight: '100vh', 
-            backgroundColor: '#ff0000', 
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: '48px',
-            fontWeight: 'bold',
-            flexDirection: 'column'
-          }}>
-            🚨 DEPLOYMENT TEST ACTIVE 🚨
-            <div style={{ fontSize: '24px', marginTop: '20px' }}>
-              NEW CODE IS WORKING!
-            </div>
-            <div style={{ fontSize: '16px', marginTop: '20px' }}>
-              {typeof window !== 'undefined' ? window.location.pathname : 'SSR'}
-            </div>
-          </div>
-        );
+        return renderPersonalizedHomePage();
         
       case 'signup':
         return <SignupPage language={language} onNavigate={navigateTo} />;
@@ -521,38 +460,45 @@ function AppContent() {
           </div>
         );
       
-      // v117: Admin Page - 완전히 하드코딩된 로그인 페이지 (상태 완전 무시)
+      // Admin Page
       case 'admin':
-        console.log('🔐 Admin page case triggered');
-        console.log('Current URL path:', typeof window !== 'undefined' ? window.location.pathname : 'SSR');
-        console.log('isAdminLoggedIn (COMPLETELY IGNORED):', isAdminLoggedIn);
-        
-        // 강제로 관리자 상태 false 설정 및 즉시 AdminLogin 반환
-        React.useEffect(() => {
-          console.log('🔥 FORCE RESETTING ADMIN STATE IN ADMIN CASE');
+        // URL 파라미터로 강제 로그아웃 지원
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'true' || urlParams.get('reset') === 'true') {
+          localStorage.removeItem('admin-session');
+          localStorage.removeItem('admin-login-time');
           adminLogout();
-        }, []);
+          window.history.replaceState({}, '', '/admin');
+        }
         
-        // 어떤 상태든 관계없이 무조건 AdminLogin 컴포넌트만 반환
-        console.log('🔐 RETURNING ADMIN LOGIN - NO CONDITIONS');
-        return (
-          <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        if (!isAdminLoggedIn) {
+          return (
             <AdminLogin 
               language={language} 
               onNavigate={navigateTo}
               onLoginSuccess={async (password) => {
-                console.log('🔑 Login attempt in hardcoded admin page');
                 const result = await adminLogin(password);
                 if (!result.error) {
                   toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                  console.log('✅ Login successful - redirecting to dashboard');
-                  window.location.href = '/admin-dashboard';
+                  navigateTo('admin-dashboard');
                 }
                 return !result.error;
               }}
             />
-          </div>
-        );
+          );
+        } else {
+          return (
+            <AdminDashboard 
+              language={language} 
+              onNavigate={navigateTo}
+              onLogout={() => {
+                adminLogout();
+                toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
+                navigateTo('admin');
+              }}
+            />
+          );
+        }
       
       // Admin Dashboard Page
       case 'admin-dashboard':

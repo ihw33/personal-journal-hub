@@ -108,38 +108,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // v117: 강화된 관리자 세션 확인 (SSR 안전성)
+    // 관리자 세션 상태 확인 (SSR 안전성)
     if (typeof window === 'undefined') {
       return;
     }
     
-    // 극단적 브라우저 캐시 및 상태 초기화
-    try {
-      // 1. localStorage 완전 삭제
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes('admin') || key.includes('session')) {
-          localStorage.removeItem(key);
-        }
-      });
+    // 관리자 세션 확인
+    const adminSession = localStorage.getItem('admin-session');
+    const adminLoginTime = localStorage.getItem('admin-login-time');
+    
+    if (adminSession === 'true' && adminLoginTime) {
+      // 세션 시간 확인 (24시간 유효)
+      const loginTime = new Date(adminLoginTime);
+      const now = new Date();
+      const hoursSinceLogin = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
       
-      // 2. sessionStorage 완전 삭제
-      Object.keys(sessionStorage).forEach(key => {
-        if (key.includes('admin') || key.includes('session')) {
-          sessionStorage.removeItem(key);
-        }
-      });
-      
-      // 3. 관리자 상태 강제 false
-      setIsAdminLoggedIn(false);
-      
-      // 4. 브라우저 히스토리 정리
-      if (window.location.pathname.includes('admin')) {
-        window.history.replaceState({}, '', window.location.pathname);
+      if (hoursSinceLogin < 24) {
+        setIsAdminLoggedIn(true);
+        console.log('🔑 Admin session restored from localStorage');
+      } else {
+        // 세션 만료
+        localStorage.removeItem('admin-session');
+        localStorage.removeItem('admin-login-time');
+        setIsAdminLoggedIn(false);
+        console.log('⏰ Admin session expired');
       }
-      
-      console.log('🧹 Complete browser state cleanup - admin session DESTROYED');
-    } catch (error) {
-      console.error('Failed to clear browser state:', error);
+    } else {
       setIsAdminLoggedIn(false);
     }
 
