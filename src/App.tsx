@@ -356,8 +356,8 @@ function AppContent() {
 
   // Render page content based on current page
   const renderPageContent = () => {
-    // ⚠️ EMERGENCY ADMIN OVERRIDE - /admin URL 강제 처리
-    if (window.location.pathname === '/admin') {
+    // ⚠️ EMERGENCY ADMIN OVERRIDE - /admin URL 강제 처리 (SSR 안전)
+    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
       console.log('🚨 EMERGENCY ADMIN OVERRIDE - URL is /admin, forcing login page');
       return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
@@ -486,7 +486,7 @@ function AppContent() {
       // v117: Admin Page - 완전히 하드코딩된 로그인 페이지 (상태 완전 무시)
       case 'admin':
         console.log('🔐 Admin page case triggered');
-        console.log('Current URL path:', window.location.pathname);
+        console.log('Current URL path:', typeof window !== 'undefined' ? window.location.pathname : 'SSR');
         console.log('isAdminLoggedIn (COMPLETELY IGNORED):', isAdminLoggedIn);
         
         // 강제로 관리자 상태 false 설정 및 즉시 AdminLogin 반환
@@ -520,7 +520,7 @@ function AppContent() {
       case 'admin-dashboard':
         console.log('🏠 Admin dashboard accessed');
         console.log('isAdminLoggedIn:', isAdminLoggedIn);
-        console.log('Current path:', window.location.pathname);
+        console.log('Current path:', typeof window !== 'undefined' ? window.location.pathname : 'SSR');
         
         if (!isAdminLoggedIn) {
           console.log('❌ Not logged in - redirecting to /admin');
