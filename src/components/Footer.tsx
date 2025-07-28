@@ -275,7 +275,11 @@ export const Footer = React.memo(({ language, onNavigate }: FooterProps) => {
             <p>{t.madeWith}</p>
             {/* 관리자 링크 - 조용하게 배치 */}
             <button
-              onClick={() => onNavigate?.('admin')}
+              onClick={() => {
+                console.log('🔗 Admin link clicked in footer');
+                // 강제 URL 변경으로 관리자 페이지 이동
+                window.location.href = '/admin';
+              }}
               className="flex items-center space-x-1 text-gray-500 hover:text-gray-400 transition-colors opacity-60 hover:opacity-100"
               title={t.admin}
             >

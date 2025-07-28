@@ -106,6 +106,14 @@ function AppContent() {
   useEffect(() => {
     const handleURLChange = () => {
       const path = window.location.pathname;
+      console.log('🌐 URL path detected:', path);
+      
+      // /admin 경로 강제 처리
+      if (path === '/admin') {
+        console.log('🔐 /admin path detected - forcing admin page');
+        setCurrentPage('admin');
+        return;
+      }
       
       // URL 경로를 페이지로 매핑
       const pathToPageMap: { [key: string]: Page } = {
@@ -129,6 +137,7 @@ function AppContent() {
       };
 
       const page = pathToPageMap[path] || 'home';
+      console.log('🔄 Setting page to:', page);
       if (page !== currentPage) {
         setCurrentPage(page);
       }
@@ -478,16 +487,24 @@ function AppContent() {
       
       // Admin Dashboard Page
       case 'admin-dashboard':
+        console.log('🏠 Admin dashboard accessed');
+        console.log('isAdminLoggedIn:', isAdminLoggedIn);
+        console.log('Current path:', window.location.pathname);
+        
         if (!isAdminLoggedIn) {
+          console.log('❌ Not logged in - redirecting to /admin');
           // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
           window.location.href = '/admin';
           return null;
         }
+        
+        console.log('✅ Admin logged in - showing dashboard');
         return (
           <AdminDashboard 
             language={language} 
             onNavigate={navigateTo}
             onLogout={() => {
+              console.log('🚪 Logout button clicked in dashboard');
               adminLogout();
               toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
               window.location.href = '/admin';
