@@ -453,25 +453,38 @@ function AppContent() {
           </div>
         );
       
-      // v117: 강화된 Admin Page - 강제 로그인 페이지 표시
+      // v117: 강화된 Admin Page - 극단적 로그인 페이지 강제 표시
       case 'admin':
-        // 항상 로그인 페이지 표시 (세션 무시)
-        console.log('Admin page - forcing login page display');
+        console.log('🔐 Admin page accessed - FORCE SHOWING LOGIN');
+        console.log('Current isAdminLoggedIn state:', isAdminLoggedIn);
+        console.log('localStorage admin keys:', Object.keys(localStorage).filter(k => k.includes('admin')));
+        
+        // 즉시 관리자 상태 무효화
+        if (isAdminLoggedIn) {
+          console.log('⚠️ Found admin session - DESTROYING IT');
+          adminLogout();
+        }
         
         return (
-          <AdminLogin 
-            language={language} 
-            onNavigate={navigateTo}
-            onLoginSuccess={async (password) => {
-              const result = await adminLogin(password);
-              if (!result.error) {
-                toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                // 로그인 성공 시 대시보드로 리다이렉트
-                window.location.href = '/admin-dashboard';
-              }
-              return !result.error;
-            }}
-          />
+          <div key={Date.now()}> {/* 강제 리렌더링 */}
+            <AdminLogin 
+              language={language} 
+              onNavigate={navigateTo}
+              onLoginSuccess={async (password) => {
+                console.log('🔑 Login attempt with password');
+                const result = await adminLogin(password);
+                if (!result.error) {
+                  toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
+                  console.log('✅ Login successful - redirecting to dashboard');
+                  // 캐시 무효화를 위한 타임스탬프 추가
+                  window.location.href = '/admin-dashboard?t=' + Date.now();
+                } else {
+                  console.log('❌ Login failed:', result.error);
+                }
+                return !result.error;
+              }}
+            />
+          </div>
         );
       
       // Admin Dashboard Page

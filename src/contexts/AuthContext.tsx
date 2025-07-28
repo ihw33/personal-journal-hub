@@ -113,31 +113,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     
-    // 강제 세션 완전 초기화 (모든 관리자 관련 데이터 제거)
-    const forceReset = window.location.search.includes('reset=true') || window.location.search.includes('logout=true');
-    if (forceReset) {
-      // localStorage 모든 관리자 관련 키 제거
+    // 극단적 브라우저 캐시 및 상태 초기화
+    try {
+      // 1. localStorage 완전 삭제
       Object.keys(localStorage).forEach(key => {
-        if (key.includes('admin')) {
+        if (key.includes('admin') || key.includes('session')) {
           localStorage.removeItem(key);
         }
       });
-      setIsAdminLoggedIn(false);
-      console.log('🔄 Complete admin session reset from URL');
       
-      // URL 파라미터 제거
-      const url = new URL(window.location.href);
-      url.searchParams.delete('reset');
-      url.searchParams.delete('logout');
-      window.history.replaceState({}, '', url.toString());
-      return;
+      // 2. sessionStorage 완전 삭제
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.includes('admin') || key.includes('session')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+      
+      // 3. 관리자 상태 강제 false
+      setIsAdminLoggedIn(false);
+      
+      // 4. 브라우저 히스토리 정리
+      if (window.location.pathname.includes('admin')) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+      
+      console.log('🧹 Complete browser state cleanup - admin session DESTROYED');
+    } catch (error) {
+      console.error('Failed to clear browser state:', error);
+      setIsAdminLoggedIn(false);
     }
-    
-    // 완전 초기화 - 페이지 로드시마다 관리자 세션 강제 리셋
-    localStorage.removeItem('admin-session');
-    localStorage.removeItem('admin-login-time');
-    setIsAdminLoggedIn(false);
-    console.log('🔄 Force admin session reset on page load');
 
     // 데모 사용자 확인
     const checkDemoUser = () => {
