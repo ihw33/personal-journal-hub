@@ -397,8 +397,29 @@ function AppContent() {
 
     switch (currentPage) {
       case 'home':
-        // 🎯 개인화된 홈페이지 시스템 적용
-        return renderPersonalizedHomePage();
+        // 🚨 DEPLOYMENT TEST - 홈페이지를 빨간색으로 만들어 배포 확인
+        console.log('🚨 HOME PAGE ACCESSED - SHOWING DEPLOYMENT TEST');
+        return (
+          <div style={{ 
+            minHeight: '100vh', 
+            backgroundColor: '#ff0000', 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '48px',
+            fontWeight: 'bold',
+            flexDirection: 'column'
+          }}>
+            🚨 DEPLOYMENT TEST ACTIVE 🚨
+            <div style={{ fontSize: '24px', marginTop: '20px' }}>
+              NEW CODE IS WORKING!
+            </div>
+            <div style={{ fontSize: '16px', marginTop: '20px' }}>
+              {typeof window !== 'undefined' ? window.location.pathname : 'SSR'}
+            </div>
+          </div>
+        );
         
       case 'signup':
         return <SignupPage language={language} onNavigate={navigateTo} />;
