@@ -113,55 +113,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     
-    // 강제 세션 초기화 체크
+    // 강제 세션 완전 초기화 (모든 관리자 관련 데이터 제거)
     const forceReset = window.location.search.includes('reset=true') || window.location.search.includes('logout=true');
     if (forceReset) {
-      localStorage.removeItem('admin-session');
-      localStorage.removeItem('admin-login-time');
+      // localStorage 모든 관리자 관련 키 제거
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('admin')) {
+          localStorage.removeItem(key);
+        }
+      });
       setIsAdminLoggedIn(false);
-      console.log('🔄 Admin session force reset from URL');
+      console.log('🔄 Complete admin session reset from URL');
+      
+      // URL 파라미터 제거
+      const url = new URL(window.location.href);
+      url.searchParams.delete('reset');
+      url.searchParams.delete('logout');
+      window.history.replaceState({}, '', url.toString());
       return;
     }
     
-    const adminSession = localStorage.getItem('admin-session');
-    const adminLoginTime = localStorage.getItem('admin-login-time');
-    
-    console.log('🔍 Admin session check:', { adminSession, adminLoginTime }); // 디버깅
-    
-    if (adminSession === 'true') {
-      // v117: 관리자 세션 만료 체크 (24시간)
-      if (adminLoginTime) {
-        const loginTime = new Date(adminLoginTime);
-        const now = new Date();
-        const timeDiff = now.getTime() - loginTime.getTime();
-        const hoursDiff = timeDiff / (1000 * 3600);
-        
-        console.log('⏰ Session time check:', { hoursDiff, expired: hoursDiff >= 24 }); // 디버깅
-        
-        if (hoursDiff < 24) {
-          setIsAdminLoggedIn(true);
-          console.log('✅ Admin session restored');
-          
-          // 베타 플래그 서비스에 관리자 컨텍스트 복원
-          const betaService = BetaFlagService.getInstance();
-          betaService.setUserContext('admin', 'admin');
-        } else {
-          // 세션 만료
-          localStorage.removeItem('admin-session');
-          localStorage.removeItem('admin-login-time');
-          setIsAdminLoggedIn(false);
-          console.log('🔒 Admin session expired and cleared');
-        }
-      } else {
-        // 로그인 시간이 없으면 세션 무효화 (보안 강화)
-        localStorage.removeItem('admin-session');
-        setIsAdminLoggedIn(false);
-        console.log('❌ Admin session invalid - no login time');
-      }
-    } else {
-      setIsAdminLoggedIn(false);
-      console.log('❌ No admin session found');
-    }
+    // 완전 초기화 - 페이지 로드시마다 관리자 세션 강제 리셋
+    localStorage.removeItem('admin-session');
+    localStorage.removeItem('admin-login-time');
+    setIsAdminLoggedIn(false);
+    console.log('🔄 Force admin session reset on page load');
 
     // 데모 사용자 확인
     const checkDemoUser = () => {

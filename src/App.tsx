@@ -63,7 +63,7 @@ export type Page =
   | 'privacy' | 'terms' | 'cookies' | 'license'
   | 'help' | 'community' | 'docs' | 'status'
   | 'templates' | 'ai-tools' | 'analytics' | 'blog' | 'careers' | 'contact'
-  | 'sitemap' | 'ai-practice' | 'admin' | 'beta';
+  | 'sitemap' | 'ai-practice' | 'admin' | 'admin-dashboard' | 'beta';
 
 // 메인 앱 컴포넌트를 AuthProvider로 감싸기 위해 별도 컴포넌트로 분리
 function AppContent() {
@@ -111,6 +111,7 @@ function AppContent() {
       const pathToPageMap: { [key: string]: Page } = {
         '/': 'home',
         '/admin': 'admin',
+        '/admin-dashboard': 'admin-dashboard',
         '/signup': 'signup',
         '/journal': 'journal',
         '/courses': 'courses',
@@ -197,6 +198,7 @@ function AppContent() {
     const pageToPathMap: { [key in Page]: string } = {
       'home': '/',
       'admin': '/admin',
+      'admin-dashboard': '/admin-dashboard',
       'signup': '/signup',
       'journal': '/journal',
       'journal-detail': '/journal',
@@ -451,53 +453,45 @@ function AppContent() {
           </div>
         );
       
-      // v117: 강화된 Admin Page
+      // v117: 강화된 Admin Page - 강제 로그인 페이지 표시
       case 'admin':
-        // URL 파라미터로 강제 로그아웃 지원
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('logout') === 'true' || urlParams.get('reset') === 'true') {
-          // 강제 세션 초기화
-          localStorage.removeItem('admin-session');
-          localStorage.removeItem('admin-login-time');
-          adminLogout();
-          window.history.replaceState({}, '', '/admin'); // URL에서 파라미터 제거
-          console.log('🔄 Admin session force reset');
-        }
+        // 항상 로그인 페이지 표시 (세션 무시)
+        console.log('Admin page - forcing login page display');
         
-        // 관리자 세션 상태 로깅
-        console.log('Admin page debug:', {
-          isAdminLoggedIn,
-          adminSession: typeof window !== 'undefined' ? localStorage.getItem('admin-session') : null,
-          adminLoginTime: typeof window !== 'undefined' ? localStorage.getItem('admin-login-time') : null
-        });
-        
+        return (
+          <AdminLogin 
+            language={language} 
+            onNavigate={navigateTo}
+            onLoginSuccess={async (password) => {
+              const result = await adminLogin(password);
+              if (!result.error) {
+                toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
+                // 로그인 성공 시 대시보드로 리다이렉트
+                window.location.href = '/admin-dashboard';
+              }
+              return !result.error;
+            }}
+          />
+        );
+      
+      // Admin Dashboard Page
+      case 'admin-dashboard':
         if (!isAdminLoggedIn) {
-          return (
-            <AdminLogin 
-              language={language} 
-              onNavigate={navigateTo}
-              onLoginSuccess={async (password) => {
-                const result = await adminLogin(password);
-                if (!result.error) {
-                  toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                }
-                return !result.error;
-              }}
-            />
-          );
-        } else {
-          return (
-            <AdminDashboard 
-              language={language} 
-              onNavigate={navigateTo}
-              onLogout={() => {
-                adminLogout();
-                toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
-                navigateTo('home');
-              }}
-            />
-          );
+          // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+          window.location.href = '/admin';
+          return null;
         }
+        return (
+          <AdminDashboard 
+            language={language} 
+            onNavigate={navigateTo}
+            onLogout={() => {
+              adminLogout();
+              toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
+              window.location.href = '/admin';
+            }}
+          />
+        );
       
       // Coming Soon Pages
       default:
@@ -525,6 +519,7 @@ function AppContent() {
     'ai-practice',
     'course-trial',
     'admin',
+    'admin-dashboard',
     ...comingSoonPages
   ];
 
