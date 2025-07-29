@@ -82,7 +82,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  // 🔥 핵심 수정: useState 함수형 초기화로 localStorage에서 직접 읽어오기
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const session = localStorage.getItem('admin-session');
+      const loginTime = localStorage.getItem('admin-login-time');
+      
+      if (session === 'true' && loginTime) {
+        // 24시간 만료 체크
+        const hoursSinceLogin = (new Date().getTime() - new Date(loginTime).getTime()) / (1000 * 60 * 60);
+        if (hoursSinceLogin < 24) {
+          console.log('🔑 Admin session restored from localStorage on init');
+          return true;
+        } else {
+          // 만료된 세션 정리
+          localStorage.removeItem('admin-session');
+          localStorage.removeItem('admin-login-time');
+          console.log('⏰ Expired admin session removed on init');
+        }
+      }
+    }
+    console.log('❌ No valid admin session found on init');
+    return false;
+  });
 
   // v116: 베타 시스템 초기화 (SSR 안전성 개선)
   useEffect(() => {
@@ -107,50 +129,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTimeout(initializeBetaSystems, 100);
   }, []);
 
+  // 🔥 핵심 수정: isAdminLoggedIn 상태가 변경될 때마다 localStorage와 동기화
   useEffect(() => {
-    // 관리자 세션 상태 확인 (SSR 안전성)
-    if (typeof window === 'undefined') {
-      return;
-    }
-    
-    console.log('🔍 AuthContext: Checking admin session...');
-    
-    // 🚨 강제 초기화 - 기존 세션 완전 제거 (개발/디버깅용)
-    if (window.location.search.includes('force-reset=true')) {
-      console.log('🧹 Force reset triggered - clearing all admin data');
-      localStorage.removeItem('admin-session');
-      localStorage.removeItem('admin-login-time');
-      setIsAdminLoggedIn(false);
-      return;
-    }
-    
-    // 관리자 세션 확인
-    const adminSession = localStorage.getItem('admin-session');
-    const adminLoginTime = localStorage.getItem('admin-login-time');
-    
-    console.log('🔍 Session check:', { adminSession, adminLoginTime });
-    
-    if (adminSession === 'true' && adminLoginTime) {
-      // 세션 시간 확인 (24시간 유효)
-      const loginTime = new Date(adminLoginTime);
-      const now = new Date();
-      const hoursSinceLogin = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
-      
-      console.log('⏰ Hours since login:', hoursSinceLogin);
-      
-      if (hoursSinceLogin < 24) {
-        setIsAdminLoggedIn(true);
-        console.log('🔑 Admin session restored from localStorage');
+    if (typeof window !== 'undefined') {
+      if (isAdminLoggedIn) {
+        localStorage.setItem('admin-session', 'true');
+        localStorage.setItem('admin-login-time', new Date().toISOString());
+        console.log('✅ Admin session saved to localStorage');
       } else {
-        // 세션 만료
         localStorage.removeItem('admin-session');
         localStorage.removeItem('admin-login-time');
-        setIsAdminLoggedIn(false);
-        console.log('⏰ Admin session expired');
+        console.log('🗑️ Admin session removed from localStorage');
       }
-    } else {
-      setIsAdminLoggedIn(false);
-      console.log('❌ No valid admin session found');
+    }
+  }, [isAdminLoggedIn]); // 의존성 배열에 isAdminLoggedIn 필수!
+
+  // 강제 초기화 처리 (개발/디버깅용)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('force-reset=true')) {
+      console.log('🧹 Force reset triggered - clearing all admin data');
+      setIsAdminLoggedIn(false); // 이것만으로도 위의 useEffect가 localStorage를 정리함
     }
 
     // 데모 사용자 확인
@@ -490,7 +488,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // v117: 강화된 관리자 로그인
+  // 🔥 핵심 수정: 단순화된 관리자 로그인 (useEffect가 localStorage 처리)
   const adminLogin = async (password: string) => {
     const securityMonitor = SecurityMonitor.getInstance();
     
@@ -503,9 +501,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // 관리자 비밀번호 확인
       if (password === 'ideaworklab2024') {
+        // 상태만 변경하면 useEffect가 자동으로 localStorage 처리
         setIsAdminLoggedIn(true);
-        localStorage.setItem('admin-session', 'true');
-        localStorage.setItem('admin-login-time', new Date().toISOString());
         
         // v117: 베타 플래그 서비스에 관리자 컨텍스트 설정
         const betaService = BetaFlagService.getInstance();
@@ -534,11 +531,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // v117: 강화된 관리자 로그아웃
+  // 🔥 핵심 수정: 단순화된 관리자 로그아웃 (useEffect가 localStorage 처리)
   const adminLogout = () => {
+    // 상태만 변경하면 useEffect가 자동으로 localStorage 정리
     setIsAdminLoggedIn(false);
-    localStorage.removeItem('admin-session');
-    localStorage.removeItem('admin-login-time');
     
     // v117: 베타 플래그 서비스 컨텍스트 정리
     const betaService = BetaFlagService.getInstance();

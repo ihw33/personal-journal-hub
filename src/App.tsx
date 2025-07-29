@@ -460,30 +460,21 @@ function AppContent() {
           </div>
         );
       
-      // Admin Page - 강제 로그인 필수
+      // 🔥 핵심 수정: 단순화된 Admin Page (오직 React 상태로만 판단)
       case 'admin':
-        console.log('🔐 Admin case triggered, checking authentication...');
-        console.log('🔍 isAdminLoggedIn state:', isAdminLoggedIn);
-        console.log('🔍 localStorage admin-session:', localStorage.getItem('admin-session'));
+        console.log('🔐 Admin page accessed, isAdminLoggedIn:', isAdminLoggedIn);
         
         // URL 파라미터로 강제 로그아웃 지원
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('logout') === 'true' || urlParams.get('reset') === 'true') {
           console.log('🚪 Force logout triggered');
-          localStorage.removeItem('admin-session');
-          localStorage.removeItem('admin-login-time');
-          adminLogout();
+          adminLogout(); // 이것만으로 충분 (useEffect가 localStorage 정리)
           window.history.replaceState({}, '', '/admin');
         }
         
-        // 🚨 강제 로그인 체크 - localStorage도 확인
-        const adminSession = localStorage.getItem('admin-session');
-        const hasValidSession = isAdminLoggedIn && adminSession === 'true';
-        
-        console.log('✅ Final auth check:', { isAdminLoggedIn, adminSession, hasValidSession });
-        
-        if (!hasValidSession) {
-          console.log('❌ No valid session - showing login form');
+        // 🔥 핵심: localStorage 확인 없이 오직 React 상태로만 판단
+        if (!isAdminLoggedIn) {
+          console.log('❌ Not logged in - showing login form');
           return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
               <AdminLogin 
@@ -495,7 +486,7 @@ function AppContent() {
                   if (!result.error) {
                     console.log('✅ Login successful');
                     toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                    setCurrentPage('admin'); // 강제로 admin 페이지 재렌더링
+                    // 상태 변경만으로 자동 리렌더링됨
                   } else {
                     console.log('❌ Login failed:', result.error);
                   }
@@ -505,18 +496,16 @@ function AppContent() {
             </div>
           );
         } else {
-          console.log('✅ Valid session found - showing dashboard');
+          console.log('✅ Logged in - showing dashboard');
           return (
             <AdminDashboard 
               language={language} 
               onNavigate={navigateTo}
               onLogout={() => {
                 console.log('🚪 Logout initiated from dashboard');
-                adminLogout();
-                localStorage.removeItem('admin-session');
-                localStorage.removeItem('admin-login-time');
+                adminLogout(); // 이것만으로 충분 (useEffect가 localStorage 정리)
                 toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
-                setCurrentPage('admin'); // 강제로 admin 페이지 재렌더링
+                // 상태 변경만으로 자동 리렌더링됨
               }}
             />
           );
