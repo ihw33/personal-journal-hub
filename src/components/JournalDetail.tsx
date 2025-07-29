@@ -24,7 +24,8 @@ import {
 interface JournalDetailProps {
   language: 'ko' | 'en';
   journalId: string | null;
-  onNavigate: (page: 'home' | 'signup' | 'journal' | 'journal-write' | 'journal-detail' | 'courses' | 'about') => void;
+  user?: any;
+  onNavigate: (page: string) => void;
 }
 
 // 샘플 저널 데이터
@@ -92,7 +93,7 @@ AI와의 협력은 인간의 창의성을 대체하는 것이 아니라 증폭�
   ]
 };
 
-export function JournalDetail({ language, journalId, onNavigate }: JournalDetailProps) {
+export function JournalDetail({ language, journalId, user, onNavigate }: JournalDetailProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [showAiInsights, setShowAiInsights] = useState(true);
 

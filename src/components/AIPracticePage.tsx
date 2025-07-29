@@ -38,12 +38,12 @@ import { BetaFeedback } from './ui/BetaFeedback';
 interface AIPracticePageProps {
   language: 'ko' | 'en';
   onNavigate: (page: string, journalId?: string, category?: string, week?: number, phase?: number, mode?: 'guided' | 'self-directed') => void;
-  week: number;
-  phase: number;
+  week?: number;
+  phase?: number;
   mode?: 'guided' | 'self-directed' | null;
 }
 
-export function AIPracticePage({ language, onNavigate, week, phase, mode }: AIPracticePageProps) {
+export function AIPracticePage({ language, onNavigate, week = 1, phase = 1, mode = null }: AIPracticePageProps) {
   const { user, getUserType } = useAuth();
   
   const [currentMessage, setCurrentMessage] = useState('');

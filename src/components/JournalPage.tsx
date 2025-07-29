@@ -23,8 +23,8 @@ import {
 
 interface JournalPageProps {
   language: 'ko' | 'en';
-  onNavigate: (page: 'home' | 'signup' | 'journal' | 'journal-write' | 'journal-detail' | 'courses' | 'about') => void;
-  onJournalClick: (id: string) => void;
+  user?: any;
+  onNavigate: (page: string, journalId?: string) => void;
 }
 
 // 모든 콘텐츠는 이상혁 저자가 직접 작성한 것으로 가정
@@ -195,7 +195,7 @@ const sampleJournals = [
   }
 ];
 
-export function JournalPage({ language, onNavigate, onJournalClick }: JournalPageProps) {
+export function JournalPage({ language, user, onNavigate }: JournalPageProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
   const [searchQuery, setSearchQuery] = useState('');
@@ -364,7 +364,7 @@ export function JournalPage({ language, onNavigate, onJournalClick }: JournalPag
               <Card 
                 key={journal.id} 
                 className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => onJournalClick(journal.id)}
+                onClick={() => onNavigate('journal-detail', journal.id)}
               >
                 <div className="relative aspect-video bg-gray-100">
                   <ImageWithFallback

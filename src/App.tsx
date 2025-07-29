@@ -266,7 +266,6 @@ function App() {
       case 'ai-practice':
         return (
           <AIPracticePage 
-            user={currentUser}
             onNavigate={navigate}
             language={language}
           />
