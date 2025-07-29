@@ -250,7 +250,15 @@ export function CoursesPage({ language, onNavigate }: CoursesPageProps) {
 
   const handleJejuCourse = () => {
     if (onNavigate) {
-      onNavigate('course-jeju');
+      onNavigate('jeju-course');
+    }
+  };
+
+  const handleCourseDetail = (courseIndex: number) => {
+    if (onNavigate) {
+      // Navigate to individual course detail pages
+      const courseIds = ['creative-thinking', 'personal-coaching', 'digital-journaling'];
+      onNavigate(`course-${courseIds[courseIndex]}`);
     }
   };
 
@@ -392,7 +400,7 @@ export function CoursesPage({ language, onNavigate }: CoursesPageProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {t.courses.map((course, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleCourseDetail(index)}>
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
                     <Badge variant="secondary">{course.category}</Badge>
@@ -425,7 +433,7 @@ export function CoursesPage({ language, onNavigate }: CoursesPageProps) {
                     <div className="text-xl font-bold text-iwl-purple">
                       {course.price}
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleCourseDetail(index); }}>
                       <ArrowRight className="w-4 h-4 mr-1" />
                       자세히
                     </Button>

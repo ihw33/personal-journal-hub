@@ -34,6 +34,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 
 // Course Components
 import { JejuCourseOverview } from './components/course/JejuCourseOverview';
+import { CourseDetailPage } from './components/course/CourseDetailPage';
 import { CourseDashboard } from './components/course/CourseDashboard';
 import { PhaseLearningPage } from './components/course/PhaseLearningPage';
 import { WeeklyLearningPage } from './components/course/WeeklyLearningPage';
@@ -82,6 +83,9 @@ type PageType =
   | 'admin-login'
   | 'admin-dashboard'
   | 'jeju-course'
+  | 'course-creative-thinking'
+  | 'course-personal-coaching'
+  | 'course-digital-journaling'
   | 'course-dashboard'
   | 'phase-learning'
   | 'weekly-learning'
@@ -341,6 +345,33 @@ function App() {
       case 'jeju-course':
         return (
           <JejuCourseOverview 
+            language={language}
+            onNavigate={navigate}
+          />
+        );
+
+      case 'course-creative-thinking':
+        return (
+          <CourseDetailPage 
+            courseId="creative-thinking"
+            language={language}
+            onNavigate={navigate}
+          />
+        );
+
+      case 'course-personal-coaching':
+        return (
+          <CourseDetailPage 
+            courseId="personal-coaching"
+            language={language}
+            onNavigate={navigate}
+          />
+        );
+
+      case 'course-digital-journaling':
+        return (
+          <CourseDetailPage 
+            courseId="digital-journaling"
             language={language}
             onNavigate={navigate}
           />
