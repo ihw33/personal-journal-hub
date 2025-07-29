@@ -29,6 +29,25 @@ import {
 } from 'lucide-react';
 
 import { JEJU_COURSE_DATA, WeekData } from './courseData';
+import { IntegratedChatbot, FloatingChatButton } from './IntegratedChatbot';
+
+interface ChatSession {
+  id: string;
+  week: number;
+  mode: 'guided' | 'self-directed';
+  startTime: Date;
+  lastActivity: Date;
+  currentPhase: number;
+  messages: any[];
+  aiProvider: 'claude' | 'chatgpt';
+  metadata: {
+    totalMessages: number;
+    userMessages: number;
+    assistantMessages: number;
+    sessionDuration: number;
+    phaseTransitions: { phase: number; timestamp: Date }[];
+  };
+}
 
 interface WeeklyLearningPageProps {
   language: 'ko' | 'en';
@@ -41,6 +60,9 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
   const [selectedMode, setSelectedMode] = useState<'guided' | 'self-directed' | null>(null);
   const [completedPhases, setCompletedPhases] = useState<{ [key: number]: boolean }>({});
   const [weekProgress, setWeekProgress] = useState(0);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState(1);
+  const [chatSession, setChatSession] = useState<ChatSession | null>(null);
 
   // 실제 주차 데이터 가져오기
   const weekData: WeekData = JEJU_COURSE_DATA.find(w => w.id === week) || JEJU_COURSE_DATA[0];
@@ -164,7 +186,18 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
 
   const handlePhaseStart = (phaseId: number) => {
     if (!selectedMode) return;
-    onNavigate('course-phase', undefined, undefined, week, phaseId, selectedMode);
+    setCurrentPhase(phaseId);
+    setIsChatbotOpen(true);
+    // 기존 방식도 유지 (실제 Phase 페이지로 이동)
+    // onNavigate('course-phase', undefined, undefined, week, phaseId, selectedMode);
+  };
+
+  const handleChatSessionUpdate = (session: ChatSession) => {
+    setChatSession(session);
+  };
+
+  const toggleChatbot = () => {
+    setIsChatbotOpen(!isChatbotOpen);
   };
 
   // 페이즈 잠금 상태 확인
@@ -586,6 +619,28 @@ export function WeeklyLearningPage({ language, week, onNavigate }: WeeklyLearnin
           </Card>
         </div>
       </div>
+
+      {/* Integrated Chatbot */}
+      {selectedMode && (
+        <>
+          <IntegratedChatbot
+            week={week}
+            phase={currentPhase}
+            mode={selectedMode}
+            isOpen={isChatbotOpen}
+            onToggle={toggleChatbot}
+            onSessionUpdate={handleChatSessionUpdate}
+          />
+          
+          <FloatingChatButton
+            week={week}
+            phase={currentPhase}
+            mode={selectedMode}
+            onToggle={toggleChatbot}
+            hasUnreadMessages={false}
+          />
+        </>
+      )}
     </div>
   );
 }
