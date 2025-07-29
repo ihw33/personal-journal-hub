@@ -33,7 +33,6 @@ import { JEJU_COURSE_DATA } from './course/courseData';
 import type { WeekData, PhaseData } from './course/types';
 import { AILearningService, AIModeComparison, type AISession, type AIMessage } from './course/AIService';
 import { BetaFlagService, useBetaFlag, BetaFeature } from '../lib/betaFlags';
-import { BetaFeedback } from './ui/BetaFeedback';
 
 interface AIPracticePageProps {
   language: 'ko' | 'en';
@@ -622,20 +621,6 @@ export function AIPracticePage({ language, onNavigate, week = 1, phase = 1, mode
               </CardContent>
             </Card>
 
-            {/* v115: 베타 피드백 수집 */}
-            <BetaFeature flagKey="feedbackSystem" fallback={null}>
-              <BetaFeedback
-                featureKey="aiChatbot"
-                featureName="AI 챗봇"
-                context={{
-                  week,
-                  phase,
-                  mode: practiceMode,
-                  messagesCount: messages.length,
-                  progress: taskProgress
-                }}
-              />
-            </BetaFeature>
           </div>
 
           {/* Main Chat Area */}

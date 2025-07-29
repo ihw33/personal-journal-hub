@@ -32,7 +32,6 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { useBetaFlag, BetaFeature } from '../../lib/betaFlags';
-import { BetaFeedback } from '../ui/BetaFeedback';
 
 interface TrialCoursePageProps {
   language: 'ko' | 'en';
@@ -589,21 +588,6 @@ export function TrialCoursePage({ language, onNavigate }: TrialCoursePageProps) 
             </CardContent>
           </Card>
 
-          {/* v115: 베타 피드백 수집 */}
-          <BetaFeature flagKey="feedbackSystem" fallback={null}>
-            <div className="mt-8">
-              <BetaFeedback
-                featureKey="trialCourse"
-                featureName="체험강의"
-                context={{
-                  currentStep: currentStep + 1,
-                  totalSteps: t.steps.length,
-                  completedSteps: completedSteps.length,
-                  stepType: currentStepData?.type
-                }}
-              />
-            </div>
-          </BetaFeature>
         </div>
       </div>
     </div>
