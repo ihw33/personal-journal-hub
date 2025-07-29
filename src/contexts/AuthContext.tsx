@@ -113,15 +113,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     
+    console.log('🔍 AuthContext: Checking admin session...');
+    
+    // 🚨 강제 초기화 - 기존 세션 완전 제거 (개발/디버깅용)
+    if (window.location.search.includes('force-reset=true')) {
+      console.log('🧹 Force reset triggered - clearing all admin data');
+      localStorage.removeItem('admin-session');
+      localStorage.removeItem('admin-login-time');
+      setIsAdminLoggedIn(false);
+      return;
+    }
+    
     // 관리자 세션 확인
     const adminSession = localStorage.getItem('admin-session');
     const adminLoginTime = localStorage.getItem('admin-login-time');
+    
+    console.log('🔍 Session check:', { adminSession, adminLoginTime });
     
     if (adminSession === 'true' && adminLoginTime) {
       // 세션 시간 확인 (24시간 유효)
       const loginTime = new Date(adminLoginTime);
       const now = new Date();
       const hoursSinceLogin = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
+      
+      console.log('⏰ Hours since login:', hoursSinceLogin);
       
       if (hoursSinceLogin < 24) {
         setIsAdminLoggedIn(true);
@@ -135,6 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } else {
       setIsAdminLoggedIn(false);
+      console.log('❌ No valid admin session found');
     }
 
     // 데모 사용자 확인

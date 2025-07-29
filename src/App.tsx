@@ -460,41 +460,63 @@ function AppContent() {
           </div>
         );
       
-      // Admin Page
+      // Admin Page - 강제 로그인 필수
       case 'admin':
+        console.log('🔐 Admin case triggered, checking authentication...');
+        console.log('🔍 isAdminLoggedIn state:', isAdminLoggedIn);
+        console.log('🔍 localStorage admin-session:', localStorage.getItem('admin-session'));
+        
         // URL 파라미터로 강제 로그아웃 지원
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('logout') === 'true' || urlParams.get('reset') === 'true') {
+          console.log('🚪 Force logout triggered');
           localStorage.removeItem('admin-session');
           localStorage.removeItem('admin-login-time');
           adminLogout();
           window.history.replaceState({}, '', '/admin');
         }
         
-        if (!isAdminLoggedIn) {
+        // 🚨 강제 로그인 체크 - localStorage도 확인
+        const adminSession = localStorage.getItem('admin-session');
+        const hasValidSession = isAdminLoggedIn && adminSession === 'true';
+        
+        console.log('✅ Final auth check:', { isAdminLoggedIn, adminSession, hasValidSession });
+        
+        if (!hasValidSession) {
+          console.log('❌ No valid session - showing login form');
           return (
-            <AdminLogin 
-              language={language} 
-              onNavigate={navigateTo}
-              onLoginSuccess={async (password) => {
-                const result = await adminLogin(password);
-                if (!result.error) {
-                  toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                  navigateTo('admin-dashboard');
-                }
-                return !result.error;
-              }}
-            />
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <AdminLogin 
+                language={language} 
+                onNavigate={navigateTo}
+                onLoginSuccess={async (password) => {
+                  console.log('🔑 Login attempt started');
+                  const result = await adminLogin(password);
+                  if (!result.error) {
+                    console.log('✅ Login successful');
+                    toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
+                    setCurrentPage('admin'); // 강제로 admin 페이지 재렌더링
+                  } else {
+                    console.log('❌ Login failed:', result.error);
+                  }
+                  return !result.error;
+                }}
+              />
+            </div>
           );
         } else {
+          console.log('✅ Valid session found - showing dashboard');
           return (
             <AdminDashboard 
               language={language} 
               onNavigate={navigateTo}
               onLogout={() => {
+                console.log('🚪 Logout initiated from dashboard');
                 adminLogout();
+                localStorage.removeItem('admin-session');
+                localStorage.removeItem('admin-login-time');
                 toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
-                navigateTo('admin');
+                setCurrentPage('admin'); // 강제로 admin 페이지 재렌더링
               }}
             />
           );

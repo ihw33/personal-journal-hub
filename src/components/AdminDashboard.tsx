@@ -746,7 +746,11 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
           {/* 사이트 보기 버튼 */}
           <Button
             variant="outline"
-            onClick={() => onNavigate('home')}
+            onClick={() => {
+              console.log('사이트 보기 버튼 클릭됨');
+              // 직접 URL로 이동
+              window.location.href = '/';
+            }}
             className="w-full justify-start text-gray-600 hover:bg-gray-50"
           >
             <Home className="w-5 h-5 mr-3 flex-shrink-0" />
