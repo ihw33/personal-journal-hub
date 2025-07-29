@@ -10,11 +10,17 @@ import {
   Award,
   Lightbulb
 } from 'lucide-react';
-
-interface VersionHistoryPageProps {
-  language: 'ko' | 'en';
-  onNavigate: (page: string) => void;
-}
+import { VersionHistoryPageProps } from './version-history/types';
+import { VersionHistoryMetrics } from './version-history/VersionHistoryMetrics';
+import { VersionHistoryPhases } from './version-history/VersionHistoryPhases';
+import { VersionHistoryChangelog } from './version-history/VersionHistoryChangelog';
+import { 
+  createPhasesData,
+  createBusinessMetrics,
+  createTechnicalMetrics,
+  createQualityMetrics,
+  createVersionGroups
+} from './version-history/data';
 
 export function VersionHistoryPage({ language, onNavigate }: VersionHistoryPageProps) {
   const content = {
@@ -44,16 +50,12 @@ export function VersionHistoryPage({ language, onNavigate }: VersionHistoryPageP
 
   const t = content[language];
 
-  // Sample data
-  const phases = [
-    { id: 1, name: 'Foundation Phase', description: 'Basic setup and infrastructure', status: 'completed' },
-    { id: 2, name: 'Core Features', description: 'Main functionality implementation', status: 'completed' },
-    { id: 3, name: 'Advanced Features', description: 'AI integration and advanced UI', status: 'completed' }
-  ];
-  
-  const versionGroups = [
-    { version: 'v125.1', date: '2024-07-29', description: 'Current stable version with all features' }
-  ];
+  // Initialize data
+  const phases = createPhasesData();
+  const businessMetrics = createBusinessMetrics();
+  const technicalMetrics = createTechnicalMetrics();
+  const qualityMetrics = createQualityMetrics();
+  const versionGroups = createVersionGroups();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-iwl-purple-50 via-white to-iwl-blue-50">
@@ -140,39 +142,19 @@ export function VersionHistoryPage({ language, onNavigate }: VersionHistoryPageP
           </Card>
         </div>
 
-        {/* 버전 목록 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Version History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {versionGroups.map((version, index) => (
-              <div key={index} className="border-b pb-4 mb-4 last:border-b-0">
-                <h3 className="font-semibold">{version.version}</h3>
-                <p className="text-sm text-gray-600">{version.date}</p>
-                <p className="text-gray-700">{version.description}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {/* 상세 변경 로그 */}
+        <VersionHistoryChangelog language={language} versionGroups={versionGroups} />
 
         {/* 개발 단계 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Development Phases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {phases.map((phase) => (
-              <div key={phase.id} className="border-b pb-4 mb-4 last:border-b-0">
-                <h3 className="font-semibold">{phase.name}</h3>
-                <p className="text-gray-700">{phase.description}</p>
-                <Badge variant={phase.status === 'completed' ? 'default' : 'secondary'}>
-                  {phase.status}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <VersionHistoryPhases language={language} phases={phases} />
+
+        {/* 성과 지표 */}
+        <VersionHistoryMetrics 
+          language={language}
+          businessMetrics={businessMetrics}
+          technicalMetrics={technicalMetrics}
+          qualityMetrics={qualityMetrics}
+        />
 
         {/* 핵심 성과 요약 */}
         <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
