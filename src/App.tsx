@@ -158,42 +158,8 @@ function App() {
       setLoading(false);
     }, 1000);
 
-    // Demo user for development
-    if (isDemoMode) {
-      setCurrentUser({
-        id: 'demo-user',
-        email: 'demo@ideaworklab.com',
-        name: '데모 사용자',
-        user_type: 'member',
-        subscription_status: 'active',
-        personalizationData: {
-          learningProgress: {
-            enrolledCourses: ['jeju-course'],
-            completionRate: 65,
-            currentPhase: 2
-          },
-          behaviorAnalytics: {
-            engagementScore: 85,
-            learningVelocity: 'fast',
-            strongTopics: ['창의적 사고', 'AI 협업']
-          },
-          aiInteractions: {
-            totalConversations: 23,
-            strugglingAreas: ['분석적 사고']
-          },
-          achievements: [
-            { id: 1, title: 'First Step', description: '첫 번째 학습 완료' },
-            { id: 2, title: 'AI Collaborator', description: 'AI와 10회 대화 완료' }
-          ],
-          recommendations: {
-            nextActions: [
-              '제주도 여행 코스 Phase 3 시작하기',
-              '분석적 사고 모드로 AI 실습하기'
-            ]
-          }
-        }
-      });
-    }
+    // Keep users as guests by default - no auto demo user
+    // Demo user can be enabled manually if needed for testing
   }, [isDemoMode]);
 
   // Navigation helper
