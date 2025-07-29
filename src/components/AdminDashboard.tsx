@@ -45,7 +45,8 @@ import {
   Home,
   ExternalLink,
   Menu,
-  X
+  X,
+  Map
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -68,6 +69,7 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
       newsletter: "뉴스레터",
       subscribers: "구독자",
       settings: "설정",
+      sitemap: "사이트맵",
       logout: "로그아웃",
       viewSite: "사이트 보기",
       menu: "메뉴",
@@ -125,6 +127,7 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
       newsletter: "Newsletter",
       subscribers: "Subscribers",
       settings: "Settings",
+      sitemap: "Site Map",
       logout: "Logout",
       viewSite: "View Site",
       menu: "Menu",
@@ -240,6 +243,7 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
     { id: 'subscribers', label: t.subscribers, icon: Users },
     { id: 'beta-dashboard', label: '베타 대시보드', icon: Target },
     { id: 'beta-waitlist', label: '베타 대기열', icon: Clock },
+    { id: 'sitemap', label: t.sitemap, icon: Map },
     { id: 'settings', label: t.settings, icon: Settings }
   ];
 
@@ -658,6 +662,10 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
         return <BetaDashboard />;
       case 'beta-waitlist':
         return <BetaWaitlistManager />;
+      case 'sitemap':
+        // 사이트맵 페이지로 직접 이동
+        onNavigate('sitemap');
+        return <div className="p-8 text-center">사이트맵으로 이동 중...</div>;
       case 'settings':
         return <div className="p-8 text-center">설정 페이지 (개발 예정)</div>;
       default:
