@@ -5,8 +5,6 @@ import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Progress } from './ui/progress';
-import { BetaDashboard } from './admin/BetaDashboard';
-import { BetaWaitlistManager } from './admin/BetaWaitlistManager';
 import {
   BarChart,
   Bar,
@@ -46,6 +44,8 @@ import {
   ExternalLink,
   Menu,
   X,
+  Shield,
+  Activity,
   Map
 } from 'lucide-react';
 
@@ -241,8 +241,6 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
     { id: 'editor', label: t.editor, icon: PenTool },
     { id: 'newsletter', label: t.newsletter, icon: Mail },
     { id: 'subscribers', label: t.subscribers, icon: Users },
-    { id: 'beta-dashboard', label: '베타 대시보드', icon: Target },
-    { id: 'beta-waitlist', label: '베타 대기열', icon: Clock },
     { id: 'sitemap', label: t.sitemap, icon: Map },
     { id: 'settings', label: t.settings, icon: Settings }
   ];
@@ -658,14 +656,6 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
         return <div className="p-8 text-center">뉴스레터 관리 페이지 (개발 예정)</div>;
       case 'subscribers':
         return <div className="p-8 text-center">구독자 관리 페이지 (개발 예정)</div>;
-      case 'beta-dashboard':
-        return <BetaDashboard />;
-      case 'beta-waitlist':
-        return <BetaWaitlistManager />;
-      case 'sitemap':
-        // 사이트맵 페이지로 직접 이동
-        onNavigate('sitemap');
-        return <div className="p-8 text-center">사이트맵으로 이동 중...</div>;
       case 'settings':
         return <div className="p-8 text-center">설정 페이지 (개발 예정)</div>;
       default:
@@ -732,8 +722,14 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
                 <button
                   key={item.id}
                   onClick={() => {
-                    setCurrentView(item.id);
-                    closeSidebar();
+                    if (item.id === 'sitemap') {
+                      // 사이트맵은 별도 페이지로 이동
+                      onNavigate('sitemap');
+                      closeSidebar();
+                    } else {
+                      setCurrentView(item.id);
+                      closeSidebar();
+                    }
                   }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     currentView === item.id
@@ -743,6 +739,9 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />
                   <span>{item.label}</span>
+                  {item.id === 'sitemap' && (
+                    <ExternalLink className="w-4 h-4 ml-auto flex-shrink-0 opacity-60" />
+                  )}
                 </button>
               );
             })}
@@ -790,35 +789,77 @@ export function AdminDashboard({ language, onNavigate, onLogout }: AdminDashboar
 
       {/* 메인 콘텐츠 */}
       <div className="flex-1 flex flex-col min-w-0 overflow-auto">
-        {/* 모바일 헤더 */}
-        <div className="lg:hidden bg-white border-b border-gray-200 p-4">
+        {/* 관리자 정보 헤더 - 모든 화면에 표시 */}
+        <div className="bg-white border-b border-gray-200 p-4 lg:p-6">
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden"
-            >
-              <Menu className="w-5 h-5" />
-              <span className="ml-2">{t.menu}</span>
-            </Button>
-            <h1 className="text-lg font-semibold">
-              {sidebarItems.find(item => item.id === currentView)?.label || t.dashboard}
-            </h1>
-            <div className="w-10" /> {/* Spacer for centering */}
+            {/* 모바일 메뉴 버튼 + 페이지 제목 */}
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden"
+              >
+                <Menu className="w-5 h-5" />
+                <span className="ml-2">{t.menu}</span>
+              </Button>
+              <h1 className="hidden lg:block text-2xl font-bold text-gray-900">
+                {sidebarItems.find(item => item.id === currentView)?.label || t.dashboard}
+              </h1>
+              <h1 className="lg:hidden text-lg font-semibold">
+                {sidebarItems.find(item => item.id === currentView)?.label || t.dashboard}
+              </h1>
+            </div>
+
+            {/* 관리자 정보 영역 */}
+            <div className="flex items-center space-x-4">
+              {/* 관리자 정보 */}
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-sm font-medium text-gray-900">관리자</span>
+                <span className="text-sm text-gray-500">admin@ideaworklab.com</span>
+              </div>
+              
+              {/* 관리자 배지 */}
+              <div className="flex items-center space-x-1 bg-red-500 text-white px-3 py-1 rounded-lg">
+                <Shield className="w-4 h-4" />
+                <span className="text-sm font-medium">관리자</span>
+              </div>
+
+              {/* 아이콘 버튼들 */}
+              <div className="flex items-center space-x-2">
+                {/* 통계/차트 아이콘 */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-8 h-8 p-0 text-gray-500 hover:text-gray-700"
+                  title="분석 보기"
+                >
+                  <Activity className="w-5 h-5" />
+                </Button>
+
+                {/* 로그아웃 아이콘 */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onLogout ? onLogout() : onNavigate('home')}
+                  className="w-8 h-8 p-0 text-gray-500 hover:text-red-500"
+                  title="로그아웃"
+                >
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
           </div>
+          
+          {/* 데스크톱 설명 텍스트 */}
+          {currentView === 'dashboard' && (
+            <p className="hidden lg:block text-gray-600 mt-2">
+              관리자 대시보드에 오신 것을 환영합니다
+            </p>
+          )}
         </div>
 
         <div className="flex-1 p-4 md:p-6 lg:p-8">
-          {/* 데스크톱 헤더 */}
-          <div className="hidden lg:block mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {sidebarItems.find(item => item.id === currentView)?.label || t.dashboard}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {currentView === 'dashboard' ? "관리자 대시보드에 오신 것을 환영합니다" : ""}
-            </p>
-          </div>
 
           {/* 플로팅 액션 버튼 */}
           {currentView !== 'editor' && (

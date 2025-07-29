@@ -1,386 +1,256 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { 
   Menu, 
   X, 
   Globe, 
   User, 
-  LogOut, 
-  Settings,
+  LogOut,
   BookOpen,
   MessageCircle,
-  BarChart3,
-  FileText,
-  Shield,
-  Users
+  Info,
+  HelpCircle
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-
-export type Language = 'ko' | 'en';
-export type Page = 'home' | 'journal' | 'courses' | 'about' | 'methodology' | 'admin' | 'dashboard' | 'auth' | 'beta';
 
 interface HeaderProps {
-  language: Language;
-  onLanguageToggle: () => void;
-  currentPage: Page;
-  onNavigate: (page: Page) => void;
+  user: any;
+  onNavigate: (page: string) => void;
+  onLogout: () => void;
+  language: 'ko' | 'en';
+  onLanguageChange: (lang: 'ko' | 'en') => void;
 }
 
-export const Header = React.memo(({ 
-  language, 
-  onLanguageToggle, 
-  currentPage,
-  onNavigate 
-}: HeaderProps) => {
+export const Header: React.FC<HeaderProps> = ({
+  user,
+  onNavigate,
+  onLogout,
+  language,
+  onLanguageChange
+}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut, getUserType } = useAuth();
-  const userType = getUserType();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const content = {
     ko: {
-      home: '홈',
-      journal: '저널',
-      courses: '강의',
-      about: '소개',
-      methodology: '방법론',
-      beta: '베타 테스트',
-      login: '로그인',
-      signup: '회원가입',
-      dashboard: '대시보드',
-      profile: '프로필',
-      settings: '설정',
-      logout: '로그아웃',
-      myLearning: '내 학습',
-      aiChat: 'AI 챗봇',
-      admin: '관리자',
-      adminPanel: '관��자 패널'
+      nav: {
+        about: '소개',
+        courses: '강의',
+        journal: '저널',
+        aiPractice: 'AI 실습',
+        help: '도움말'
+      },
+      auth: {
+        login: '로그인',
+        signup: '회원가입',
+        logout: '로그아웃',
+        profile: '프로필',
+        dashboard: '대시보드'
+      },
+      admin: '관리자'
     },
     en: {
-      home: 'Home',
-      journal: 'Journal', 
-      courses: 'Courses',
-      about: 'About',
-      methodology: 'Methodology',
-      login: 'Login',
-      signup: 'Sign Up',
-      dashboard: 'Dashboard',
-      profile: 'Profile', 
-      settings: 'Settings',
-      logout: 'Logout',
-      myLearning: 'My Learning',
-      aiChat: 'AI Chat',
-      admin: 'Admin',
-      adminPanel: 'Admin Panel'
+      nav: {
+        about: 'About',
+        courses: 'Courses',
+        journal: 'Journal',
+        aiPractice: 'AI Practice',
+        help: 'Help'
+      },
+      auth: {
+        login: 'Login',
+        signup: 'Sign Up',
+        logout: 'Logout',
+        profile: 'Profile',
+        dashboard: 'Dashboard'
+      },
+      admin: 'Admin'
     }
   };
 
   const t = content[language];
 
-  // 사용자 타입별 네비게이션 메뉴
-  const getNavigationItems = () => {
-    const baseItems = [
-      { key: 'home', label: t.home, page: 'home' as Page },
-      { key: 'courses', label: t.courses, page: 'courses' as Page },
-      { key: 'beta', label: t.beta, page: 'beta' as Page, badge: 'NEW' },
-      { key: 'about', label: t.about, page: 'about' as Page }
-    ];
-
-    if (userType === 'guest') {
-      // 비회원은 기본 메뉴만
-      return baseItems;
-    }
-
-    if (userType === 'member') {
-      // 일반 회원
-      return [
-        ...baseItems,
-        { key: 'dashboard', label: t.myLearning, page: 'dashboard' as Page },
-        { key: 'ai-practice', label: t.aiChat, page: 'ai-practice' as Page },
-        { key: 'journal', label: t.journal, page: 'journal' as Page }
-      ];
-    }
-
-    if (userType === 'admin') {
-      // 관리자는 모든 기능 접근 가능
-      return [
-        ...baseItems,
-        { key: 'dashboard', label: t.myLearning, page: 'dashboard' as Page },
-        { key: 'ai-practice', label: t.aiChat, page: 'ai-practice' as Page },
-        { key: 'journal', label: t.journal, page: 'journal' as Page },
-        { key: 'admin', label: t.adminPanel, page: 'admin' as Page }
-      ];
-    }
-
-    return baseItems;
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      onNavigate('home');
-      setIsMenuOpen(false);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  const getUserDisplayInfo = () => {
-    if (userType === 'admin') {
-      return {
-        name: '관리자',
-        email: 'admin@ideaworklab.com',
-        role: '관리자',
-        roleColor: 'bg-gradient-to-r from-red-500 to-orange-500 text-white',
-        RoleIcon: Shield,
-        isDemoUser: false
-      };
-    }
-
-    if (!user) return null;
-
-    return {
-      name: user.name || '사용자',
-      email: user.email,
-      role: '회원',
-      roleColor: 'bg-iwl-gradient text-white',
-      RoleIcon: User,
-      isDemoUser: user.id.startsWith('demo-')
-    };
-  };
-
-  const userInfo = getUserDisplayInfo();
+  const navigation = [
+    { name: t.nav.about, page: 'about', icon: Info },
+    { name: t.nav.courses, page: 'courses', icon: BookOpen },
+    { name: t.nav.journal, page: 'journal', icon: BookOpen },
+    { name: t.nav.aiPractice, page: 'ai-practice', icon: MessageCircle },
+    { name: t.nav.help, page: 'help', icon: HelpCircle }
+  ];
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="container mx-auto px-6">
+    <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div 
+            className="flex items-center cursor-pointer"
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-3 cursor-pointer"
           >
-            <div className="text-2xl font-bold text-iwl-gradient">IWL</div>
-            <div className="hidden sm:block text-lg font-medium text-gray-900">
-              Idea Work Lab
+            <div className="text-2xl font-bold text-iwl-gradient">
+              IWL
+            </div>
+            <div className="ml-2 hidden md:block">
+              <span className="text-gray-800 font-medium">Idea Work Lab</span>
             </div>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {getNavigationItems().map((item) => (
+            {navigation.map((item) => (
               <button
-                key={item.key}
+                key={item.page}
                 onClick={() => onNavigate(item.page)}
-                className={`text-sm font-medium transition-colors flex items-center gap-2 ${
-                  currentPage === item.page
-                    ? 'text-iwl-purple border-b-2 border-iwl-purple pb-1'
-                    : 'text-gray-700 hover:text-iwl-purple'
-                }`}
+                className="text-gray-600 hover:text-iwl-purple transition-colors duration-200 font-medium"
               >
-                {item.label}
-                {item.badge && (
-                  <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-0.5">
-                    {item.badge}
-                  </Badge>
-                )}
+                {item.name}
               </button>
             ))}
           </nav>
 
-          {/* Right Side */}
+          {/* Right Section */}
           <div className="flex items-center space-x-4">
             {/* Language Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onLanguageToggle}
-              className="text-gray-600 hover:text-iwl-purple"
+            <button
+              onClick={() => onLanguageChange(language === 'ko' ? 'en' : 'ko')}
+              className="p-2 text-gray-600 hover:text-iwl-purple transition-colors"
+              title={language === 'ko' ? 'English' : '한국어'}
             >
-              <Globe className="w-4 h-4 mr-2" />
-              {language.toUpperCase()}
-            </Button>
+              <Globe className="w-5 h-5" />
+              <span className="ml-1 text-sm font-medium">
+                {language === 'ko' ? 'EN' : '한'}
+              </span>
+            </button>
 
-            {/* User Section */}
-            {(user || userType === 'admin') && userInfo ? (
-              <div className="hidden md:flex items-center space-x-3">
-                {/* User Info */}
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      {userInfo.name}
-                      {userInfo.isDemoUser && (
-                        <Badge className="ml-2 text-xs bg-orange-100 text-orange-700">
-                          데모
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500">{userInfo.email}</div>
+            {/* User Menu or Auth Buttons */}
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-iwl-gradient rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
                   </div>
-                  <Badge className={`text-xs ${userInfo.roleColor}`}>
-                    <userInfo.RoleIcon className="w-3 h-3 mr-1" />
-                    {userInfo.role}
-                  </Badge>
-                </div>
+                  <span className="hidden md:block text-sm font-medium text-gray-700">
+                    {user.name || user.email}
+                  </span>
+                  {user.user_type === 'admin' && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {t.admin}
+                    </span>
+                  )}
+                </button>
 
-                {/* Quick Actions */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onNavigate('dashboard')}
-                    className="text-gray-600 hover:text-iwl-purple"
-                  >
-                    <BarChart3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="text-gray-600 hover:text-red-600"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </Button>
-                </div>
+                {/* User Dropdown */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                    <button
+                      onClick={() => {
+                        onNavigate('dashboard');
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {t.auth.dashboard}
+                    </button>
+                    {user.user_type === 'admin' && (
+                      <button
+                        onClick={() => {
+                          onNavigate('admin-dashboard');
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {t.admin}
+                      </button>
+                    )}
+                    <hr className="my-1" />
+                    <button
+                      onClick={() => {
+                        onLogout();
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {t.auth.logout}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-3">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => onNavigate('auth')}
-                  className="text-gray-700 hover:text-iwl-purple"
+                  className="border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white"
                 >
-                  {t.login}
+                  {t.auth.login}
                 </Button>
                 <Button
-                  onClick={() => onNavigate('auth')}
+                  onClick={() => onNavigate('signup')}
                   className="bg-iwl-gradient hover:opacity-90 text-white"
                 >
-                  {t.signup}
+                  {t.auth.signup}
                 </Button>
               </div>
             )}
 
             {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-gray-600 hover:text-iwl-purple"
             >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
-            <nav className="space-y-2">
-              {getNavigationItems().map((item) => (
+            <div className="space-y-2">
+              {navigation.map((item) => (
                 <button
-                  key={item.key}
+                  key={item.page}
                   onClick={() => {
                     onNavigate(item.page);
                     setIsMenuOpen(false);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 ${
-                    currentPage === item.page
-                      ? 'text-iwl-purple bg-iwl-purple-50'
-                      : 'text-gray-700 hover:text-iwl-purple hover:bg-gray-50'
-                  }`}
+                  className="flex items-center w-full px-4 py-2 text-gray-600 hover:text-iwl-purple hover:bg-gray-50 rounded-lg transition-colors"
                 >
-                  {item.label}
-                  {item.badge && (
-                    <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-0.5">
-                      {item.badge}
-                    </Badge>
-                  )}
+                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.name}
                 </button>
               ))}
 
-              <div className="border-t border-gray-200 pt-4 mt-4">
-                {user && userInfo ? (
-                  <div className="space-y-2">
-                    {/* Mobile User Info */}
-                    <div className="px-4 py-2 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-sm text-gray-900">
-                            {userInfo.name}
-                            {userInfo.isDemoUser && (
-                              <Badge className="ml-2 text-xs bg-orange-100 text-orange-700">
-                                데모
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">{userInfo.email}</div>
-                        </div>
-                        <Badge className={`text-xs ${userInfo.roleColor}`}>
-                          <userInfo.RoleIcon className="w-3 h-3 mr-1" />
-                          {userInfo.role}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Mobile User Actions */}
-                    <button
-                      onClick={() => {
-                        onNavigate('dashboard');
-                        setIsMenuOpen(false);
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:text-iwl-purple hover:bg-gray-50"
-                    >
-                      <BarChart3 className="w-4 h-4 mr-3" />
-                      {t.dashboard}
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                    >
-                      <LogOut className="w-4 h-4 mr-3" />
-                      {t.logout}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => {
-                        onNavigate('auth');
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:text-iwl-purple hover:bg-gray-50"
-                    >
-                      {t.login}
-                    </button>
-                    <button
-                      onClick={() => {
-                        onNavigate('auth');
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm font-medium text-white bg-iwl-gradient hover:opacity-90 rounded-md"
-                    >
-                      {t.signup}
-                    </button>
-                  </div>
-                )}
-
-                {/* Language Toggle Mobile */}
-                <button
-                  onClick={() => {
-                    onLanguageToggle();
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:text-iwl-purple hover:bg-gray-50 border-t border-gray-200 mt-4 pt-4"
-                >
-                  <Globe className="w-4 h-4 mr-3" />
-                  Language: {language.toUpperCase()}
-                </button>
-              </div>
-            </nav>
+              {/* Mobile Auth Buttons */}
+              {!user && (
+                <div className="pt-4 mt-4 border-t border-gray-200 space-y-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      onNavigate('auth');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full border-iwl-purple text-iwl-purple hover:bg-iwl-purple hover:text-white"
+                  >
+                    {t.auth.login}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      onNavigate('signup');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full bg-iwl-gradient hover:opacity-90 text-white"
+                  >
+                    {t.auth.signup}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
     </header>
   );
-});
+};
