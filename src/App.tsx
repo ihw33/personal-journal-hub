@@ -331,8 +331,8 @@ function App() {
           <AdminLogin 
             onNavigate={navigate}
             onLoginSuccess={async (password) => {
-              // Demo mode - accept any password for development
-              if (password === 'ideaworklab2024' || isDemoMode) {
+              // Only accept correct password or demo mode
+              if (password === 'ideaworklab2024') {
                 const adminUser: User = {
                   id: 'admin-user',
                   email: 'admin@ideaworklab.com',
@@ -350,6 +350,20 @@ function App() {
         );
 
       case 'admin-dashboard':
+        // Check if user is actually logged in as admin
+        if (!currentUser || currentUser.user_type !== 'admin') {
+          navigate('admin-login');
+          return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                  {language === 'ko' ? '관리자 인증이 필요합니다' : 'Admin Authentication Required'}
+                </h2>
+                <p className="text-gray-500">리다이렉트 중...</p>
+              </div>
+            </div>
+          );
+        }
         return (
           <AdminDashboard 
             language={language}
