@@ -137,6 +137,21 @@ function App() {
   })();
 
   useEffect(() => {
+    // Handle URL parameters for admin access
+    const handleURLParams = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageParam = urlParams.get('page');
+      
+      if (pageParam === 'admin') {
+        setCurrentPage('admin-login');
+        // Clean up URL
+        window.history.replaceState({}, '', '/');
+        return;
+      }
+    };
+    
+    handleURLParams();
+    
     // Simulate initial load
     setLoading(true);
     setTimeout(() => {
