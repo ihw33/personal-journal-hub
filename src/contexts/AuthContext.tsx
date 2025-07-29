@@ -82,28 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  // 🔥 핵심 수정: useState 함수형 초기화로 localStorage에서 직접 읽어오기
+  // 🚨 EXTREME DEBUG: 강제로 false로 고정하여 테스트
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const session = localStorage.getItem('admin-session');
-      const loginTime = localStorage.getItem('admin-login-time');
-      
-      if (session === 'true' && loginTime) {
-        // 24시간 만료 체크
-        const hoursSinceLogin = (new Date().getTime() - new Date(loginTime).getTime()) / (1000 * 60 * 60);
-        if (hoursSinceLogin < 24) {
-          console.log('🔑 Admin session restored from localStorage on init');
-          return true;
-        } else {
-          // 만료된 세션 정리
-          localStorage.removeItem('admin-session');
-          localStorage.removeItem('admin-login-time');
-          console.log('⏰ Expired admin session removed on init');
-        }
-      }
-    }
-    console.log('❌ No valid admin session found on init');
-    return false;
+    console.log('🚨 FORCE DEBUG: isAdminLoggedIn 강제로 false 설정');
+    return false; // 무조건 false로 시작
   });
 
   // v116: 베타 시스템 초기화 (SSR 안전성 개선)

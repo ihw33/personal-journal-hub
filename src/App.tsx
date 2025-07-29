@@ -462,7 +462,9 @@ function AppContent() {
       
       // 🔥 핵심 수정: 단순화된 Admin Page (오직 React 상태로만 판단)
       case 'admin':
-        console.log('🔐 Admin page accessed, isAdminLoggedIn:', isAdminLoggedIn);
+        console.log('🚨 EXTREME DEBUG: Admin page accessed');
+        console.log('🚨 EXTREME DEBUG: isAdminLoggedIn value:', isAdminLoggedIn);
+        console.log('🚨 EXTREME DEBUG: typeof isAdminLoggedIn:', typeof isAdminLoggedIn);
         
         // URL 파라미터로 강제 로그아웃 지원
         const urlParams = new URLSearchParams(window.location.search);
