@@ -92,17 +92,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 24시간 만료 체크
         const hoursSinceLogin = (new Date().getTime() - new Date(loginTime).getTime()) / (1000 * 60 * 60);
         if (hoursSinceLogin < 24) {
-          console.log('🔑 Admin session restored from localStorage on init');
           return true;
         } else {
           // 만료된 세션 정리
           localStorage.removeItem('admin-session');
           localStorage.removeItem('admin-login-time');
-          console.log('⏰ Expired admin session removed on init');
         }
       }
     }
-    console.log('❌ No valid admin session found on init');
     return false;
   });
 
@@ -129,26 +126,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTimeout(initializeBetaSystems, 100);
   }, []);
 
-  // 🔥 핵심 수정: isAdminLoggedIn 상태가 변경될 때마다 localStorage와 동기화
+  // isAdminLoggedIn 상태가 변경될 때마다 localStorage와 동기화
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (isAdminLoggedIn) {
         localStorage.setItem('admin-session', 'true');
         localStorage.setItem('admin-login-time', new Date().toISOString());
-        console.log('✅ Admin session saved to localStorage');
       } else {
         localStorage.removeItem('admin-session');
         localStorage.removeItem('admin-login-time');
-        console.log('🗑️ Admin session removed from localStorage');
       }
     }
-  }, [isAdminLoggedIn]); // 의존성 배열에 isAdminLoggedIn 필수!
+  }, [isAdminLoggedIn]);
 
   // 강제 초기화 처리 (개발/디버깅용)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('force-reset=true')) {
-      console.log('🧹 Force reset triggered - clearing all admin data');
-      setIsAdminLoggedIn(false); // 이것만으로도 위의 useEffect가 localStorage를 정리함
+      setIsAdminLoggedIn(false);
     }
 
     // 데모 사용자 확인

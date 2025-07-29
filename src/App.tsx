@@ -109,12 +109,8 @@ function AppContent() {
       const searchParams = new URLSearchParams(window.location.search);
       const pageParam = searchParams.get('page');
       
-      console.log('🌐 URL path detected:', path);
-      console.log('🔍 URL page param:', pageParam);
-      
       // URL 파라미터로 관리자 페이지 감지 (Next.js 리다이렉트 대응)
       if (pageParam === 'admin') {
-        console.log('🔐 ?page=admin detected - forcing admin page');
         setCurrentPage('admin');
         // URL을 깔끔하게 정리
         window.history.replaceState({}, '', '/admin');
@@ -123,7 +119,6 @@ function AppContent() {
       
       // /admin 경로 강제 처리
       if (path === '/admin') {
-        console.log('🔐 /admin path detected - forcing admin page');
         setCurrentPage('admin');
         return;
       }
@@ -150,7 +145,6 @@ function AppContent() {
       };
 
       const page = pathToPageMap[path] || 'home';
-      console.log('🔄 Setting page to:', page);
       if (page !== currentPage) {
         setCurrentPage(page);
       }
@@ -473,37 +467,26 @@ function AppContent() {
           </div>
         );
       
-      // 🔥 핵심 수정: 단순화된 Admin Page (오직 React 상태로만 판단)
+      // Admin Page
       case 'admin':
-        console.log('🚨 EXTREME DEBUG: Admin page accessed');
-        console.log('🚨 EXTREME DEBUG: isAdminLoggedIn value:', isAdminLoggedIn);
-        console.log('🚨 EXTREME DEBUG: typeof isAdminLoggedIn:', typeof isAdminLoggedIn);
         
         // URL 파라미터로 강제 로그아웃 지원
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('logout') === 'true' || urlParams.get('reset') === 'true') {
-          console.log('🚪 Force logout triggered');
-          adminLogout(); // 이것만으로 충분 (useEffect가 localStorage 정리)
+          adminLogout();
           window.history.replaceState({}, '', '/admin');
         }
         
-        // 🔥 핵심: localStorage 확인 없이 오직 React 상태로만 판단
         if (!isAdminLoggedIn) {
-          console.log('❌ Not logged in - showing login form');
           return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
               <AdminLogin 
                 language={language} 
                 onNavigate={navigateTo}
                 onLoginSuccess={async (password) => {
-                  console.log('🔑 Login attempt started');
                   const result = await adminLogin(password);
                   if (!result.error) {
-                    console.log('✅ Login successful');
                     toast.success(language === 'ko' ? '관리자 로그인 성공' : 'Admin login successful');
-                    // 상태 변경만으로 자동 리렌더링됨
-                  } else {
-                    console.log('❌ Login failed:', result.error);
                   }
                   return !result.error;
                 }}
@@ -511,16 +494,13 @@ function AppContent() {
             </div>
           );
         } else {
-          console.log('✅ Logged in - showing dashboard');
           return (
             <AdminDashboard 
               language={language} 
               onNavigate={navigateTo}
               onLogout={() => {
-                console.log('🚪 Logout initiated from dashboard');
-                adminLogout(); // 이것만으로 충분 (useEffect가 localStorage 정리)
+                adminLogout();
                 toast.info(language === 'ko' ? '관리자 로그아웃 완료' : 'Admin logout completed');
-                // 상태 변경만으로 자동 리렌더링됨
               }}
             />
           );
