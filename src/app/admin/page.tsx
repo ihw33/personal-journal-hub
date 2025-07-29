@@ -6,7 +6,8 @@ export default function AdminPage() {
   useEffect(() => {
     // Next.js App Router를 우회하고 커스텀 라우팅으로 리다이렉트
     console.log('🚨 Next.js /admin page accessed - redirecting to custom routing');
-    window.location.replace('/');
+    // URL 파라미터로 관리자 페이지임을 알려줌
+    window.location.replace('/?page=admin');
   }, []);
 
   return (

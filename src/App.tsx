@@ -106,7 +106,20 @@ function AppContent() {
   useEffect(() => {
     const handleURLChange = () => {
       const path = window.location.pathname;
+      const searchParams = new URLSearchParams(window.location.search);
+      const pageParam = searchParams.get('page');
+      
       console.log('🌐 URL path detected:', path);
+      console.log('🔍 URL page param:', pageParam);
+      
+      // URL 파라미터로 관리자 페이지 감지 (Next.js 리다이렉트 대응)
+      if (pageParam === 'admin') {
+        console.log('🔐 ?page=admin detected - forcing admin page');
+        setCurrentPage('admin');
+        // URL을 깔끔하게 정리
+        window.history.replaceState({}, '', '/admin');
+        return;
+      }
       
       // /admin 경로 강제 처리
       if (path === '/admin') {
