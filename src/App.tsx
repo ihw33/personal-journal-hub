@@ -60,7 +60,7 @@ import { PrivacyPage } from './components/PrivacyPage';
 import { CookiesPage } from './components/CookiesPage';
 import { LicensePage } from './components/LicensePage';
 import { SiteMapPage } from './components/SiteMapPage';
-// import { VersionHistoryPage } from './components/VersionHistoryPage';
+import { VersionHistoryPage } from './VersionHistoryPage';
 import { ComingSoonPage } from './components/ComingSoonPage';
 
 // Utility Components
@@ -504,7 +504,7 @@ function App() {
         return <SiteMapPage onNavigate={navigate} language={language} />;
 
       case 'version-history':
-        return <ComingSoonPage onNavigate={navigate} language={language} />;
+        return <VersionHistoryPage onNavigate={navigate} language={language} />;
 
       case 'coming-soon':
         return <ComingSoonPage onNavigate={navigate} language={language} />;
