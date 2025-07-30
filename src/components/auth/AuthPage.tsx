@@ -140,15 +140,24 @@ export function AuthPage({ language, onNavigate }: AuthPageProps) {
 
     setIsLoading(true);
     try {
-      const result = await signIn(formData.email, formData.password);
-      if (result.error) {
-        toast.error('로그인에 실패했습니다. 계정 정보를 확인해주세요.');
-      } else {
-        toast.success('로그인되었습니다!');
-        onNavigate('course-trial');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || '로그인에 실패했습니다.');
       }
-    } catch (error) {
-      toast.error('로그인 중 오류가 발생했습니다.');
+
+      toast.success('로그인되었습니다!');
+      onNavigate('course-trial');
+    } catch (error: any) {
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -176,18 +185,24 @@ export function AuthPage({ language, onNavigate }: AuthPageProps) {
 
     setIsLoading(true);
     try {
-      const result = await signUp(formData.email, formData.password, {
-        name: formData.name
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
-      
-      if (result.error) {
-        toast.error(`회원가입에 실패했습니다: ${result.error.message}`);
-      } else {
-        toast.success('회원가입이 완료되었습니다! 이제 체험강의를 시작하세요.');
-        onNavigate('course-trial');
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || '회원가입에 실패했습니다.');
       }
-    } catch (error) {
-      toast.error('회원가입 중 오류가 발생했습니다.');
+
+      toast.success('회원가입이 완료되었습니다! 이제 체험강의를 시작하세요.');
+      onNavigate('course-trial');
+    } catch (error: any) {
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
