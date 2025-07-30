@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from './components/ui/sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import { PersonalizationProvider } from './contexts/PersonalizationContext';
+import { TestUserSelectionModal } from './components/auth/TestUserSelectionModal';
+import { User as UserIcon } from 'lucide-react';
 
 // Layout Components
 import { Header } from './components/Header';
@@ -113,7 +115,7 @@ interface User {
   email: string;
   name?: string;
   avatar?: string;
-  user_type: 'guest' | 'member' | 'instructor' | 'admin';
+  user_type: 'guest' | 'member' | 'instructor' | 'admin' | 'demo' | 'enrolled';
   subscription_status?: 'active' | 'inactive' | 'trial';
   personalizationData?: any;
 }
@@ -124,6 +126,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<'ko' | 'en'>('ko');
   const [showEnvGuide, setShowEnvGuide] = useState(false);
+  const [showTestUserModal, setShowTestUserModal] = useState(false);
   
   // URL parameters for specific pages
   const [journalId, setJournalId] = useState<string | null>(null);
@@ -377,71 +380,111 @@ function App() {
         );
 
       case 'course-dashboard':
-        return (
-          <CourseDashboard 
-            user={currentUser}
-            onNavigate={navigate}
-            language={language}
-          />
-        );
-
       case 'phase-learning':
       case 'course-phase':
-        return (
-          <PhaseLearningPage 
-            phaseId={phaseId}
-            user={currentUser}
-            onNavigate={navigate}
-            language={language}
-          />
-        );
-
       case 'weekly-learning':
       case 'course-week':
-        return (
-          <WeeklyLearningPage 
-            week={weekId ? parseInt(weekId) : 1}
-            onNavigate={navigate}
-            language={language}
-          />
-        );
+      case 'trial-course':
+        // Check for course access
+        if (!currentUser || !['member', 'enrolled', 'instructor', 'admin'].includes(currentUser.user_type)) {
+          navigate('auth');
+          return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                  {language === 'ko' ? '강의 접근 권한이 없습니다' : 'Course Access Denied'}
+                </h2>
+                <p className="text-gray-500">{language === 'ko' ? '로그인 페이지로 리다이렉트 중...' : 'Redirecting to login page...'}</p>
+              </div>
+            </div>
+          );
+        }
+        // Render specific course page based on currentPage
+        switch (currentPage) {
+          case 'course-dashboard':
+            return (
+              <CourseDashboard 
+                user={currentUser}
+                onNavigate={navigate}
+                language={language}
+              />
+            );
+          case 'phase-learning':
+          case 'course-phase':
+            return (
+              <PhaseLearningPage 
+                phaseId={phaseId}
+                user={currentUser}
+                onNavigate={navigate}
+                language={language}
+              />
+            );
+          case 'weekly-learning':
+          case 'course-week':
+            return (
+              <WeeklyLearningPage 
+                week={weekId ? parseInt(weekId) : 1}
+                onNavigate={navigate}
+                language={language}
+              />
+            );
+          case 'trial-course':
+            return (
+              <TrialCoursePage 
+                user={currentUser}
+                onNavigate={navigate}
+                language={language}
+              />
+            );
+          default:
+            return null; // Should not happen
+        }
 
       case 'phase-submission':
-        return (
-          <PhaseSubmissionPage 
-            phaseId={phaseId}
-            user={currentUser}
-            onNavigate={navigate}
-            language={language}
-          />
-        );
-
       case 'course-submission':
-        return (
-          <CourseSubmissionPage 
-            user={currentUser}
-            onNavigate={navigate}
-            language={language}
-          />
-        );
-
       case 'course-feedback':
-        return (
-          <CourseFeedbackPage 
-            user={currentUser}
-            onNavigate={navigate}
-            language={language}
-          />
-        );
-
-      case 'trial-course':
-        return (
-          <TrialCoursePage 
-            user={currentUser}
-            onNavigate={navigate}
-            language={language}
-          />
-        );
+        if (!currentUser || !['member', 'enrolled', 'instructor', 'admin'].includes(currentUser.user_type)) {
+          navigate('auth');
+          return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                  {language === 'ko' ? '접근 권한이 없습니다' : 'Access Denied'}
+                </h2>
+                <p className="text-gray-500">{language === 'ko' ? '로그인 페이지로 리다이렉트 중...' : 'Redirecting to login page...'}</p>
+              </div>
+            </div>
+          );
+        }
+        switch (currentPage) {
+          case 'phase-submission':
+            return (
+              <PhaseSubmissionPage 
+                phaseId={phaseId}
+                user={currentUser}
+                onNavigate={navigate}
+                language={language}
+              />
+            );
+          case 'course-submission':
+            return (
+              <CourseSubmissionPage 
+                user={currentUser}
+                onNavigate={navigate}
+                language={language}
+              />
+            );
+          case 'course-feedback':
+            return (
+              <CourseFeedbackPage 
+                user={currentUser}
+                onNavigate={navigate}
+                language={language}
+              />
+            );
+          default:
+            return null;
+        }
 
       case 'dashboard':
         return (
@@ -574,6 +617,17 @@ function App() {
             </div>
           )}
 
+          {/* Test User Selection Button */}
+          <div className="fixed bottom-4 left-4 z-50">
+            <button
+              onClick={() => setShowTestUserModal(true)}
+              className="bg-iwl-purple hover:bg-iwl-purple/90 text-white rounded-full p-3 shadow-lg transition-all duration-200"
+              title={language === 'ko' ? '테스트 사용자 선택' : 'Select Test User'}
+            >
+              <UserIcon className="w-6 h-6" />
+            </button>
+          </div>
+
           {/* Environment Guide Modal */}
           {showEnvGuide && (
             <EnvironmentGuide 
@@ -582,20 +636,11 @@ function App() {
             />
           )}
 
-          {/* Toast Notifications */}
-          <Toaster 
-            position="top-right"
-            richColors
-            closeButton
-            duration={4000}
-            toastOptions={{
-              className: 'text-sm',
-              style: {
-                background: 'var(--iwl-gradient)',
-                color: 'white',
-                border: 'none'
-              }
-            }}
+          {/* Test User Selection Modal */}
+          <TestUserSelectionModal
+            isOpen={showTestUserModal}
+            onClose={() => setShowTestUserModal(false)}
+            onSelectUser={login}
           />
         </div>
       </PersonalizationProvider>
