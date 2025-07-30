@@ -102,11 +102,10 @@ export function IntegratedChatbot({
   const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize or load existing session (SSR 안전)
+  // Initialize or load existing session
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const sessionKey = `chat-session-${week}`;
-      const savedSession = localStorage.getItem(sessionKey);
+    const sessionKey = `chat-session-${week}`;
+    const savedSession = localStorage.getItem(sessionKey);
     
     if (savedSession) {
       const parsed = JSON.parse(savedSession);
@@ -150,7 +149,6 @@ export function IntegratedChatbot({
       };
       setSession(newSession);
       saveSession(newSession);
-    }
     }
   }, [week]);
 
@@ -201,25 +199,12 @@ export function IntegratedChatbot({
     scrollToBottom();
   }, [session?.messages]);
 
-  import { generateGeminiResponse } from '@/services/geminiService';
-import { getCourseContext } from '@/lib/courseContext';
-
-// ... (rest of the imports)
-
-// ... (interfaces)
-
-export function IntegratedChatbot({
-  // ... (props)
-}) {
-  // ... (state variables)
-
-  // ... (useEffect hooks)
-
   const sendMessage = async () => {
     if (!currentMessage.trim() || !session || isLoading) return;
 
     setIsLoading(true);
     
+    // Add user message
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       content: currentMessage,
@@ -245,10 +230,8 @@ export function IntegratedChatbot({
     setCurrentMessage('');
 
     try {
-      const courseContext = getCourseContext();
-      const fullPrompt = `${courseContext}\n\n---\n\nBased on the context above, please answer the following question.\nUser Question: ${currentMessage}`;
-
-      const aiResponse = await generateGeminiResponse(fullPrompt);
+      // Mock AI response (in real implementation, call actual AI API)
+      const aiResponse = await mockAIResponse(currentMessage, phase, mode, session.messages);
       
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -280,7 +263,6 @@ export function IntegratedChatbot({
       setIsLoading(false);
     }
   };
-}
 
   // Mock AI response function (replace with actual AI API calls)
   const mockAIResponse = async (
