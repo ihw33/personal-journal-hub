@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { validateEmail, validatePassword, validateName } from '@/lib/validation';
 import { rateLimiter } from '@/lib/rate-limiter';
+import { SecurityMonitor } from '@/lib/securityMonitor';
 
 export async function POST(request: Request) {
   const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
@@ -13,6 +14,12 @@ export async function POST(request: Request) {
   }
 
   const { email, password, name } = await request.json();
+  const securityMonitor = SecurityMonitor.getInstance();
+
+  const nameValidation = securityMonitor.validateInput(name, 'name');
+  if (!nameValidation.safe) {
+    return NextResponse.json({ error: `Invalid name: ${nameValidation.threats.join(', ')}` }, { status: 400 });
+  }
 
   if (!validateName(name)) {
     return NextResponse.json({ error: 'Invalid name' }, { status: 400 });

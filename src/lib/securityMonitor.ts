@@ -215,15 +215,30 @@ export class SecurityMonitor {
 
     // SQL Injection 패턴 검사
     const sqlPatterns = [
-      'union select',
-      'drop table',
-      'insert into',
-      'delete from',
-      'update set',
-      '-- ',
-      '; --',
-      'or 1=1',
-      'and 1=1'
+      // Common SQL Injection keywords
+      '' OR '1'='1',
+      '' OR 1=1 --',
+      '" OR 1=1 --',
+      'OR 1=1',
+      '--',
+      ';',
+      '/*',
+      '*/',
+      'xp_cmdshell',
+      'exec',
+      'sp_executesql',
+      'UNION ALL SELECT',
+      'UNION SELECT',
+      'information_schema',
+      'table_schema',
+      'table_name',
+      'column_name',
+      'DROP TABLE',
+      'TRUNCATE TABLE',
+      'DELETE FROM',
+      'INSERT INTO',
+      'UPDATE',
+      'SELECT',
     ];
 
     for (const pattern of sqlPatterns) {
