@@ -24,6 +24,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { SocialLoginButtons } from '../SocialLoginButtons';
 import { toast } from 'sonner';
+import { validateEmail, validatePassword, validateName } from '../../lib/validation';
 
 interface AuthPageProps {
   language: 'ko' | 'en';
@@ -128,8 +129,12 @@ export function AuthPage({ language, onNavigate }: AuthPageProps) {
 
   // 실제 로그인 처리
   const handleLogin = async () => {
-    if (!formData.email || !formData.password) {
-      toast.error('이메일과 비밀번호를 입력해주세요.');
+    if (!validateEmail(formData.email)) {
+      toast.error('유효한 이메일 주소를 입력해주세요.');
+      return;
+    }
+    if (!formData.password) {
+      toast.error('비밀번호를 입력해주세요.');
       return;
     }
 
@@ -140,7 +145,6 @@ export function AuthPage({ language, onNavigate }: AuthPageProps) {
         toast.error('로그인에 실패했습니다. 계정 정보를 확인해주세요.');
       } else {
         toast.success('로그인되었습니다!');
-        // 체험강의로 바로 이동
         onNavigate('course-trial');
       }
     } catch (error) {
@@ -152,11 +156,19 @@ export function AuthPage({ language, onNavigate }: AuthPageProps) {
 
   // 실제 회원가입 처리
   const handleSignup = async () => {
-    if (!formData.name || !formData.email || !formData.password) {
-      toast.error('모든 필수 필드를 입력해주세요.');
+    if (!validateName(formData.name)) {
+      toast.error('이름은 2자 이상 50자 미만이어야 하며, 특수문자를 포함할 수 없습니다.');
       return;
     }
-
+    if (!validateEmail(formData.email)) {
+      toast.error('유효한 이메일 주소를 입력해주세요.');
+      return;
+    }
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.success) {
+      toast.error(passwordValidation.message);
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       toast.error('비밀번호가 일치하지 않습니다.');
       return;
@@ -169,10 +181,9 @@ export function AuthPage({ language, onNavigate }: AuthPageProps) {
       });
       
       if (result.error) {
-        toast.error('회원가입에 실패했습니다.');
+        toast.error(`회원가입에 실패했습니다: ${result.error.message}`);
       } else {
         toast.success('회원가입이 완료되었습니다! 이제 체험강의를 시작하세요.');
-        // 회원가입 성공 후 체험강의로 이동
         onNavigate('course-trial');
       }
     } catch (error) {
