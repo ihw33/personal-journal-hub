@@ -1,16 +1,20 @@
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  throw new Error('GEMINI_API_KEY is not set in .env.local');
+let genAI: GoogleGenerativeAI | null = null;
+
+if (process.env.GEMINI_API_KEY) {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+} else {
+  console.warn('GEMINI_API_KEY is not set. AI functionality will be disabled.');
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
-
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = genAI ? genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }) : null;
 
 export const generateGeminiResponse = async (prompt: string): Promise<string> => {
+  if (!model) {
+    return 'AI service is not configured. Please set the GEMINI_API_KEY.';
+  }
+
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
