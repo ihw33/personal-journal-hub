@@ -2,8 +2,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
-import ArchitectHeader from "@/components/layout/ArchitectHeader";
+import HeaderWithAuth from "@/components/layout/HeaderWithAuth";
 import ArchitectFooter from "@/components/layout/ArchitectFooter";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--architect-font-primary" });
@@ -27,13 +28,15 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${inter.variable} ${pretendard.variable}`}>
-        <div className="min-h-screen flex flex-col">
-          <ArchitectHeader />
-          <main className="flex-1">
-            {children}
-          </main>
-          <ArchitectFooter />
-        </div>
+        <Providers>
+          <div className="min-h-screen flex flex-col">
+            <HeaderWithAuth />
+            <main className="flex-1">
+              {children}
+            </main>
+            <ArchitectFooter />
+          </div>
+        </Providers>
       </body>
     </html>
   );

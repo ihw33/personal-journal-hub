@@ -227,13 +227,13 @@ const ArchitectHeader = ({
             ) : (
               <div className="hidden lg:flex items-center space-x-3">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="px-6 py-2 text-body font-medium text-architect-primary hover:text-architect-secondary transition-colors duration-200"
                 >
                   {t.auth.login}
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/auth/signup"
                   className="px-6 py-2 bg-architect-gradient-main text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
                   {t.auth.signup}
@@ -286,14 +286,14 @@ const ArchitectHeader = ({
             {!user && (
               <div className="flex flex-col space-y-3 pt-4 border-t border-architect-gray-200">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="px-4 py-3 text-center text-body font-medium text-architect-primary hover:bg-architect-gray-100 rounded-lg transition-all duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t.auth.login}
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/auth/signup"
                   className="px-4 py-3 bg-architect-gradient-main text-white text-center rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
