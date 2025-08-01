@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Menu, 
@@ -9,7 +9,8 @@ import {
   User, 
   LogOut,
   ChevronDown,
-  Settings
+  Settings,
+  Loader2
 } from 'lucide-react';
 import { getMainNavigation, languageContent, UserProfile } from '@/types/navigation';
 
@@ -19,7 +20,7 @@ interface ArchitectHeaderProps {
   user?: UserProfile | null;
   language?: 'ko' | 'en';
   onLanguageChange?: (lang: 'ko' | 'en') => void;
-  onLogout?: () => void;
+  onLogout?: () => Promise<void> | void;
 }
 
 const ArchitectHeader = ({ 
@@ -32,12 +33,56 @@ const ArchitectHeader = ({
 }: ArchitectHeaderProps = {}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMobileMenu = () => {
     const newState = !isMobileMenuOpen;
     setIsMobileMenuOpen(newState);
     onMenuToggle?.(newState);
   };
+
+  const handleLogout = async () => {
+    if (!onLogout) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      await onLogout();
+      setIsUserMenuOpen(false);
+    } catch (err) {
+      const errorMessage = language === 'ko' 
+        ? '로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.'
+        : 'An error occurred during logout. Please try again.';
+      setError(errorMessage);
+      console.error('Logout error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isUserMenuOpen]);
+
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const navigation = getMainNavigation(language);
   const t = languageContent[language];
@@ -94,9 +139,16 @@ const ArchitectHeader = ({
               </button>
             )}
 
+            {/* Error Message */}
+            {error && (
+              <div className="fixed top-24 right-4 bg-architect-error text-white px-4 py-2 rounded-lg shadow-lg z-50 text-small font-medium transform transition-all duration-300">
+                {error}
+              </div>
+            )}
+
             {/* User Menu or Auth Buttons */}
             {user ? (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-3 p-2 rounded-xl hover:bg-architect-gray-100/60 transition-all duration-300 group"
@@ -123,7 +175,7 @@ const ArchitectHeader = ({
 
                 {/* User Dropdown */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl py-2 z-50 border border-architect-gray-300/50 backdrop-blur-sm">
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl py-2 z-50 border border-architect-gray-300/50 backdrop-blur-sm transform transition-all duration-200 origin-top-right animate-in fade-in-0 zoom-in-95">
                     <div className="px-4 py-3 border-b border-architect-gray-300/30">
                       <div className="text-small font-semibold text-architect-gray-900">
                         {user.name || user.email}
@@ -157,14 +209,16 @@ const ArchitectHeader = ({
                     
                     <div className="border-t border-architect-gray-300/30 pt-2">
                       <button
-                        onClick={() => {
-                          onLogout?.();
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="flex items-center w-full text-left px-4 py-3 text-body font-medium text-architect-gray-700 hover:bg-architect-gray-100/60 hover:text-architect-error transition-all duration-200"
+                        onClick={handleLogout}
+                        disabled={isLoading}
+                        className="flex items-center w-full text-left px-4 py-3 text-body font-medium text-architect-gray-700 hover:bg-architect-gray-100/60 hover:text-architect-error transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <LogOut className="w-4 h-4 mr-3" />
-                        {t.auth.logout}
+                        {isLoading ? (
+                          <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                        ) : (
+                          <LogOut className="w-4 h-4 mr-3" />
+                        )}
+                        {isLoading ? (language === 'ko' ? '로그아웃 중...' : 'Logging out...') : t.auth.logout}
                       </button>
                     </div>
                   </div>
@@ -180,7 +234,7 @@ const ArchitectHeader = ({
                 </Link>
                 <Link
                   href="/signup"
-                  className="px-6 py-2 bg-architect-gradient-main text-white rounded-lg font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                  className="px-6 py-2 bg-architect-gradient-main text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
                   {t.auth.signup}
                 </Link>
@@ -204,7 +258,9 @@ const ArchitectHeader = ({
         <div
           id="mobile-menu"
           className={`lg:hidden transition-all duration-300 overflow-hidden ${
-            isMobileMenuOpen ? 'max-h-screen pb-6' : 'max-h-0'
+            isMobileMenuOpen 
+              ? 'max-h-screen pb-6 opacity-100 transform translate-y-0' 
+              : 'max-h-0 opacity-0 transform -translate-y-2'
           }`}
         >
           <nav className="flex flex-col space-y-2 pt-4 border-t border-architect-gray-200">
@@ -238,7 +294,7 @@ const ArchitectHeader = ({
                 </Link>
                 <Link
                   href="/signup"
-                  className="px-4 py-3 bg-architect-gradient-main text-white text-center rounded-lg font-medium hover:shadow-lg transition-all duration-200"
+                  className="px-4 py-3 bg-architect-gradient-main text-white text-center rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t.auth.signup}
@@ -287,13 +343,18 @@ const ArchitectHeader = ({
                 
                 <button
                   onClick={() => {
-                    onLogout?.();
+                    handleLogout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex items-center w-full px-4 py-3 text-body font-medium text-architect-gray-700 hover:text-architect-error hover:bg-architect-gray-100 rounded-lg transition-all duration-200"
+                  disabled={isLoading}
+                  className="flex items-center w-full px-4 py-3 text-body font-medium text-architect-gray-700 hover:text-architect-error hover:bg-architect-gray-100 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <LogOut className="w-4 h-4 mr-3" />
-                  {t.auth.logout}
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                  ) : (
+                    <LogOut className="w-4 h-4 mr-3" />
+                  )}
+                  {isLoading ? (language === 'ko' ? '로그아웃 중...' : 'Logging out...') : t.auth.logout}
                 </button>
               </div>
             )}
