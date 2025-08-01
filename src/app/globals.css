@@ -1,255 +1,43 @@
+
 @import "tailwindcss";
 
 @theme {
-  --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-  
-  --font-size: 14px;
-  --color-background: #ffffff;
-  --color-foreground: oklch(0.145 0 0);
-  --color-card: #ffffff;
-  --color-card-foreground: oklch(0.145 0 0);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.145 0 0);
-  --color-primary: #030213;
-  --color-primary-foreground: oklch(1 0 0);
-  --color-secondary: oklch(0.95 0.0058 264.53);
-  --color-secondary-foreground: #030213;
-  --color-muted: #ececf0;
-  --color-muted-foreground: #717182;
-  --color-accent: #e9ebef;
-  --color-accent-foreground: #030213;
-  --color-destructive: #d4183d;
-  --color-destructive-foreground: #ffffff;
-  --color-border: rgba(0, 0, 0, 0.1);
-  --color-input: transparent;
-  --color-input-background: #f3f3f5;
-  --color-switch-background: #cbced4;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --color-ring: oklch(0.708 0 0);
-  --color-chart-1: oklch(0.646 0.222 41.116);
-  --color-chart-2: oklch(0.6 0.118 184.704);
-  --color-chart-3: oklch(0.398 0.07 227.392);
-  --color-chart-4: oklch(0.828 0.189 84.429);
-  --color-chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --color-sidebar: oklch(0.985 0 0);
-  --color-sidebar-foreground: oklch(0.145 0 0);
-  --color-sidebar-primary: #030213;
-  --color-sidebar-primary-foreground: oklch(0.985 0 0);
-  --color-sidebar-accent: oklch(0.97 0 0);
-  --color-sidebar-accent-foreground: oklch(0.205 0 0);
-  --color-sidebar-border: oklch(0.922 0 0);
-  --color-sidebar-ring: oklch(0.708 0 0);
+  --color-architect-primary: #1a237e;
+  --color-architect-secondary: #0d47a1;
+  --color-architect-accent: #ff6f00;
+  --color-architect-gray-900: #212121;
+  --color-architect-gray-700: #424242;
+  --color-architect-gray-500: #757575;
+  --color-architect-gray-300: #bdbdbd;
+  --color-architect-gray-100: #f5f5f5;
+  --color-architect-success: #2e7d32;
+  --color-architect-warning: #f57c00;
+  --color-architect-error: #c62828;
+  --color-architect-info: #1976d2;
+  --color-architect-ai-primary: #00bcd4;
+  --color-architect-ai-secondary: #4fc3f7;
+  --color-architect-ai-accent: #00e676;
 
-  /* Idea Work Lab Brand Colors */
-  --color-iwl-purple: #7C3AED;
-  --color-iwl-blue: #3B82F6;
-  --color-iwl-purple-50: #F5F3FF;
-  --color-iwl-purple-100: #EDE9FE;
-  --color-iwl-blue-50: #EFF6FF;
-  --color-iwl-blue-100: #DBEAFE;
+  --font-family-korean: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* Chart Colors */
-  --color-chart-gradient-start: #7C3AED;
-  --color-chart-gradient-end: #3B82F6;
-  --color-chart-success: #10B981;
-  --color-chart-warning: #F59E0B;
-  --color-chart-error: #EF4444;
-  --color-chart-info: #3B82F6;
-}
+  --font-size-hero: 4rem;
+  --font-size-h1: 3rem;
+  --font-size-h2: 2.25rem;
+  --font-size-h3: 1.875rem;
+  --font-size-h4: 1.5rem;
+  --font-size-body-lg: 1.125rem;
+  --font-size-small: 0.875rem;
 
-@variant dark (&:is(.dark *));
+  --background-image-architect-gradient-main: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%);
+  --background-image-architect-gradient-accent: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%);
+  --background-image-architect-future-gradient: linear-gradient(135deg, #00bcd4 0%, #4fc3f7 50%, #00e676 100%);
 
-* {
-  border-color: var(--color-border);
+  --box-shadow-ai: 0 8px 32px rgba(0, 188, 212, 0.3), 0 4px 16px rgba(0, 188, 212, 0.2);
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-}
-
-/* Container styles for proper centering */
-.container {
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 2rem;    /* 32px for better mobile spacing */
-  padding-right: 2rem;   /* 32px for better mobile spacing */
-}
-
-@media (min-width: 640px) {
-  .container {
-    max-width: 640px;
-    padding-left: 2.5rem; /* 40px for tablet spacing */
-    padding-right: 2.5rem; /* 40px for tablet spacing */
-  }
-}
-
-@media (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .container {
-    max-width: 1440px;
-  }
-}
-
-/* IWL Gradient Utilities */
-@utility bg-iwl-gradient {
-  background: linear-gradient(135deg, var(--color-iwl-purple) 0%, var(--color-iwl-blue) 100%);
-}
-
-@utility text-iwl-gradient {
-  background: linear-gradient(135deg, var(--color-iwl-purple) 0%, var(--color-iwl-blue) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-@utility chart-gradient {
-  background: linear-gradient(135deg, var(--color-chart-gradient-start) 0%, var(--color-chart-gradient-end) 100%);
-}
-
-/* Base typography */
-h1 {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-h2 {
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-h3 {
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-h4 {
-  font-size: 1rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-p {
-  font-size: 1rem;
-  font-weight: var(--font-weight-normal);
-  line-height: 1.5;
-}
-
-label {
-  font-size: 1rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-button {
-  font-size: 1rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-input {
-  font-size: 1rem;
-  font-weight: var(--font-weight-normal);
-  line-height: 1.5;
-}
-
-html {
-  font-size: var(--font-size);
-}
-
-/* Custom scrollbar styles for admin dashboard */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
-}
-
-/* Chart animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.chart-animation {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-/* Progress bar custom styles */
-.progress-iwl {
-  background: var(--iwl-gradient);
-}
-
-/* Card hover effects */
-.card-hover {
-  transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
-
-/* Floating action button animation */
-.fab-animation {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.fab-animation:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
-}
-
-/* Toast notification styles */
-.toast-success {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-}
-
-.toast-error {
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-}
-
-.toast-info {
-  background: var(--iwl-gradient);
+  font-family: var(--font-family-korean);
+  background-color: var(--color-architect-gray-100);
+  color: var(--color-architect-gray-900);
 }
