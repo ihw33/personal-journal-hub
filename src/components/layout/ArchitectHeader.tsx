@@ -4,15 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { mainNavigation } from '@/types/navigation';
 
-const ArchitectHeader = () => {
+interface ArchitectHeaderProps {
+  className?: string;
+  onMenuToggle?: (isOpen: boolean) => void;
+}
+
+const ArchitectHeader = ({ className, onMenuToggle }: ArchitectHeaderProps = {}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    const newState = !isMobileMenuOpen;
+    setIsMobileMenuOpen(newState);
+    onMenuToggle?.(newState);
   };
 
   return (
-    <header className="bg-white/95 backdrop-blur-md border-b border-architect-gray-300 sticky top-0 z-50">
+    <header className={`bg-white/95 backdrop-blur-md border-b border-architect-gray-300 sticky top-0 z-50 ${className || ''}`}>
       <div className="max-w-screen-xl mx-auto px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo & Brand */}
@@ -66,7 +73,9 @@ const ArchitectHeader = () => {
           <button
             onClick={toggleMobileMenu}
             className="lg:hidden p-2 rounded-lg hover:bg-architect-gray-100 transition-colors duration-200"
-            aria-label="메뉴 열기"
+            aria-label={isMobileMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             <div className="w-6 h-6 flex flex-col justify-center items-center">
               <span
@@ -90,6 +99,7 @@ const ArchitectHeader = () => {
 
         {/* Mobile Menu */}
         <div
+          id="mobile-menu"
           className={`lg:hidden transition-all duration-300 overflow-hidden ${
             isMobileMenuOpen ? 'max-h-96 pb-6' : 'max-h-0'
           }`}

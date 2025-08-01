@@ -66,3 +66,39 @@ Import trace for requested module:
  ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
  GET /_next/static/webpack/8f4f684523c4f7bb.webpack.hot-update.json 404 in 319ms
  GET / 200 in 33ms
+ GET / 200 in 73ms
+ ✓ Compiled in 168ms (840 modules)
+ GET / 200 in 96ms
+ GET / 200 in 11ms
+ ✓ Compiled in 139ms (840 modules)
+ GET / 200 in 60ms
+ GET / 200 in 10ms
+ ✓ Compiled in 77ms (840 modules)
+ GET / 200 in 48ms
+ GET / 200 in 8ms
+ ✓ Compiled in 86ms (840 modules)
+ GET / 200 in 53ms
+ GET / 200 in 10ms
+ ✓ Compiled in 79ms (840 modules)
+ GET / 200 in 48ms
+ GET / 200 in 11ms
+ ✓ Compiled in 124ms (840 modules)
+ GET / 200 in 49ms
+ GET / 200 in 9ms
+ ✓ Compiled in 92ms (840 modules)
+ GET / 200 in 48ms
+ GET / 200 in 11ms
+ ✓ Compiled in 77ms (840 modules)
+ GET / 200 in 54ms
+ GET / 200 in 11ms
+   Reload env: .env.local
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 2.4s (858 modules)
+ GET / 200 in 176ms
+ GET / 200 in 75ms
+ GET / 200 in 819ms
+ GET / 200 in 105ms
+ ✓ Compiled in 120ms (840 modules)
+ GET / 200 in 72ms
+ GET / 200 in 9ms

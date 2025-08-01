@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import { footerSections, socialLinks } from '@/types/navigation';
 
-const ArchitectFooter = () => {
+interface ArchitectFooterProps {
+  className?: string;
+}
+
+const ArchitectFooter = ({ className }: ArchitectFooterProps = {}) => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-architect-gray-900 text-white">
+    <footer className={`bg-architect-gray-900 text-white ${className || ''}`}>
       {/* Main Footer Content */}
       <div className="max-w-screen-xl mx-auto px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
@@ -38,7 +42,8 @@ const ArchitectFooter = () => {
                   className="w-10 h-10 bg-architect-gray-700 hover:bg-architect-primary rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
                   aria-label={`${social.platform} 팔로우`}
                 >
-                  <span className="text-small font-medium">
+                  <span className="sr-only">{social.platform}</span>
+                  <span className="text-small font-medium" aria-hidden="true">
                     {social.platform === 'LinkedIn' && 'in'}
                     {social.platform === 'Twitter' && 'tw'}
                     {social.platform === 'GitHub' && 'gh'}
@@ -81,7 +86,7 @@ const ArchitectFooter = () => {
               </p>
               <div className="hidden md:block w-1 h-1 bg-architect-gray-500 rounded-full" />
               <p className="text-small text-architect-gray-400">
-                사업자등록번호: 000-00-00000
+                사업자등록번호: {process.env.NEXT_PUBLIC_BUSINESS_REG_NUMBER || '000-00-00000'}
               </p>
             </div>
             
