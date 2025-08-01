@@ -7,6 +7,7 @@ import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { auth, getAuthErrorMessage } from '@/lib/supabase/client';
 
 type ResetStep = 'email' | 'sent' | 'expired';
 
@@ -99,16 +100,23 @@ export default function PasswordResetPage() {
 
     setIsSubmitting(true);
     setError(null);
+    setSuccess(null);
     
     try {
-      // 실제 비밀번호 재설정 API 호출 (데모용)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Supabase 비밀번호 재설정 이메일 전송
+      const { error } = await auth.resetPassword(email);
+      
+      if (error) {
+        setError(getAuthErrorMessage(error));
+        return;
+      }
       
       setCurrentStep('sent');
       setLastSentTime(new Date());
       setResendCount(prev => prev + 1);
       setSuccess('재설정 링크를 이메일로 보내드렸습니다.');
     } catch (error) {
+      console.error('Password reset error:', error);
       setError('재설정 링크 전송에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
@@ -123,15 +131,22 @@ export default function PasswordResetPage() {
     
     setIsSubmitting(true);
     setError(null);
+    setSuccess(null);
     
     try {
-      // 실제 재전송 API 호출 (데모용)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Supabase 비밀번호 재설정 이메일 재전송
+      const { error } = await auth.resetPassword(email);
+      
+      if (error) {
+        setError(getAuthErrorMessage(error));
+        return;
+      }
       
       setResendCount(prev => prev + 1);
       setLastSentTime(new Date());
       setSuccess('재설정 링크를 다시 보내드렸습니다.');
     } catch (error) {
+      console.error('Password reset resend error:', error);
       setError('재전송에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { auth, getAuthErrorMessage } from '@/lib/supabase/client';
 
 interface FormData {
   email: string;
@@ -90,26 +91,50 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     setError(null);
+    setSuccess(null);
     
     try {
-      // 실제 로그인 API 호출 (데모용)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Supabase 로그인
+      const { data, error } = await auth.signIn(formData.email, formData.password);
       
-      setSuccess('로그인 성공!');
-      setTimeout(() => {
-        router.push('/');
-      }, 1000);
+      if (error) {
+        setError(getAuthErrorMessage(error));
+        return;
+      }
+      
+      if (data.user) {
+        setSuccess('로그인 성공! 잠시 후 페이지로 이동합니다.');
+        setTimeout(() => {
+          router.push('/');
+          router.refresh(); // 세션 상태 새로고침
+        }, 1000);
+      }
     } catch (error) {
-      setError('로그인에 실패했습니다. 다시 시도해주세요.');
+      console.error('Login error:', error);
+      setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // 소셜 로그인 처리
-  const handleSocialLogin = (provider: 'google' | 'github') => {
-    console.log(`Social login with ${provider}`);
-    // 실제 구현에서는 OAuth 프로바이더 연동
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const { error } = await auth.signInWithOAuth(provider);
+      
+      if (error) {
+        setError(getAuthErrorMessage(error));
+      }
+      // OAuth 리다이렉트가 발생하므로 별도 처리 불필요
+    } catch (error) {
+      console.error('Social login error:', error);
+      setError('소셜 로그인 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // 입력 값 변경 처리

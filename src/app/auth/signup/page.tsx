@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { auth, getAuthErrorMessage } from '@/lib/supabase/client';
 
 interface FormData {
   name: string;
@@ -164,26 +165,53 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     setError(null);
+    setSuccess(null);
     
     try {
-      // 실제 회원가입 API 호출 (데모용)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Supabase 회원가입
+      const { data, error } = await auth.signUp(
+        formData.email, 
+        formData.password,
+        { name: formData.name }
+      );
       
-      setSuccess('회원가입이 완료되었습니다!');
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 1500);
+      if (error) {
+        setError(getAuthErrorMessage(error));
+        return;
+      }
+      
+      if (data.user) {
+        setSuccess('회원가입이 완료되었습니다! 이메일 인증을 완료해주세요.');
+        setTimeout(() => {
+          router.push('/auth/login');
+        }, 2000);
+      }
     } catch (error) {
-      setError('회원가입에 실패했습니다. 다시 시도해주세요.');
+      console.error('Signup error:', error);
+      setError('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // 소셜 회원가입 처리
-  const handleSocialSignup = (provider: 'google' | 'github') => {
-    console.log(`Social signup with ${provider}`);
-    // 실제 구현에서는 OAuth 프로바이더 연동
+  const handleSocialSignup = async (provider: 'google' | 'github') => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const { error } = await auth.signInWithOAuth(provider);
+      
+      if (error) {
+        setError(getAuthErrorMessage(error));
+      }
+      // OAuth 리다이렉트가 발생하므로 별도 처리 불필요
+    } catch (error) {
+      console.error('Social signup error:', error);
+      setError('소셜 회원가입 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // 입력 값 변경 처리
