@@ -7,7 +7,7 @@
  * ===================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -55,6 +55,8 @@ import {
   ChevronUp,
   Quote
 } from 'lucide-react';
+import { ErrorBoundary, JournalErrorFallback } from '../common/ErrorBoundary';
+import { getPostById, type JournalPost as SupabaseJournalPost } from '@/lib/supabase/journal';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 
 interface JournalDetailPageProps {
@@ -100,6 +102,11 @@ export const JournalDetailPage: React.FC<JournalDetailPageProps> = ({
 }) => {
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  
+  // State for real data
+  const [journal, setJournal] = useState<SupabaseJournalPost | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [readingProgress, setReadingProgress] = useState(0);
   const [showToc, setShowToc] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
@@ -223,8 +230,68 @@ export const JournalDetailPage: React.FC<JournalDetailPageProps> = ({
 
   const t = content[language];
 
-  // Mock journal data
-  const journal = {
+  // Load journal data from Supabase
+  useEffect(() => {
+    const loadJournal = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const data = await getPostById(journalId, user);
+        setJournal(data);
+        
+        // Set user interactions
+        if (data.user_liked !== undefined) {
+          setLiked(data.user_liked);
+        }
+        if (data.user_bookmarked !== undefined) {
+          setBookmarked(data.user_bookmarked);
+        }
+      } catch (err) {
+        console.error('Error loading journal:', err);
+        setError(err instanceof Error ? err.message : '저널을 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (journalId) {
+      loadJournal();
+    }
+  }, [journalId, user]);
+
+  // Early return if loading or error
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-architect-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h1 className="text-h3 font-bold text-architect-gray-900 mb-2">
+            저널 로딩 중...
+          </h1>
+          <p className="text-body text-architect-gray-600">
+            잠시만 기다려주세요
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !journal) {
+    return (
+      <JournalErrorFallback 
+        error={new Error(error || '저널을 찾을 수 없습니다')} 
+        retry={() => {
+          setError(null);
+          // Trigger reload
+          window.location.reload();
+        }} 
+      />
+    );
+  }
+
+  // Create a mock journal object for now to maintain existing functionality
+  const mockJournal = {
     id: journalId,
     title: 'AI와 함께 제주도 여행 계획 세우기: 창의적 사고법 실습',
     excerpt: 'AI 파트너와 함께 효과적인 제주도 여행 계획을 세우는 과정을 통해 창의적 사고법을 학습했습니다.',
@@ -456,6 +523,9 @@ AI를 단순한 정보 검색 도구로 사용하는 것이 아니라, 창의적
     ]
   };
 
+  // Use real journal data when available, fallback to mock for gradual migration
+  const displayJournal = journal || mockJournal;
+
   // Mock related journals
   const relatedJournals = [
     {
@@ -548,10 +618,10 @@ AI를 단순한 정보 검색 도구로 사용하는 것이 아니라, 창의적
     return categories[categoryId as keyof typeof categories] || categories.creative;
   };
 
-  const categoryInfo = getCategoryInfo(journal.category);
+  const categoryInfo = getCategoryInfo(displayJournal.category);
   const Icon = categoryInfo.icon;
 
-  const isAuthor = user?.id === journal.author.id;
+  const isAuthor = user?.id === displayJournal.author_id || user?.id === displayJournal.author?.id;
 
   // Table of contents
   const tableOfContents = [
@@ -581,7 +651,7 @@ AI를 단순한 정보 검색 도구로 사용하는 것이 아니라, 창의적
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: journal.title,
+        title: displayJournal.title,
         text: journal.excerpt,
         url: window.location.href
       });
@@ -725,7 +795,7 @@ AI를 단순한 정보 검색 도구로 사용하는 것이 아니라, 창의적
                 <Icon className="w-4 h-4 mr-2" />
                 {categoryInfo.name}
               </Badge>
-              {journal.aiAssisted && (
+              {displayJournal.ai_assisted || displayJournal.aiAssisted && (
                 <Badge className="bg-architect-ai-primary/10 text-architect-ai-primary border-architect-ai-primary/20 px-4 py-2">
                   <Zap className="w-4 h-4 mr-2" />
                   {t.aiAssisted}
@@ -743,7 +813,7 @@ AI를 단순한 정보 검색 도구로 사용하는 것이 아니라, 창의적
             </div>
             
             <h1 className="text-architect-h1 md:text-architect-hero font-architect-black text-architect-gray-900 mb-6 leading-architect-tight">
-              {journal.title}
+              {displayJournal.title}
             </h1>
             
             <p className="text-architect-body-lg text-architect-gray-700 mb-8 leading-architect-relaxed max-w-4xl">
@@ -1350,4 +1420,18 @@ AI를 단순한 정보 검색 도구로 사용하는 것이 아니라, 창의적
  * />
  */
 
-export default JournalDetailPage;
+// Wrap the component with ErrorBoundary
+const JournalDetailPageWithErrorBoundary: React.FC<JournalDetailPageProps> = (props) => (
+  <ErrorBoundary 
+    fallback={JournalErrorFallback}
+    onError={(error, errorInfo) => {
+      console.error('JournalDetailPage Error:', error, errorInfo);
+      // Here you could send to logging service
+    }}
+  >
+    <JournalDetailPage {...props} />
+  </ErrorBoundary>
+);
+
+export { JournalDetailPageWithErrorBoundary as JournalDetailPage };
+export default JournalDetailPageWithErrorBoundary;

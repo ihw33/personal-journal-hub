@@ -7,7 +7,7 @@
  * ===================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -43,6 +43,8 @@ import {
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
+import { ErrorBoundary, JournalErrorFallback } from '../common/ErrorBoundary';
+import { getPublishedPosts, type JournalPost as SupabaseJournalPost, type PostsQueryOptions } from '@/lib/supabase/journal';
 
 interface JournalListPageProps {
   user?: any;
@@ -50,35 +52,8 @@ interface JournalListPageProps {
   language: 'ko' | 'en';
 }
 
-interface JournalPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  author: {
-    id: string;
-    name: string;
-    avatar?: string;
-    verified: boolean;
-  };
-  category: string;
-  tags: string[];
-  readTime: number;
-  views: number;
-  likes: number;
-  comments: number;
-  createdAt: string;
-  updatedAt: string;
-  featured: boolean;
-  aiAssisted: boolean;
-  status: 'published' | 'draft';
-  thumbnail?: string;
-  videoId?: string; // YouTube video ID
-  downloadResources?: {
-    title: string;
-    type: 'template' | 'checklist' | 'guide';
-    url: string;
-  }[];
-}
+// Use the JournalPost type from Supabase integration
+type JournalPost = SupabaseJournalPost;
 
 /**
  * v3.2 저널 목록 페이지 컴포넌트
@@ -95,6 +70,11 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('latest');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // State for real data
+  const [journals, setJournals] = useState<JournalPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // 다국어 콘텐츠
   const content = {
@@ -234,199 +214,51 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
 
   const t = content[language];
 
-  // Mock journal data with enhanced features
-  const mockJournals: JournalPost[] = [
-    {
-      id: '1',
-      title: 'AI와 함께 제주도 여행 계획 세우기: 창의적 사고법 실습',
-      excerpt: 'AI 파트너와 함께 효과적인 제주도 여행 계획을 세우는 과정을 통해 창의적 사고법을 학습했습니다. 단순한 일정 작성을 넘어서 진정한 여행의 의미를 탐구하고, 체계적인 사고 과정을 경험해보세요.',
-      author: {
-        id: 'expert-1',
-        name: '김지은',
-        avatar: '',
-        verified: true
-      },
-      category: 'creative',
-      tags: ['여행계획', 'AI협업', '창의사고', '제주도'],
-      readTime: 8,
-      views: 1247,
-      likes: 89,
-      comments: 23,
-      createdAt: '2024-01-25',
-      updatedAt: '2024-01-25',
-      featured: true,
-      aiAssisted: true,
-      status: 'published',
-      thumbnail: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=250&fit=crop',
-      videoId: 'dQw4w9WgXcQ', // YouTube video ID
-      downloadResources: [
-        { title: '제주도 여행 계획 템플릿', type: 'template', url: '#' },
-        { title: '창의적 사고 체크리스트', type: 'checklist', url: '#' }
-      ]
-    },
-    {
-      id: '2',
-      title: '복잡한 비즈니스 문제 해결하기: 8단계 체계적 분석법',
-      excerpt: 'AI와의 대화를 통해 복잡한 업무 문제를 체계적으로 분석하고 해결책을 도출하는 방법을 배웠습니다. 논리적 접근과 창의적 발상의 균형을 찾는 과정을 단계별로 설명합니다.',
-      author: {
-        id: 'expert-2',
-        name: '박민수',
-        avatar: '',
-        verified: true
-      },
-      category: 'business',
-      tags: ['문제해결', '비즈니스', '분석사고', '전략수립'],
-      readTime: 12,
-      views: 892,
-      likes: 67,
-      comments: 15,
-      createdAt: '2024-01-22',
-      updatedAt: '2024-01-24',
-      featured: true,
-      aiAssisted: true,
-      status: 'published',
-      thumbnail: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=250&fit=crop',
-      videoId: 'dQw4w9WgXcQ',
-      downloadResources: [
-        { title: '비즈니스 문제 분석 프레임워크', type: 'template', url: '#' },
-        { title: '해결책 평가 매트릭스', type: 'template', url: '#' }
-      ]
-    },
-    {
-      id: '3',
-      title: '창의적 아이디어 발상법: AI 멘토와의 브레인스토밍',
-      excerpt: 'AI 멘토와 함께 브레인스토밍하며 새로운 아이디어를 발견하는 과정을 기록했습니다. 인간의 직관과 AI의 논리적 사고가 만나는 지점에서 탄생하는 혁신적 아이디어를 경험해보세요.',
-      author: {
-        id: user?.id || 'expert-3',
-        name: user?.name || '이서연',
-        avatar: '',
-        verified: false
-      },
-      category: 'methodology',
-      tags: ['창의사고', '아이디어', 'AI멘토', '브레인스토밍'],
-      readTime: 6,
-      views: 634,
-      likes: 45,
-      comments: 8,
-      createdAt: '2024-01-20',
-      updatedAt: '2024-01-20',
-      featured: false,
-      aiAssisted: true,
-      status: user ? 'draft' : 'published',
-      thumbnail: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop',
-      downloadResources: [
-        { title: '브레인스토밍 가이드', type: 'guide', url: '#' }
-      ]
-    },
-    {
-      id: '4',
-      title: 'AI 프롬프트 엔지니어링: 효과적인 질문 설계법',
-      excerpt: 'AI와의 협업에서 가장 중요한 것은 질문의 질입니다. 좋은 프롬프트를 설계하는 방법부터 AI의 답변을 최대한 활용하는 전략까지, 실전 경험을 바탕으로 정리했습니다.',
-      author: {
-        id: 'expert-4',
-        name: '최영호',
-        avatar: '',
-        verified: true
-      },
-      category: 'ai-collaboration',
-      tags: ['프롬프트엔지니어링', 'AI활용', '질문설계', '협업전략'],
-      readTime: 10,
-      views: 1156,
-      likes: 92,
-      comments: 31,
-      createdAt: '2024-01-18',
-      updatedAt: '2024-01-19',
-      featured: true,
-      aiAssisted: true,
-      status: 'published',
-      thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop',
-      videoId: 'dQw4w9WgXcQ',
-      downloadResources: [
-        { title: '프롬프트 템플릿 모음', type: 'template', url: '#' },
-        { title: 'AI 협업 체크리스트', type: 'checklist', url: '#' }
-      ]
-    },
-    {
-      id: '5',
-      title: '분석적 사고로 데이터 해석하기: 숫자 너머의 인사이트',
-      excerpt: '데이터는 말하지만, 우리가 올바르게 들어야 합니다. 분석적 사고를 통해 데이터에서 진정한 인사이트를 도출하는 방법을 실제 사례와 함께 설명합니다.',
-      author: {
-        id: 'expert-5',
-        name: '윤미경',
-        avatar: '',
-        verified: true
-      },
-      category: 'analysis',
-      tags: ['데이터분석', '분석사고', '인사이트', '의사결정'],
-      readTime: 9,
-      views: 743,
-      likes: 56,
-      comments: 12,
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-16',
-      featured: false,
-      aiAssisted: true,
-      status: 'published',
-      thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop',
-      downloadResources: [
-        { title: '데이터 분석 프레임워크', type: 'template', url: '#' }
-      ]
-    },
-    {
-      id: '6',
-      title: '복잡한 문제를 단순하게: 문제 해결의 원칙들',
-      excerpt: '복잡해 보이는 문제도 올바른 접근법으로 단순화할 수 있습니다. 문제의 본질을 파악하고 해결책을 체계적으로 도출하는 사고 과정을 공유합니다.',
-      author: {
-        id: 'expert-6',
-        name: '정현수',
-        avatar: '',
-        verified: true
-      },
-      category: 'problem-solving',
-      tags: ['문제해결', '체계적사고', '단순화', '본질파악'],
-      readTime: 7,
-      views: 568,
-      likes: 41,
-      comments: 9,
-      createdAt: '2024-01-12',
-      updatedAt: '2024-01-13',
-      featured: false,
-      aiAssisted: false,
-      status: 'published',
-      thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=250&fit=crop'
-    }
-  ];
+  // Load journals from Supabase
+  useEffect(() => {
+    const loadJournals = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const options: PostsQueryOptions = {
+          category: selectedCategory === 'all' ? undefined : selectedCategory,
+          featured: activeTab === 'featured' ? true : undefined,
+          search: searchTerm || undefined,
+          sort_by: sortBy === 'latest' ? 'published_at' : 
+                   sortBy === 'popular' ? 'likes' :
+                   sortBy === 'views' ? 'views' : 'published_at',
+          sort_direction: 'desc',
+          limit: 50
+        };
+        
+        const data = await getPublishedPosts(options, user);
+        setJournals(data);
+      } catch (err) {
+        console.error('Error loading journals:', err);
+        setError(err instanceof Error ? err.message : '저널을 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadJournals();
+  }, [searchTerm, activeTab, selectedCategory, sortBy, user]);
 
-  // Filtering and sorting logic
-  const filteredJournals = mockJournals.filter(journal => {
-    const matchesSearch = 
-      journal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      journal.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      journal.author.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      journal.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesCategory = selectedCategory === 'all' || journal.category === selectedCategory;
-    
+  // Filter journals based on current tab
+  const filteredJournals = journals.filter(journal => {
     const matchesTab = 
       activeTab === 'all' ||
-      (activeTab === 'my' && journal.author.id === user?.id) ||
+      (activeTab === 'my' && journal.author_id === user?.id) ||
       (activeTab === 'featured' && journal.featured) ||
       (activeTab === 'trending' && journal.views > 800) ||
       (activeTab === 'recent');
     
-    return matchesSearch && matchesCategory && matchesTab;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'popular': return b.likes - a.likes;
-      case 'views': return b.views - a.views;
-      case 'likes': return b.likes - a.likes;
-      case 'latest':
-      default: return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
+    return matchesTab;
   });
 
   // User statistics
-  const myJournals = user ? mockJournals.filter(journal => journal.author.id === user.id) : [];
+  const myJournals = user ? journals.filter(journal => journal.author_id === user.id) : [];
   const publishedCount = myJournals.filter(j => j.status === 'published').length;
   const draftCount = myJournals.filter(j => j.status === 'draft').length;
   const totalViews = myJournals.reduce((sum, j) => sum + j.views, 0);
@@ -511,15 +343,15 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
                   <div className="flex items-center gap-2">
                     <Avatar className="w-8 h-8">
                       <AvatarFallback className="bg-architect-primary/10 text-architect-primary text-architect-small">
-                        {journal.author.name.slice(0, 2)}
+                        {(journal.author_profile?.full_name || 'U').slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-1">
                         <span className="text-architect-small font-architect-medium text-architect-gray-900">
-                          {journal.author.name}
+                          {journal.author_profile?.full_name || 'Unknown Author'}
                         </span>
-                        {journal.author.verified && (
+                        {false // TODO: Add verified status to author profile && (
                           <div className="w-4 h-4 bg-architect-success rounded-full flex items-center justify-center">
                             <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -528,7 +360,7 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
                         )}
                       </div>
                       <div className="text-architect-xs text-architect-gray-500">
-                        {journal.createdAt}
+                        {new Date(journal.created_at).toLocaleDateString('ko-KR')}
                       </div>
                     </div>
                   </div>
@@ -536,7 +368,7 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
                   <div className="flex items-center gap-4 text-architect-small text-architect-gray-500">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      {journal.readTime}분
+                      {journal.read_time}분
                     </div>
                     <div className="flex items-center gap-1">
                       <Eye className="w-4 h-4" />
@@ -548,13 +380,13 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
                     </div>
                     <div className="flex items-center gap-1">
                       <MessageCircle className="w-4 h-4" />
-                      {journal.comments}
+                      {journal.comments_count}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {journal.downloadResources && journal.downloadResources.length > 0 && (
+                  {journal.post_resources && journal.post_resources.length > 0 && (
                     <Button variant="outline" size="sm" className="border-architect-accent text-architect-accent hover:bg-architect-accent hover:text-white">
                       <Download className="w-4 h-4 mr-1" />
                       자료
@@ -607,7 +439,7 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
             </div>
           )}
           <div className="absolute top-3 right-3 flex gap-2">
-            {journal.downloadResources && journal.downloadResources.length > 0 && (
+            {journal.post_resources && journal.post_resources.length > 0 && (
               <div className="w-8 h-8 bg-architect-accent/90 rounded-full flex items-center justify-center">
                 <Download className="w-4 h-4 text-white" />
               </div>
@@ -648,15 +480,15 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
             <div className="flex items-center gap-2">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-architect-primary/10 text-architect-primary text-architect-small">
-                  {journal.author.name.slice(0, 2)}
+                  {(journal.author_profile?.full_name || 'U').slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center gap-1">
                   <span className="text-architect-small font-architect-medium text-architect-gray-900">
-                    {journal.author.name}
+                    {journal.author_profile?.full_name || 'Unknown Author'}
                   </span>
-                  {journal.author.verified && (
+                  {false // TODO: Add verified status to author profile && (
                     <div className="w-4 h-4 bg-architect-success rounded-full flex items-center justify-center">
                       <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -665,7 +497,7 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
                   )}
                 </div>
                 <div className="text-architect-xs text-architect-gray-500">
-                  {journal.createdAt}
+                  {new Date(journal.created_at).toLocaleDateString('ko-KR')}
                 </div>
               </div>
             </div>
@@ -675,7 +507,7 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
           <div className="flex items-center gap-4 text-architect-small text-architect-gray-500 mb-4">
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              {journal.readTime}분
+              {journal.read_time}분
             </div>
             <div className="flex items-center gap-1">
               <Eye className="w-4 h-4" />
@@ -687,7 +519,7 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
             </div>
             <div className="flex items-center gap-1">
               <MessageCircle className="w-4 h-4" />
-              {journal.comments}
+              {journal.comments_count}
             </div>
           </div>
 
@@ -715,7 +547,7 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
               {t.actions.view}
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
-            {journal.author.id === user?.id && (
+            {journal.author_id === user?.id && (
               <Button
                 variant="outline"
                 onClick={() => onNavigate('journal-editor', { journalId: journal.id })}
@@ -935,8 +767,37 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
             </TabsList>
           </Tabs>
 
-          {/* Journal Grid/List */}
-          {filteredJournals.length > 0 ? (
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="space-y-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <div className="animate-pulse">
+                    <div className="h-48 bg-architect-gray-300"></div>
+                    <div className="p-6">
+                      <div className="h-4 bg-architect-gray-300 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-architect-gray-300 rounded w-1/2 mb-4"></div>
+                      <div className="flex space-x-4">
+                        <div className="h-8 bg-architect-gray-300 rounded w-16"></div>
+                        <div className="h-8 bg-architect-gray-300 rounded w-16"></div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : error ? (
+            <JournalErrorFallback 
+              error={new Error(error)} 
+              retry={() => {
+                setError(null);
+                // Trigger a re-load by updating searchTerm slightly
+                const currentSearch = searchTerm;
+                setSearchTerm(currentSearch + ' ');
+                setTimeout(() => setSearchTerm(currentSearch), 100);
+              }} 
+            />
+          ) : filteredJournals.length > 0 ? (
             <div className={viewMode === 'grid' 
               ? "grid md:grid-cols-2 lg:grid-cols-3 gap-8" 
               : "space-y-6"
@@ -971,6 +832,21 @@ export const JournalListPage: React.FC<JournalListPageProps> = ({
     </div>
   );
 };
+
+// Wrap the component with ErrorBoundary
+const JournalListPageWithErrorBoundary: React.FC<JournalListPageProps> = (props) => (
+  <ErrorBoundary 
+    fallback={JournalErrorFallback}
+    onError={(error, errorInfo) => {
+      console.error('JournalListPage Error:', error, errorInfo);
+      // Here you could send to logging service
+    }}
+  >
+    <JournalListPage {...props} />
+  </ErrorBoundary>
+);
+
+export { JournalListPageWithErrorBoundary as JournalListPage };
 
 /**
  * 사용 예시:
