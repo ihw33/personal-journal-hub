@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 import { 
   Search, 
   Filter, 
@@ -28,6 +31,10 @@ import {
   UserProgress 
 } from './types';
 import { 
+  getPublishedCourses,
+  getUserAllCourseProgress 
+} from '@/lib/supabase/courses';
+import { 
   getCategoryInfo, 
   getDifficultyInfo, 
   calculateOverallProgress 
@@ -54,6 +61,12 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const coursesPerPage = 12;
   
   // Filter and sort states
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,145 +77,34 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
   });
   const [activeView, setActiveView] = useState<'grid' | 'roadmap'>('roadmap');
 
-  // Mock courses data - 실제로는 Supabase에서 불러옴
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
+
+  // Load courses from Supabase
   useEffect(() => {
     const loadCourses = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         
-        // Mock courses representing the 8-phase thinking expansion system
-        const mockCourses: Course[] = [
-          {
-            id: 'course-main',
-            title: '사고 확장 8단계 마스터 과정',
-            description: '창의적 사고와 문제해결 능력을 8단계로 체계화한 혁신적 학습 프로그램입니다.',
-            category: 'thinking-expansion',
-            difficulty: 'intermediate',
-            totalLevels: 8,
-            estimatedDuration: '6주',
-            enrolledCount: 1247,
-            rating: 4.8,
-            levels: Object.keys(THINKING_PHASES).map(phaseKey => {
-              const phase = parseInt(phaseKey);
-              const phaseInfo = THINKING_PHASES[phase as keyof typeof THINKING_PHASES];
-              return {
-                id: phase,
-                name: phaseInfo.name,
-                title: phaseInfo.title,
-                description: phaseInfo.description,
-                color: phaseInfo.color,
-                icon: phaseInfo.icon,
-                isLocked: false,
-                progress: 0,
-                totalSessions: 4,
-                completedSessions: 0,
-                estimatedDuration: '1주',
-                skills: [`${phaseInfo.title} 스킬`]
-              };
-            }),
-            createdAt: '2024-01-01T00:00:00Z',
-            updatedAt: '2024-01-15T00:00:00Z',
-            author: {
-              id: 'author-1',
-              name: '김사고',
-              avatar: '/avatars/kim-sago.jpg',
-              bio: '사고력 전문가이자 IdeaWorkLab 창립자'
-            },
-            tags: ['사고력', '창의성', '문제해결', '혁신'],
-            isEnrolled: userProgress.some(p => p.courseId === 'course-main'),
-            currentLevel: 1,
-            overallProgress: 0
-          },
-          {
-            id: 'course-creativity',
-            title: '창의적 사고 심화 과정',
-            description: '예술적 사고와 혁신적 아이디어 발굴에 특화된 창의성 개발 프로그램입니다.',
-            category: 'creativity',
-            difficulty: 'beginner',
-            totalLevels: 6,
-            estimatedDuration: '4주',
-            enrolledCount: 892,
-            rating: 4.6,
-            levels: [],
-            createdAt: '2024-01-10T00:00:00Z',
-            updatedAt: '2024-01-20T00:00:00Z',
-            author: {
-              id: 'author-2',
-              name: '박창의',
-              avatar: '/avatars/park-creative.jpg',
-              bio: '창의성 전문가'
-            },
-            tags: ['창의성', '예술적사고', '아이디어'],
-            isEnrolled: userProgress.some(p => p.courseId === 'course-creativity'),
-            currentLevel: 1,
-            overallProgress: 0
-          },
-          {
-            id: 'course-problem-solving',
-            title: '체계적 문제해결 방법론',
-            description: '논리적 사고와 구조화된 접근법으로 복잡한 문제를 해결하는 방법을 학습합니다.',
-            category: 'problem-solving',
-            difficulty: 'advanced',
-            totalLevels: 5,
-            estimatedDuration: '5주',
-            enrolledCount: 634,
-            rating: 4.7,
-            levels: [],
-            createdAt: '2024-01-05T00:00:00Z',
-            updatedAt: '2024-01-25T00:00:00Z',
-            author: {
-              id: 'author-3',
-              name: '최해결',
-              avatar: '/avatars/choi-solver.jpg',
-              bio: '문제해결 전문가'
-            },
-            tags: ['문제해결', '논리적사고', '분석'],
-            isEnrolled: userProgress.some(p => p.courseId === 'course-problem-solving'),
-            currentLevel: 1,
-            overallProgress: 0
-          },
-          {
-            id: 'course-innovation',
-            title: '혁신 리더십 개발',
-            description: '변화를 이끄는 혁신적 사고방식과 리더십 역량을 개발합니다.',
-            category: 'innovation',
-            difficulty: 'expert',
-            totalLevels: 7,
-            estimatedDuration: '8주',
-            enrolledCount: 445,
-            rating: 4.9,
-            levels: [],
-            createdAt: '2024-01-15T00:00:00Z',
-            updatedAt: '2024-01-30T00:00:00Z',
-            author: {
-              id: 'author-4',
-              name: '정혁신',
-              avatar: '/avatars/jung-innovation.jpg',
-              bio: '혁신 전문가'
-            },
-            tags: ['혁신', '리더십', '변화관리'],
-            isEnrolled: userProgress.some(p => p.courseId === 'course-innovation'),
-            currentLevel: 1,
-            overallProgress: 0
-          }
-        ];
-
-        // 사용자 진행률 적용
-        const coursesWithProgress = mockCourses.map(course => {
-          const progress = userProgress.find(p => p.courseId === course.id);
-          if (progress) {
-            return {
-              ...course,
-              overallProgress: calculateOverallProgress(course, progress),
-              currentLevel: progress.currentLevelId,
-              isEnrolled: true
-            };
-          }
-          return course;
-        });
-
-        setCourses(coursesWithProgress);
-        setFilteredCourses(coursesWithProgress);
+        // Get courses from Supabase - server-side filtering and pagination handled by RLS
+        const { courses: coursesData, totalCount } = await getPublishedCourses(
+          filters,
+          sortOptions,
+          user || undefined,
+          currentPage,
+          coursesPerPage
+        );
+        
+        setCourses(coursesData);
+        setTotalPages(Math.ceil(totalCount / coursesPerPage));
+        
       } catch (err) {
         setError('코스 목록을 불러오는데 실패했습니다.');
         console.error('Failed to load courses:', err);
@@ -212,13 +114,13 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
     };
 
     loadCourses();
-  }, [userProgress]);
+  }, [user, filters, sortOptions, currentPage]);
 
-  // Filter and search logic
+  // Apply client-side search filter only (other filters handled server-side)
   useEffect(() => {
     let filtered = [...courses];
 
-    // Search filter
+    // Search filter (only applied client-side for real-time search)
     if (searchQuery) {
       filtered = filtered.filter(course =>
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -227,76 +129,8 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
       );
     }
 
-    // Category filter
-    if (filters.category) {
-      filtered = filtered.filter(course => course.category === filters.category);
-    }
-
-    // Difficulty filter
-    if (filters.difficulty) {
-      filtered = filtered.filter(course => course.difficulty === filters.difficulty);
-    }
-
-    // Enrollment filter
-    if (filters.isEnrolled !== undefined) {
-      filtered = filtered.filter(course => course.isEnrolled === filters.isEnrolled);
-    }
-
-    // Duration filter
-    if (filters.duration) {
-      filtered = filtered.filter(course => {
-        const duration = course.estimatedDuration;
-        switch (filters.duration) {
-          case 'short':
-            return duration.includes('1주') || duration.includes('2주');
-          case 'medium':
-            return duration.includes('3주') || duration.includes('4주') || duration.includes('5주');
-          case 'long':
-            return duration.includes('6주') || duration.includes('7주') || duration.includes('8주');
-          default:
-            return true;
-        }
-      });
-    }
-
-    // Sort logic
-    filtered.sort((a, b) => {
-      let aValue: any, bValue: any;
-      
-      switch (sortOptions.field) {
-        case 'popularity':
-          aValue = a.enrolledCount;
-          bValue = b.enrolledCount;
-          break;
-        case 'rating':
-          aValue = a.rating;
-          bValue = b.rating;
-          break;
-        case 'duration':
-          aValue = parseInt(a.estimatedDuration);
-          bValue = parseInt(b.estimatedDuration);
-          break;
-        case 'newest':
-          aValue = new Date(a.createdAt).getTime();
-          bValue = new Date(b.createdAt).getTime();
-          break;
-        case 'progress':
-          aValue = a.overallProgress;
-          bValue = b.overallProgress;
-          break;
-        default:
-          return 0;
-      }
-
-      if (sortOptions.order === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-
     setFilteredCourses(filtered);
-  }, [courses, searchQuery, filters, sortOptions]);
+  }, [courses, searchQuery]);
 
   const handleCourseClick = (courseId: string) => {
     onCourseClick?.(courseId);
@@ -661,13 +495,50 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-h3 font-bold text-architect-gray-900">
-          모든 과정 ({filteredCourses.length})
+          모든 과정 ({courses.length})
         </h2>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCourses.map(course => renderCourseCard(course))}
       </div>
+      
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2 pt-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            이전
+          </Button>
+          
+          <div className="flex items-center space-x-1">
+            {[...Array(totalPages)].map((_, i) => (
+              <Button
+                key={i + 1}
+                variant={currentPage === i + 1 ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(i + 1)}
+                className="w-10 h-10"
+              >
+                {i + 1}
+              </Button>
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            다음
+          </Button>
+        </div>
+      )}
     </div>
   );
 

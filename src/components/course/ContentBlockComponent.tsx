@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import { 
   Play, 
   Pause, 
@@ -91,23 +92,32 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
     </div>
   );
 
-  const renderTextContent = () => (
-    <div className="p-4 prose prose-sm max-w-none">
-      <div 
-        className="text-architect-gray-700 leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: block.content }}
-      />
-      
-      {!block.isCompleted && (
-        <div className="mt-6 pt-4 border-t border-architect-gray-200">
-          <Button onClick={handleComplete} size="sm">
-            <CheckCircle className="w-4 h-4 mr-2" />
-            읽기 완료
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+  const renderTextContent = () => {
+    // Sanitize HTML content to prevent XSS attacks
+    const sanitizedContent = DOMPurify.sanitize(block.content, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+      ALLOWED_ATTR: ['class'],
+      FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'textarea', 'button', 'select']
+    });
+
+    return (
+      <div className="p-4 prose prose-sm max-w-none">
+        <div 
+          className="text-architect-gray-700 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+        />
+        
+        {!block.isCompleted && (
+          <div className="mt-6 pt-4 border-t border-architect-gray-200">
+            <Button onClick={handleComplete} size="sm">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              읽기 완료
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderVideoContent = () => (
     <div className="p-4">
@@ -185,7 +195,7 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
       </div>
       
       <div className="mt-4 text-small text-architect-gray-600">
-        <p>{block.content}</p>
+        <p>{DOMPurify.sanitize(block.content, { ALLOWED_TAGS: [] })}</p>
       </div>
     </div>
   );
@@ -204,7 +214,7 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
       )}
       
       <div className="text-small text-architect-gray-600">
-        <p>{block.content}</p>
+        <p>{DOMPurify.sanitize(block.content, { ALLOWED_TAGS: [] })}</p>
       </div>
     </div>
   );
@@ -218,7 +228,7 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
           {questions.map((question, index) => (
             <div key={question.id} className="space-y-3">
               <h4 className="text-h5 font-semibold text-architect-gray-900">
-                {index + 1}. {question.question}
+                {index + 1}. {DOMPurify.sanitize(question.question, { ALLOWED_TAGS: [] })}
               </h4>
               
               {question.type === 'multiple-choice' && question.options && (
@@ -235,7 +245,7 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
                         onChange={() => setUserAnswer(optionIndex)}
                         className="w-4 h-4 text-architect-primary"
                       />
-                      <span className="text-architect-gray-700">{option}</span>
+                      <span className="text-architect-gray-700">{DOMPurify.sanitize(option, { ALLOWED_TAGS: [] })}</span>
                     </label>
                   ))}
                 </div>
@@ -299,7 +309,7 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
           실습 과제
         </h4>
         <p className="text-architect-gray-700 leading-relaxed">
-          {block.metadata?.exercisePrompt || block.content}
+          {DOMPurify.sanitize(block.metadata?.exercisePrompt || block.content, { ALLOWED_TAGS: [] })}
         </p>
       </div>
       
@@ -335,7 +345,7 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
                 성찰 질문 {index + 1}
               </h4>
               <p className="text-architect-gray-700 bg-architect-gray-50 p-3 rounded-lg">
-                {prompt}
+                {DOMPurify.sanitize(prompt, { ALLOWED_TAGS: [] })}
               </p>
               <textarea
                 className="w-full p-3 border border-architect-gray-200 rounded-lg resize-none"
@@ -386,7 +396,7 @@ export const ContentBlockComponent: React.FC<ContentBlockComponentProps> = ({
                   item.isCompleted ? 'line-through text-architect-gray-500' : ''
                 }`}
               >
-                {item.text}
+                {DOMPurify.sanitize(item.text, { ALLOWED_TAGS: [] })}
               </label>
             </div>
           ))}
