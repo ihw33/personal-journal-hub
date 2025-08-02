@@ -42,6 +42,7 @@ const ChatbotInterface: React.FC<ChatbotInterfaceProps> = ({
   onSessionCreate,
   onSessionEnd,
   className = '',
+  courseContext,
 }) => {
   // 상태 관리
   const [currentSession, setCurrentSession] = useState<LearningSession | null>(null);
@@ -178,6 +179,7 @@ const ChatbotInterface: React.FC<ChatbotInterfaceProps> = ({
         sessionId: currentSession.id,
         message: sanitizedMessage,
         mode: currentMode,
+        courseContext,
       });
 
       if (response.success && response.data) {

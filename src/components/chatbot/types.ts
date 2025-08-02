@@ -65,6 +65,13 @@ export interface ChatbotInterfaceProps {
   onSessionCreate?: (session: LearningSession) => void;
   onSessionEnd?: (sessionId: string) => void;
   className?: string;
+  courseContext?: {
+    courseId?: string;
+    courseTitle?: string;
+    currentLevel?: string;
+    userProgress?: number;
+    learningObjectives?: string[];
+  };
 }
 
 export interface ConversationHistoryProps {
@@ -121,6 +128,13 @@ export interface SendMessageRequest {
   sessionId: string;
   message: string;
   mode: SessionMode;
+  courseContext?: {
+    courseId?: string;
+    courseTitle?: string;
+    currentLevel?: string;
+    userProgress?: number;
+    learningObjectives?: string[];
+  };
 }
 
 export interface ApiResponse<T> {

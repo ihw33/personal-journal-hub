@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       return createValidationErrorResponse(validation.error);
     }
 
-    const { sessionId, message, mode } = validation.data;
+    const { sessionId, message, mode, courseContext } = validation.data;
 
     // 추가 입력값 정제 (XSS 방지)
     const sanitizedMessage = DOMPurify.sanitize(message, { ALLOWED_TAGS: [] });
@@ -101,7 +101,8 @@ export async function POST(request: NextRequest) {
         totalMessages: session.total_messages || 0,
         insights: session.insights_count || 0,
         topics: session.topics || [],
-        emotionalState: session.emotional_journey_start
+        emotionalState: session.emotional_journey_start,
+        courseContext: courseContext || undefined
       }
     });
 
