@@ -94,7 +94,7 @@ interface Comment {
  * v3.2 저널 상세 페이지 컴포넌트
  * 가독성 최적화 및 Architect Design System 완전 적용
  */
-export const JournalDetailPage: React.FC<JournalDetailPageProps> = ({
+const JournalDetailPage: React.FC<JournalDetailPageProps> = ({
   journalId,
   user,
   onNavigate,

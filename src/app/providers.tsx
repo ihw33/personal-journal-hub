@@ -1,6 +1,6 @@
 'use client';
 
-import { AuthProvider } from '@/lib/supabase/auth-context';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
