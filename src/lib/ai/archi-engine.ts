@@ -10,10 +10,10 @@
 import DOMPurify from 'isomorphic-dompurify';
 import OpenAI from 'openai';
 
-// OpenAI 클라이언트 초기화
-const openai = new OpenAI({
+// OpenAI 클라이언트 초기화 (조건부)
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+}) : null;
 
 // AI 제공자 설정
 const AI_PROVIDER = process.env.AI_PROVIDER || 'openai'; // 'openai' | 'claude' | 'local'
@@ -260,7 +260,7 @@ function analyzeAIResponse(response: string, context: ArchiContext) {
       responseLength: response.length,
       analysisPattern: {
         hasQuestion: response.includes('?'),
-        hasEmoji: /[😀-🙏]/.test(response),
+        hasEmoji: /[\u{1F600}-\u{1F64F}]/u.test(response),
         complexity: response.length > 200 ? 'complex' : 'simple'
       }
     }
@@ -610,6 +610,11 @@ export async function callExternalAI(prompt: string, context: ArchiContext): Pro
   }
 
   try {
+    // OpenAI 클라이언트 확인
+    if (!openai) {
+      throw new Error('OpenAI client not initialized');
+    }
+
     // OpenAI API 호출
     const systemPrompt = buildSystemPrompt(context);
     const userPrompt = buildUserPrompt(prompt, context);
