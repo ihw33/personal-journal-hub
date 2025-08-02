@@ -21,6 +21,7 @@ import {
   ChatHistoryApiResponse
 } from './types';
 import { API_ENDPOINTS, LIMITS, STORAGE_KEYS } from './constants';
+import DOMPurify from 'isomorphic-dompurify';
 
 // API 호출 함수들
 export class ChatbotAPI {
@@ -344,6 +345,16 @@ export const highlightKeywords = (text: string, keywords: string[]): string => {
   
   const regex = new RegExp(`(${keywords.join('|')})`, 'gi');
   return text.replace(regex, '<mark>$1</mark>');
+};
+
+// XSS 방지를 위한 메시지 내용 정제 (보안 강화)
+export const sanitizeMessageContent = (content: string): string => {
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em'],
+    ALLOWED_ATTR: [],
+    KEEP_CONTENT: true,
+    ALLOW_DATA_ATTR: false,
+  });
 };
 
 // 에러 처리 유틸리티

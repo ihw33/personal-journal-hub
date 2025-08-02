@@ -11,14 +11,16 @@ import { NextRequest } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-// Redis 클라이언트 초기화
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+// Redis 클라이언트 초기화 (조건부)
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+  : null;
 
-// Rate limit 설정별 인스턴스
-const rateLimiters = {
+// Rate limit 설정별 인스턴스 (조건부 초기화)
+const rateLimiters = redis ? {
   // 일반 API 요청 (분당 60회)
   general: new Ratelimit({
     redis,
@@ -50,9 +52,9 @@ const rateLimiters = {
     analytics: true,
     prefix: '@upstash/ratelimit:ai',
   }),
-};
+} : null;
 
-export type RateLimitType = keyof typeof rateLimiters;
+export type RateLimitType = 'general' | 'chat' | 'session' | 'ai';
 
 export interface RateLimitResult {
   success: boolean;
@@ -75,6 +77,11 @@ export async function checkRateLimit(
     const identifier = `${type}:${ip}`;
     
     // Rate limiter 선택
+    if (!rateLimiters) {
+      // Redis 연결 실패 시 메모리 기반 폴백 사용
+      return await checkRateLimitMemory(request, type);
+    }
+    
     const ratelimiter = rateLimiters[type];
     
     // Rate limit 체크
@@ -234,6 +241,11 @@ export function withRateLimit(type: RateLimitType = 'general') {
     }
     
     try {
+      // Redis 사용 가능 여부 확인
+      if (!rateLimiters) {
+        return await checkRateLimitMemory(request, type);
+      }
+      
       // Redis 기반 rate limiting 시도
       return await checkRateLimit(request, type);
     } catch (error) {
@@ -304,6 +316,14 @@ export async function getRateLimitStats(type: RateLimitType): Promise<{
   successRate: number;
 }> {
   try {
+    if (!redis) {
+      return {
+        totalRequests: 0,
+        blockedRequests: 0,
+        successRate: 1,
+      };
+    }
+    
     const stats = await redis.hgetall(`@upstash/ratelimit:${type}:stats`);
     
     const totalRequests = parseInt(stats.total || '0');
