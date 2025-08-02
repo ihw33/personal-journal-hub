@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Lock, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -14,7 +14,7 @@ interface FormData {
   confirmPassword: string;
 }
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState<FormData>({
@@ -466,5 +466,25 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-architect-gray-100/30 via-white to-architect-primary/5">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-architect-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h1 className="text-h3 font-bold text-architect-gray-900 mb-2">
+            페이지 로딩 중...
+          </h1>
+          <p className="text-body text-architect-gray-600">
+            잠시만 기다려주세요
+          </p>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
