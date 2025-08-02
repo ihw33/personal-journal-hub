@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 import { 
   ArrowLeft, 
   Play, 
@@ -28,6 +30,7 @@ import {
   UserProgress, 
   CourseLevel 
 } from './types';
+import { getCourseById } from '@/lib/supabase/courses';
 import { 
   calculateOverallProgress, 
   calculateLevelProgress,
@@ -64,63 +67,33 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
   const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-  // Mock course data - 실제로는 Supabase에서 불러옴
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
+
+  // Load course from Supabase
   useEffect(() => {
     const loadCourse = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         
-        // Mock data for demonstration
-        const mockCourse: Course = {
-          id: courseId,
-          title: '사고 확장 8단계 마스터 과정',
-          description: '창의적 사고와 문제해결 능력을 8단계로 체계화한 혁신적 학습 프로그램입니다. 관찰부터 실행까지, 사고의 전 과정을 체험하며 진정한 사고의 달인이 되어보세요.',
-          category: 'thinking-expansion',
-          difficulty: 'intermediate',
-          totalLevels: 8,
-          estimatedDuration: '6주',
-          enrolledCount: 1247,
-          rating: 4.8,
-          levels: Object.keys(THINKING_PHASES).map(phaseKey => {
-            const phase = parseInt(phaseKey);
-            const phaseInfo = THINKING_PHASES[phase as keyof typeof THINKING_PHASES];
-            return {
-              id: phase,
-              name: phaseInfo.name,
-              title: phaseInfo.title,
-              description: phaseInfo.description,
-              color: phaseInfo.color,
-              icon: phaseInfo.icon,
-              isLocked: userProgress ? phase > userProgress.currentLevelId + 1 : phase > 1,
-              progress: userProgress ? calculateLevelProgress({
-                id: phase,
-                totalSessions: 4
-              } as CourseLevel, userProgress.completedSessions) : 0,
-              totalSessions: 4,
-              completedSessions: userProgress ? userProgress.completedSessions.filter(s => 
-                s.startsWith(`${phase}-`)
-              ).length : 0,
-              estimatedDuration: '1주',
-              skills: [`${phaseInfo.title} 스킬`],
-              prerequisites: phase > 1 ? [phase - 1] : undefined
-            };
-          }),
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-15T00:00:00Z',
-          author: {
-            id: 'author-1',
-            name: '김사고',
-            avatar: '/avatars/kim-sago.jpg',
-            bio: '사고력 전문가이자 IdeaWorkLab 창립자'
-          },
-          tags: ['사고력', '창의성', '문제해결', '혁신', '디자인씽킹'],
-          isEnrolled: !!userProgress,
-          currentLevel: userProgress?.currentLevelId || 1,
-          overallProgress: userProgress ? calculateOverallProgress(mockCourse, userProgress) : 0
-        };
+        // Get course data from Supabase with RLS
+        const courseData = await getCourseById(courseId, user || undefined);
+        
+        if (!courseData) {
+          setError('코스를 찾을 수 없습니다.');
+          return;
+        }
 
-        setCourse(mockCourse);
+        setCourse(courseData);
       } catch (err) {
         setError('코스 정보를 불러오는데 실패했습니다.');
         console.error('Failed to load course:', err);
@@ -129,8 +102,10 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
       }
     };
 
-    loadCourse();
-  }, [courseId, userProgress]);
+    if (courseId) {
+      loadCourse();
+    }
+  }, [courseId, user, userProgress]);
 
   const handleSessionClick = (session: CourseSession) => {
     if (!session.isLocked) {

@@ -3,6 +3,7 @@
 
 import { supabase } from './client';
 import { User } from '@supabase/supabase-js';
+import DOMPurify from 'isomorphic-dompurify';
 import { 
   Course, 
   CourseLevel, 
@@ -12,6 +13,35 @@ import {
   CourseFilters,
   CourseSortOptions
 } from '@/components/course/types';
+
+// Security validation functions
+function validateCourseFilters(filters: CourseFilters): CourseFilters {
+  const validCategories = ['thinking', 'creativity', 'problem-solving', 'communication', 'collaboration'];
+  const validDifficulties = ['beginner', 'intermediate', 'advanced'];
+  
+  return {
+    category: filters.category && validCategories.includes(filters.category) ? filters.category : undefined,
+    difficulty: filters.difficulty && validDifficulties.includes(filters.difficulty) ? filters.difficulty : undefined,
+    searchQuery: filters.searchQuery ? DOMPurify.sanitize(filters.searchQuery, { ALLOWED_TAGS: [] }).slice(0, 100) : undefined
+  };
+}
+
+function validateSortOptions(sortOptions: CourseSortOptions): CourseSortOptions {
+  const validFields = ['popularity', 'rating', 'newest', 'progress'];
+  const validOrders = ['asc', 'desc'];
+  
+  return {
+    field: validFields.includes(sortOptions.field) ? sortOptions.field : 'popularity',
+    order: validOrders.includes(sortOptions.order) ? sortOptions.order : 'desc'
+  };
+}
+
+function validatePagination(page: number, limit: number): { page: number; limit: number } {
+  return {
+    page: Math.max(1, Math.min(page, 1000)), // Max 1000 pages
+    limit: Math.max(1, Math.min(limit, 50)) // Max 50 items per page
+  };
+}
 
 // ===============================
 // COURSE QUERIES
@@ -23,9 +53,15 @@ import {
 export async function getPublishedCourses(
   filters: CourseFilters = {},
   sortOptions: CourseSortOptions = { field: 'popularity', order: 'desc' },
-  user?: User
-): Promise<Course[]> {
+  user?: User,
+  page: number = 1,
+  limit: number = 12
+): Promise<{ courses: Course[]; totalCount: number }> {
   try {
+    // Validate and sanitize all inputs
+    const validatedFilters = validateCourseFilters(filters);
+    const validatedSortOptions = validateSortOptions(sortOptions);
+    const { page: validatedPage, limit: validatedLimit } = validatePagination(page, limit);
     let query = supabase
       .from('courses')
       .select(`
@@ -58,33 +94,44 @@ export async function getPublishedCourses(
       `)
       .eq('is_published', true);
 
-    // Apply filters
-    if (filters.category) {
-      query = query.eq('category', filters.category);
+    // Apply validated filters
+    if (validatedFilters.category) {
+      query = query.eq('category', validatedFilters.category);
     }
 
-    if (filters.difficulty) {
-      query = query.eq('difficulty', filters.difficulty);
+    if (validatedFilters.difficulty) {
+      query = query.eq('difficulty', validatedFilters.difficulty);
     }
 
-    if (filters.searchQuery) {
-      query = query.or(`title.ilike.%${filters.searchQuery}%,description.ilike.%${filters.searchQuery}%`);
+    if (validatedFilters.searchQuery) {
+      query = query.or(`title.ilike.%${validatedFilters.searchQuery}%,description.ilike.%${validatedFilters.searchQuery}%`);
     }
 
-    // Apply sorting
-    switch (sortOptions.field) {
+    // Apply validated sorting
+    switch (validatedSortOptions.field) {
       case 'popularity':
-        query = query.order('enrolled_count', { ascending: sortOptions.order === 'asc' });
+        query = query.order('enrolled_count', { ascending: validatedSortOptions.order === 'asc' });
         break;
       case 'rating':
-        query = query.order('rating', { ascending: sortOptions.order === 'asc' });
+        query = query.order('rating', { ascending: validatedSortOptions.order === 'asc' });
         break;
       case 'newest':
-        query = query.order('created_at', { ascending: sortOptions.order === 'asc' });
+        query = query.order('created_at', { ascending: validatedSortOptions.order === 'asc' });
         break;
       default:
         query = query.order('created_at', { ascending: false });
     }
+
+    // Get total count first for pagination
+    const { count: totalCount } = await supabase
+      .from('courses')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_published', true);
+
+    // Apply validated pagination
+    const from = (validatedPage - 1) * validatedLimit;
+    const to = from + validatedLimit - 1;
+    query = query.range(from, to);
 
     const { data, error } = await query;
 
@@ -93,11 +140,11 @@ export async function getPublishedCourses(
       throw error;
     }
 
-    // Transform data to match Course interface
+    // Transform data to match Course interface with sanitization
     const courses: Course[] = data?.map(course => ({
       id: course.id,
-      title: course.title,
-      description: course.description,
+      title: DOMPurify.sanitize(course.title, { ALLOWED_TAGS: [] }),
+      description: DOMPurify.sanitize(course.description, { ALLOWED_TAGS: [] }),
       category: course.category,
       difficulty: course.difficulty,
       totalLevels: course.total_levels,
@@ -106,9 +153,9 @@ export async function getPublishedCourses(
       rating: course.rating || 0,
       levels: course.course_levels?.map((level: any) => ({
         id: level.level_number,
-        name: level.name,
-        title: level.title,
-        description: level.description,
+        name: DOMPurify.sanitize(level.name, { ALLOWED_TAGS: [] }),
+        title: DOMPurify.sanitize(level.title, { ALLOWED_TAGS: [] }),
+        description: DOMPurify.sanitize(level.description, { ALLOWED_TAGS: [] }),
         color: level.color,
         icon: level.icon,
         isLocked: false, // Will be calculated based on user progress
@@ -123,9 +170,9 @@ export async function getPublishedCourses(
       updatedAt: course.updated_at,
       author: {
         id: course.author?.id || '',
-        name: course.author?.raw_user_meta_data?.name || 'Unknown Author',
+        name: DOMPurify.sanitize(course.author?.raw_user_meta_data?.name || 'Unknown Author', { ALLOWED_TAGS: [] }),
         avatar: course.author?.raw_user_meta_data?.avatar_url,
-        bio: course.author?.raw_user_meta_data?.bio
+        bio: DOMPurify.sanitize(course.author?.raw_user_meta_data?.bio || '', { ALLOWED_TAGS: [] })
       },
       tags: course.tags || [],
       isEnrolled: user ? course.user_course_enrollments?.length > 0 : false,
@@ -133,10 +180,16 @@ export async function getPublishedCourses(
       overallProgress: 0 // Will be calculated based on user progress
     })) || [];
 
-    return courses;
+    return {
+      courses,
+      totalCount: totalCount || 0
+    };
   } catch (error) {
     console.error('Error in getPublishedCourses:', error);
-    return [];
+    return {
+      courses: [],
+      totalCount: 0
+    };
   }
 }
 
@@ -145,6 +198,12 @@ export async function getPublishedCourses(
  */
 export async function getCourseById(courseId: string, user?: User): Promise<Course | null> {
   try {
+    // Validate courseId format (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!courseId || !uuidRegex.test(courseId)) {
+      console.error('Invalid courseId format:', courseId);
+      return null;
+    }
     const { data, error } = await supabase
       .from('courses')
       .select(`
@@ -194,11 +253,11 @@ export async function getCourseById(courseId: string, user?: User): Promise<Cour
       userProgress = await getUserCourseProgress(user.id, courseId);
     }
 
-    // Transform data to match Course interface
+    // Transform data to match Course interface with sanitization
     const course: Course = {
       id: data.id,
-      title: data.title,
-      description: data.description,
+      title: DOMPurify.sanitize(data.title, { ALLOWED_TAGS: [] }),
+      description: DOMPurify.sanitize(data.description, { ALLOWED_TAGS: [] }),
       category: data.category,
       difficulty: data.difficulty,
       totalLevels: data.total_levels,
@@ -207,9 +266,9 @@ export async function getCourseById(courseId: string, user?: User): Promise<Cour
       rating: data.rating || 0,
       levels: data.course_levels?.map((level: any) => ({
         id: level.level_number,
-        name: level.name,
-        title: level.title,
-        description: level.description,
+        name: DOMPurify.sanitize(level.name, { ALLOWED_TAGS: [] }),
+        title: DOMPurify.sanitize(level.title, { ALLOWED_TAGS: [] }),
+        description: DOMPurify.sanitize(level.description, { ALLOWED_TAGS: [] }),
         color: level.color,
         icon: level.icon,
         isLocked: userProgress ? level.level_number > userProgress.currentLevelId + 1 : level.level_number > 1,
@@ -224,9 +283,9 @@ export async function getCourseById(courseId: string, user?: User): Promise<Cour
       updatedAt: data.updated_at,
       author: {
         id: data.author?.id || '',
-        name: data.author?.raw_user_meta_data?.name || 'Unknown Author',
+        name: DOMPurify.sanitize(data.author?.raw_user_meta_data?.name || 'Unknown Author', { ALLOWED_TAGS: [] }),
         avatar: data.author?.raw_user_meta_data?.avatar_url,
-        bio: data.author?.raw_user_meta_data?.bio
+        bio: DOMPurify.sanitize(data.author?.raw_user_meta_data?.bio || '', { ALLOWED_TAGS: [] })
       },
       tags: data.tags || [],
       isEnrolled: !!userProgress,
