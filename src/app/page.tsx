@@ -1,7 +1,20 @@
 
+'use client';
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleStartDiagnosis = () => {
+    router.push('/diagnosis');
+  };
+
+  const handleLearnMoreAboutMethod = () => {
+    router.push('/about');
+  };
+
   return (
     <div className="flex flex-col items-center justify-center bg-architect-gray-100 py-16">
       <section className="w-full max-w-screen-xl p-8 md:p-16 lg:p-24">
@@ -17,10 +30,16 @@ export default function Home() {
               전문가와 AI가 함께 설계한 8단계 사고 방법론으로 창의적 사고, 분석적 사고, 문제해결 능력을 체계적으로 키워보세요.
             </p>
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button className="px-8 py-4 bg-architect-gradient-main text-white rounded-lg shadow-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+              <button 
+                onClick={handleStartDiagnosis}
+                className="px-8 py-4 bg-architect-gradient-main text-white rounded-lg shadow-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+              >
                 사고력 진단 시작하기
               </button>
-              <button className="px-8 py-4 bg-transparent text-architect-primary border-2 border-architect-primary rounded-lg font-semibold hover:bg-architect-primary hover:text-white transition-all duration-300">
+              <button 
+                onClick={handleLearnMoreAboutMethod}
+                className="px-8 py-4 bg-transparent text-architect-primary border-2 border-architect-primary rounded-lg font-semibold hover:bg-architect-primary hover:text-white transition-all duration-300"
+              >
                 8단계 방법론 살펴보기
               </button>
             </div>
