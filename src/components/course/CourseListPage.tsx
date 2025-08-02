@@ -32,7 +32,8 @@ import {
   getDifficultyInfo, 
   calculateOverallProgress 
 } from './courseDetailHelpers';
-import { THINKING_PHASES, CATEGORY_CONFIG, DIFFICULTY_CONFIG } from './courseDetailConstants';
+import { THINKING_PHASES } from './types';
+import { CATEGORY_CONFIG, DIFFICULTY_CONFIG } from './courseDetailConstants';
 
 interface CourseListPageProps {
   userProgress?: UserProgress[];

@@ -38,7 +38,7 @@ import {
   getDifficultyInfo,
   formatDuration
 } from './courseDetailHelpers';
-import { THINKING_PHASES } from './courseDetailConstants';
+import { THINKING_PHASES } from './types';
 
 interface CourseDetailPageProps {
   courseId: string;

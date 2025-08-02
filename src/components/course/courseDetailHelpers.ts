@@ -9,8 +9,8 @@ import {
   ThinkingPhase,
   ContentBlock 
 } from './types';
+import { THINKING_PHASES } from './types';
 import { 
-  THINKING_PHASES, 
   DIFFICULTY_CONFIG, 
   CATEGORY_CONFIG,
   PHASE_PROGRESS_INDICATORS 
