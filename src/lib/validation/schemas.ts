@@ -86,6 +86,13 @@ export const SendMessageSchema = z.object({
   sessionId: UUIDSchema,
   message: SafeStringSchema,
   mode: SessionModeSchema.default('guided'),
+  courseContext: z.object({
+    courseId: UUIDSchema.optional(),
+    courseTitle: z.string().optional(),
+    currentLevel: z.string().optional(),
+    userProgress: z.number().min(0).max(100).optional(),
+    learningObjectives: z.array(z.string()).optional(),
+  }).optional(),
 });
 
 // 채팅 히스토리 조회 쿼리 스키마

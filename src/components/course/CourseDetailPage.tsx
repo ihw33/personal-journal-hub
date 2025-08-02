@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Award,
   BookOpen,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar } from '@/components/ui/avatar';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ContentBlockComponent } from './ContentBlockComponent';
+import ChatbotInterface from '@/components/chatbot/ChatbotInterface';
 import { 
   Course, 
   CourseSession, 
@@ -68,6 +70,8 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [showChatbot, setShowChatbot] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Get current user
   useEffect(() => {
@@ -116,6 +120,23 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
 
   const handleEnroll = () => {
     onEnroll?.(courseId);
+  };
+
+  const handleChatbotOpen = () => {
+    setShowChatbot(true);
+  };
+
+  const handleChatbotClose = () => {
+    setShowChatbot(false);
+  };
+
+  const handleSessionCreate = (session: any) => {
+    setCurrentSessionId(session.id);
+  };
+
+  const handleSessionEnd = (sessionId: string) => {
+    setCurrentSessionId(null);
+    setShowChatbot(false);
   };
 
   const renderLoadingState = () => (
@@ -552,6 +573,54 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Floating AI 파트너 '아키' 버튼 */}
+        {course.isEnrolled && (
+          <div className="fixed bottom-6 right-6 z-40">
+            <Button
+              onClick={handleChatbotOpen}
+              className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
+              title="AI 파트너 '아키'와 대화하기"
+            >
+              <MessageCircle className="w-6 h-6 text-white" />
+            </Button>
+          </div>
+        )}
+
+        {/* 챗봇 모달 */}
+        {showChatbot && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="relative w-full max-w-4xl h-[80vh] bg-white rounded-xl shadow-2xl overflow-hidden">
+              {/* 모달 헤더 */}
+              <div className="absolute top-0 right-0 z-10 p-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleChatbotClose}
+                  className="rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              {/* 챗봇 인터페이스 */}
+              <ChatbotInterface
+                sessionId={currentSessionId || undefined}
+                mode="guided"
+                onSessionCreate={handleSessionCreate}
+                onSessionEnd={handleSessionEnd}
+                className="h-full"
+                courseContext={{
+                  courseId: course.id,
+                  courseTitle: course.title,
+                  currentLevel: selectedSession?.level || course.levels.find(l => !l.isLocked)?.title,
+                  userProgress: course.overallProgress,
+                  learningObjectives: course.learningObjectives || []
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </ErrorBoundary>
   );

@@ -10,10 +10,10 @@
 import DOMPurify from 'isomorphic-dompurify';
 import OpenAI from 'openai';
 
-// OpenAI 클라이언트 초기화
-const openai = new OpenAI({
+// OpenAI 클라이언트 초기화 (조건부)
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+}) : null;
 
 // AI 제공자 설정
 const AI_PROVIDER = process.env.AI_PROVIDER || 'openai'; // 'openai' | 'claude' | 'local'
@@ -41,6 +41,13 @@ export interface ArchiContext {
     insights: number;
     topics: string[];
     emotionalState?: string;
+    courseContext?: {
+      courseId?: string;
+      courseTitle?: string;
+      currentLevel?: string;
+      userProgress?: number;
+      learningObjectives?: string[];
+    };
   };
 }
 
@@ -260,7 +267,7 @@ function analyzeAIResponse(response: string, context: ArchiContext) {
       responseLength: response.length,
       analysisPattern: {
         hasQuestion: response.includes('?'),
-        hasEmoji: /[😀-🙏]/.test(response),
+        hasEmoji: /[\u{1F600}-\u{1F64F}]/u.test(response),
         complexity: response.length > 200 ? 'complex' : 'simple'
       }
     }
@@ -610,6 +617,11 @@ export async function callExternalAI(prompt: string, context: ArchiContext): Pro
   }
 
   try {
+    // OpenAI 클라이언트 확인
+    if (!openai) {
+      throw new Error('OpenAI client not initialized');
+    }
+
     // OpenAI API 호출
     const systemPrompt = buildSystemPrompt(context);
     const userPrompt = buildUserPrompt(prompt, context);
@@ -653,13 +665,21 @@ function buildSystemPrompt(context: ArchiContext): string {
     ? `현재 "가이드 수련" 모드입니다. 8단계 사고 확장 시스템(관찰→질문→분석→연결→상상→종합→평가→실행)을 활용하여 체계적으로 안내해주세요.`
     : `현재 "자유 수련" 모드입니다. 창의적이고 자유로운 사고 탐험을 격려하며, 사용자의 호기심과 상상력을 자극해주세요.`;
 
+  const courseInfo = context.sessionContext.courseContext ? `
+강의 컨텍스트:
+- 강의 제목: ${context.sessionContext.courseContext.courseTitle || '알 수 없음'}
+- 현재 레벨: ${context.sessionContext.courseContext.currentLevel || '시작 단계'}
+- 학습 진도: ${context.sessionContext.courseContext.userProgress || 0}%
+- 학습 목표: ${context.sessionContext.courseContext.learningObjectives?.join(', ') || '창의적 사고 개발'}
+` : '';
+
   const sessionInfo = `
 세션 정보:
 - 총 메시지 수: ${context.sessionContext.totalMessages}
 - 현재까지 통찰: ${context.sessionContext.insights}개
 - 다룬 주제: ${context.sessionContext.topics.join(', ')}
 - 감정 상태: ${context.sessionContext.emotionalState || '호기심'}
-`;
+${courseInfo}`;
 
   return `${AI_CONFIG.systemPrompt}
 
