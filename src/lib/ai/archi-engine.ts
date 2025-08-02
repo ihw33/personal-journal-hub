@@ -8,6 +8,15 @@
  */
 
 import DOMPurify from 'isomorphic-dompurify';
+import OpenAI from 'openai';
+
+// OpenAI 클라이언트 초기화
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// AI 제공자 설정
+const AI_PROVIDER = process.env.AI_PROVIDER || 'openai'; // 'openai' | 'claude' | 'local'
 
 // AI 응답 인터페이스
 export interface ArchiResponse {
@@ -168,17 +177,46 @@ export async function generateArchiResponse(context: ArchiContext): Promise<Arch
     // 입력값 정제
     const sanitizedMessage = DOMPurify.sanitize(context.message, { ALLOWED_TAGS: [] });
     
-    // 응답 생성 로직
-    const response = await generateContextualResponse(sanitizedMessage, context);
+    // 실제 AI 모델 호출 또는 로컬 폴백
+    let aiResponse: string;
     
-    return response;
+    if (AI_PROVIDER === 'openai' && process.env.OPENAI_API_KEY) {
+      // OpenAI API 사용
+      aiResponse = await callExternalAI(sanitizedMessage, context);
+    } else {
+      // 로컬 폴백 로직 사용
+      console.log('Using local AI fallback in generateArchiResponse');
+      const localResponse = await generateContextualResponse(sanitizedMessage, context);
+      aiResponse = localResponse.content;
+    }
+    
+    // AI 응답을 분석하여 메타데이터 추출
+    const analysisResult = analyzeAIResponse(aiResponse, context);
+    
+    return {
+      content: aiResponse,
+      metadata: {
+        provider: AI_PROVIDER,
+        model: AI_CONFIG.model,
+        context: context.mode,
+        sessionMessageCount: context.sessionContext.totalMessages,
+        generatedAt: new Date().toISOString(),
+        ...analysisResult.metadata
+      },
+      brainState: analysisResult.brainState,
+      isInsight: analysisResult.isInsight,
+      isExercise: analysisResult.isExercise,
+      isFeedback: analysisResult.isFeedback,
+      resources: analysisResult.resources,
+      topics: extractTopics(aiResponse)
+    };
   } catch (error) {
     console.error('Error generating Archi response:', error);
     
     // 폴백 응답
     return {
       content: '죄송합니다. 잠시 생각을 정리할 시간이 필요합니다. 다시 시도해주세요.',
-      metadata: { error: true, fallback: true },
+      metadata: { error: true, fallback: true, errorMessage: error instanceof Error ? error.message : 'Unknown error' },
       brainState: 'ready',
       isInsight: false,
       isExercise: false,
@@ -187,6 +225,46 @@ export async function generateArchiResponse(context: ArchiContext): Promise<Arch
       topics: []
     };
   }
+}
+
+/**
+ * AI 응답 분석 및 메타데이터 추출
+ */
+function analyzeAIResponse(response: string, context: ArchiContext) {
+  const lowerResponse = response.toLowerCase();
+  
+  // 통찰 여부 검사
+  const isInsight = /💡|통찰|깨달음|아하|새로운 관점|중요한 발견/.test(response);
+  
+  // 실습 여부 검사  
+  const isExercise = /📝|실습|연습|해보세요|시도해보세요|작성해보세요/.test(response);
+  
+  // 피드백 여부 검사
+  const isFeedback = /📊|피드백|평가|잘하고|훌륭|좋은|개선/.test(response);
+  
+  // 뇌 상태 결정
+  let brainState: 'thinking' | 'ready' | 'insights' = 'ready';
+  if (isInsight) {
+    brainState = 'insights';
+  } else if (lowerResponse.includes('생각') || lowerResponse.includes('고민')) {
+    brainState = 'thinking';
+  }
+  
+  return {
+    isInsight,
+    isExercise,
+    isFeedback,
+    brainState,
+    resources: [], // 향후 구현
+    metadata: {
+      responseLength: response.length,
+      analysisPattern: {
+        hasQuestion: response.includes('?'),
+        hasEmoji: /[😀-🙏]/.test(response),
+        complexity: response.length > 200 ? 'complex' : 'simple'
+      }
+    }
+  };
 }
 
 /**
@@ -520,23 +598,96 @@ function extractTopics(message: string): string[] {
 }
 
 /**
- * 실제 AI 모델 연동 함수 (향후 구현)
- * Claude API, OpenAI API 등과 연동
+ * 실제 AI 모델 연동 함수
+ * OpenAI GPT-4 또는 로컬 폴백 로직 사용
  */
 export async function callExternalAI(prompt: string, context: ArchiContext): Promise<string> {
-  // TODO: 실제 AI API 연동 구현
-  // 예: Claude API, OpenAI API 호출
-  
-  // 현재는 로컬 로직으로 대체
-  const response = await generateContextualResponse(prompt, context);
-  return response.content;
+  // API 키가 없거나 로컬 모드인 경우 폴백
+  if (AI_PROVIDER === 'local' || !process.env.OPENAI_API_KEY) {
+    console.log('Using local AI fallback');
+    const response = await generateContextualResponse(prompt, context);
+    return response.content;
+  }
+
+  try {
+    // OpenAI API 호출
+    const systemPrompt = buildSystemPrompt(context);
+    const userPrompt = buildUserPrompt(prompt, context);
+
+    const completion = await openai.chat.completions.create({
+      model: AI_CONFIG.model === 'gpt-4' ? 'gpt-4' : 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: AI_CONFIG.temperature,
+      max_tokens: AI_CONFIG.maxTokens,
+      top_p: AI_CONFIG.topP,
+      frequency_penalty: 0.3,
+      presence_penalty: 0.1,
+    });
+
+    const aiResponse = completion.choices[0]?.message?.content;
+    
+    if (!aiResponse) {
+      throw new Error('Empty response from OpenAI');
+    }
+
+    return aiResponse;
+
+  } catch (error) {
+    console.error('OpenAI API Error:', error);
+    
+    // API 호출 실패 시 로컬 폴백
+    console.log('Falling back to local AI logic');
+    const response = await generateContextualResponse(prompt, context);
+    return response.content;
+  }
+}
+
+/**
+ * 컨텍스트 기반 시스템 프롬프트 생성
+ */
+function buildSystemPrompt(context: ArchiContext): string {
+  const modeInstruction = context.mode === 'guided' 
+    ? `현재 "가이드 수련" 모드입니다. 8단계 사고 확장 시스템(관찰→질문→분석→연결→상상→종합→평가→실행)을 활용하여 체계적으로 안내해주세요.`
+    : `현재 "자유 수련" 모드입니다. 창의적이고 자유로운 사고 탐험을 격려하며, 사용자의 호기심과 상상력을 자극해주세요.`;
+
+  const sessionInfo = `
+세션 정보:
+- 총 메시지 수: ${context.sessionContext.totalMessages}
+- 현재까지 통찰: ${context.sessionContext.insights}개
+- 다룬 주제: ${context.sessionContext.topics.join(', ')}
+- 감정 상태: ${context.sessionContext.emotionalState || '호기심'}
+`;
+
+  return `${AI_CONFIG.systemPrompt}
+
+${modeInstruction}
+
+${sessionInfo}
+
+지침:
+1. 적절한 때에 통찰(💡), 실습(📝), 피드백(📊)을 제공하세요
+2. 사용자의 사고 패턴을 파악하여 맞춤형 응답을 해주세요  
+3. 한국어로 자연스럽고 친근하게 대화하세요
+4. 격려와 도전의 균형을 맞춰주세요`;
+}
+
+/**
+ * 사용자 프롬프트 구성
+ */
+function buildUserPrompt(message: string, context: ArchiContext): string {
+  return `사용자 메시지: "${message}"
+
+위 메시지에 대해 ${context.mode === 'guided' ? '체계적으로 안내하며' : '창의적으로 격려하며'} 응답해주세요.`;
 }
 
 /**
  * AI 모델 설정
  */
 export const AI_CONFIG = {
-  model: 'archi-local', // 'claude-3', 'gpt-4', 'archi-local'
+  model: process.env.AI_MODEL || 'gpt-3.5-turbo', // 'gpt-4', 'gpt-3.5-turbo', 'claude-3', 'archi-local'
   temperature: 0.7,
   maxTokens: 1000,
   topP: 0.9,

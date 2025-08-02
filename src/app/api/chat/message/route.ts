@@ -12,9 +12,21 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import DOMPurify from 'isomorphic-dompurify';
 import { generateArchiResponse } from '@/lib/ai/archi-engine';
+import { enforceRateLimit } from '@/lib/middleware/rate-limit';
+import { 
+  SendMessageSchema,
+  validateRequestBody,
+  createValidationErrorResponse 
+} from '@/lib/validation/schemas';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting 체크 (채팅은 더 엄격하게)
+    const rateLimitResult = await enforceRateLimit(request, 'chat');
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
     const supabase = createRouteHandlerClient({ cookies });
 
     // 사용자 인증 확인
@@ -26,26 +38,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 요청 본문 파싱 및 검증
-    const body = await request.json();
-    const { sessionId, message, mode = 'guided' } = body;
-
-    if (!sessionId || !message) {
-      return NextResponse.json(
-        { error: 'Session ID and message are required' },
-        { status: 400 }
-      );
+    // Zod를 이용한 요청 본문 검증
+    const validation = await validateRequestBody(request, SendMessageSchema);
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.error);
     }
 
-    // 입력값 정제 (XSS 방지)
+    const { sessionId, message, mode } = validation.data;
+
+    // 추가 입력값 정제 (XSS 방지)
     const sanitizedMessage = DOMPurify.sanitize(message, { ALLOWED_TAGS: [] });
-    
-    if (sanitizedMessage.length > 2000) {
-      return NextResponse.json(
-        { error: 'Message too long (max 2000 characters)' },
-        { status: 400 }
-      );
-    }
 
     // 세션 유효성 확인
     const { data: session, error: sessionError } = await supabase

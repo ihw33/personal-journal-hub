@@ -10,9 +10,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { enforceRateLimit } from '@/lib/middleware/rate-limit';
+import { 
+  GetChatHistoryQuerySchema,
+  RateMessageSchema,
+  validateRequestBody,
+  validateQueryParams,
+  createValidationErrorResponse 
+} from '@/lib/validation/schemas';
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting 체크
+    const rateLimitResult = await enforceRateLimit(request, 'general');
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
     const supabase = createRouteHandlerClient({ cookies });
 
     // 사용자 인증 확인
@@ -24,31 +38,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // URL 파라미터 추출
-    const { searchParams } = new URL(request.url);
-    const sessionId = searchParams.get('sessionId');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
-
-    if (!sessionId) {
-      return NextResponse.json(
-        { error: 'Session ID is required' },
-        { status: 400 }
-      );
+    // 쿼리 파라미터 검증
+    const url = new URL(request.url);
+    const validation = validateQueryParams(url, GetChatHistoryQuerySchema);
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.error);
     }
 
-    // UUID 형식 검증
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(sessionId)) {
-      return NextResponse.json(
-        { error: 'Invalid session ID format' },
-        { status: 400 }
-      );
-    }
-
-    // 입력값 검증 (보안)
-    const validatedLimit = Math.max(1, Math.min(limit, 100)); // 1-100 범위
-    const validatedOffset = Math.max(0, offset);
+    const { sessionId, limit, offset } = validation.data;
 
     // 세션 소유권 확인
     const { data: session, error: sessionError } = await supabase
@@ -88,7 +85,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq('session_id', sessionId)
       .order('message_order', { ascending: true })
-      .range(validatedOffset, validatedOffset + validatedLimit - 1);
+      .range(offset, offset + limit - 1);
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
@@ -160,12 +157,12 @@ export async function GET(request: NextRequest) {
         ...messageStats,
         averageResponseTime,
         totalMessages: messages.length,
-        hasMore: messages.length === validatedLimit
+        hasMore: messages.length === limit
       },
       pagination: {
-        limit: validatedLimit,
-        offset: validatedOffset,
-        hasMore: messages.length === validatedLimit
+        limit,
+        offset,
+        hasMore: messages.length === limit
       }
     };
 
@@ -183,6 +180,12 @@ export async function GET(request: NextRequest) {
 // 메시지 업데이트 (사용자 평가 등)
 export async function PATCH(request: NextRequest) {
   try {
+    // Rate limiting 체크
+    const rateLimitResult = await enforceRateLimit(request, 'general');
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
     const supabase = createRouteHandlerClient({ cookies });
 
     // 사용자 인증 확인
@@ -194,23 +197,13 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { messageId, userRating, userFoundHelpful } = body;
-
-    if (!messageId) {
-      return NextResponse.json(
-        { error: 'Message ID is required' },
-        { status: 400 }
-      );
+    // Zod를 이용한 요청 본문 검증
+    const validation = await validateRequestBody(request, RateMessageSchema);
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.error);
     }
 
-    // 입력값 검증
-    if (userRating !== undefined && (userRating < 1 || userRating > 5)) {
-      return NextResponse.json(
-        { error: 'Rating must be between 1 and 5' },
-        { status: 400 }
-      );
-    }
+    const { messageId, userRating, userFoundHelpful } = validation.data;
 
     // 메시지 소유권 확인
     const { data: message, error: messageError } = await supabase

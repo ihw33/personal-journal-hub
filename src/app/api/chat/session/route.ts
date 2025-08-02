@@ -11,9 +11,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import DOMPurify from 'isomorphic-dompurify';
+import { enforceRateLimit } from '@/lib/middleware/rate-limit';
+import { 
+  CreateSessionSchema, 
+  UpdateSessionSchema, 
+  GetSessionsQuerySchema,
+  validateRequestBody,
+  validateQueryParams,
+  createValidationErrorResponse,
+  createSuccessResponse
+} from '@/lib/validation/schemas';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting 체크
+    const rateLimitResult = await enforceRateLimit(request, 'session');
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
     const supabase = createRouteHandlerClient({ cookies });
 
     // 사용자 인증 확인
@@ -25,57 +41,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 요청 본문 파싱 및 검증
-    const body = await request.json();
-    const { 
-      title, 
-      mode = 'guided', 
-      courseId, 
-      topics = [], 
-      initialMessage,
-      courseContext 
-    } = body;
-
-    // 필수 값 검증
-    if (!title || title.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Session title is required' },
-        { status: 400 }
-      );
+    // Zod를 이용한 요청 본문 검증
+    const validation = await validateRequestBody(request, CreateSessionSchema);
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.error);
     }
 
-    // 입력값 정제 (XSS 방지)
+    const { 
+      title, 
+      mode, 
+      courseId, 
+      topics, 
+      initialMessage,
+      courseContext 
+    } = validation.data;
+
+    // 입력값 추가 정제 (Zod 검증 후 추가 보안)
     const sanitizedTitle = DOMPurify.sanitize(title.trim(), { ALLOWED_TAGS: [] });
     const sanitizedTopics = topics.map((topic: string) => 
       DOMPurify.sanitize(topic, { ALLOWED_TAGS: [] })
     ).filter((topic: string) => topic.length > 0);
 
-    // 길이 제한
-    if (sanitizedTitle.length > 200) {
-      return NextResponse.json(
-        { error: 'Title too long (max 200 characters)' },
-        { status: 400 }
-      );
-    }
-
-    // 모드 검증
-    if (!['guided', 'self-directed'].includes(mode)) {
-      return NextResponse.json(
-        { error: 'Invalid mode. Must be "guided" or "self-directed"' },
-        { status: 400 }
-      );
-    }
-
     // 코스 ID 검증 (제공된 경우)
     if (courseId) {
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(courseId)) {
-        return NextResponse.json(
-          { error: 'Invalid course ID format' },
-          { status: 400 }
-        );
-      }
-
       // 코스 존재 및 접근 권한 확인
       const { data: course, error: courseError } = await supabase
         .from('courses')
@@ -259,6 +247,12 @@ export async function POST(request: NextRequest) {
 // 세션 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting 체크
+    const rateLimitResult = await enforceRateLimit(request, 'general');
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
     const supabase = createRouteHandlerClient({ cookies });
 
     // 사용자 인증 확인
@@ -270,16 +264,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // URL 파라미터 추출
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'all';
-    const mode = searchParams.get('mode') || 'all';
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    // 쿼리 파라미터 검증
+    const url = new URL(request.url);
+    const validation = validateQueryParams(url, GetSessionsQuerySchema);
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.error);
+    }
 
-    // 입력값 검증
-    const validatedLimit = Math.max(1, Math.min(limit, 50));
-    const validatedOffset = Math.max(0, offset);
+    const { status, mode, limit, offset } = validation.data;
 
     // 쿼리 빌드
     let query = supabase
@@ -316,7 +308,7 @@ export async function GET(request: NextRequest) {
     // 정렬 및 페이지네이션
     const { data: sessions, error: sessionsError } = await query
       .order('last_activity_at', { ascending: false })
-      .range(validatedOffset, validatedOffset + validatedLimit - 1);
+      .range(offset, offset + limit - 1);
 
     if (sessionsError) {
       console.error('Error fetching sessions:', sessionsError);
@@ -366,9 +358,9 @@ export async function GET(request: NextRequest) {
       sessions: sessions || [],
       stats: sessionStats,
       pagination: {
-        limit: validatedLimit,
-        offset: validatedOffset,
-        hasMore: (sessions?.length || 0) === validatedLimit
+        limit,
+        offset,
+        hasMore: (sessions?.length || 0) === limit
       }
     });
 
@@ -384,6 +376,12 @@ export async function GET(request: NextRequest) {
 // 세션 상태 업데이트
 export async function PATCH(request: NextRequest) {
   try {
+    // Rate limiting 체크
+    const rateLimitResult = await enforceRateLimit(request, 'general');
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
     const supabase = createRouteHandlerClient({ cookies });
 
     // 사용자 인증 확인
@@ -395,15 +393,13 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { sessionId, status, emotionalEnd, progress } = body;
-
-    if (!sessionId) {
-      return NextResponse.json(
-        { error: 'Session ID is required' },
-        { status: 400 }
-      );
+    // Zod를 이용한 요청 본문 검증
+    const validation = await validateRequestBody(request, UpdateSessionSchema);
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.error);
     }
+
+    const { sessionId, status, emotionalEnd, progress } = validation.data;
 
     // 업데이트 데이터 구성
     const updateData: any = {
@@ -411,12 +407,6 @@ export async function PATCH(request: NextRequest) {
     };
 
     if (status) {
-      if (!['active', 'completed', 'paused', 'abandoned'].includes(status)) {
-        return NextResponse.json(
-          { error: 'Invalid status' },
-          { status: 400 }
-        );
-      }
       updateData.status = status;
       
       if (status === 'completed') {
