@@ -59,7 +59,7 @@ type JournalPost = SupabaseJournalPost;
  * v3.2 저널 목록 페이지 컴포넌트
  * Architect Design System 기반의 전문적인 저널 플랫폼
  */
-export const JournalListPage: React.FC<JournalListPageProps> = ({ 
+const JournalListPage: React.FC<JournalListPageProps> = ({ 
   user, 
   onNavigate, 
   language 
