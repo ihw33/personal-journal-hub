@@ -16,7 +16,8 @@ import {
   getMessageTypeColor, 
   getMessageTypeIcon, 
   estimateReadingTime,
-  scrollToBottom 
+  scrollToBottom,
+  sanitizeMessageContent
 } from './helpers';
 import { ARCHI_CONFIG, COLORS, ICONS } from './constants';
 import { TypingText } from './TypingIndicator';
@@ -107,9 +108,12 @@ const ConversationHistory: React.FC<ConversationHistoryProps> = ({
                   speed={30}
                 />
               ) : (
-                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                <div 
+                  className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ 
+                    __html: sanitizeMessageContent(message.content) 
+                  }}
+                />
               )}
 
               {/* 토픽 태그 */}
