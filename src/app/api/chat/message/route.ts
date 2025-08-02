@@ -12,7 +12,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import DOMPurify from 'isomorphic-dompurify';
 import { generateArchiResponse } from '@/lib/ai/archi-engine';
-import { enforceRateLimit } from '@/lib/middleware/rate-limit';
+import { enforceRateLimit, withRateLimit, createRateLimitHeaders } from '@/lib/middleware/rate-limit';
 import { 
   SendMessageSchema,
   validateRequestBody,
@@ -22,9 +22,24 @@ import {
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting 체크 (채팅은 더 엄격하게)
-    const rateLimitResult = await enforceRateLimit(request, 'chat');
-    if (rateLimitResult) {
-      return rateLimitResult;
+    const rateLimitCheck = withRateLimit('chat');
+    const rateLimitResult = await rateLimitCheck(request);
+    
+    if (!rateLimitResult.success) {
+      const headers = createRateLimitHeaders(rateLimitResult);
+      return new Response(
+        JSON.stringify({
+          error: 'Too Many Requests',
+          message: `Rate limit exceeded. Try again in ${Math.ceil((rateLimitResult.reset.getTime() - Date.now()) / 1000)} seconds.`,
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+          },
+        }
+      );
     }
 
     const supabase = createRouteHandlerClient({ cookies });
@@ -160,6 +175,9 @@ export async function POST(request: NextRequest) {
       .update(updates)
       .eq('id', sessionId);
 
+    // Rate limit 헤더 생성
+    const rateLimitHeaders = createRateLimitHeaders(rateLimitResult);
+
     // 응답 반환
     return NextResponse.json({
       success: true,
@@ -188,6 +206,8 @@ export async function POST(request: NextRequest) {
         insights: session.insights_count + (aiResponseData.isInsight ? 1 : 0),
         progress: updates.current_progress || session.current_progress
       }
+    }, {
+      headers: rateLimitHeaders
     });
 
   } catch (error) {

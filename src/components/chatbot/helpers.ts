@@ -21,6 +21,7 @@ import {
   ChatHistoryApiResponse
 } from './types';
 import { API_ENDPOINTS, LIMITS, STORAGE_KEYS } from './constants';
+import DOMPurify from 'isomorphic-dompurify';
 
 // API 호출 함수들
 export class ChatbotAPI {
@@ -195,6 +196,17 @@ export const sanitizeInput = (input: string): string => {
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/<[^>]*>/g, '')
     .trim();
+};
+
+// Enhanced XSS protection for message content rendering
+export const sanitizeMessageContent = (content: string): string => {
+  // Use isomorphic-dompurify for stricter sanitization with allowed tags only
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em'],
+    ALLOWED_ATTR: [],
+    KEEP_CONTENT: true,
+    ALLOW_DATA_ATTR: false,
+  });
 };
 
 export const generateSessionTitle = (firstMessage: string): string => {
