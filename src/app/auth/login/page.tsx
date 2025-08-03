@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Github, Chrome, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -16,7 +16,8 @@ interface FormData {
   password: string;
 }
 
-export default function LoginPage() {
+// LoginContent 컴포넌트 - useSearchParams 사용
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState<FormData>({
@@ -431,5 +432,26 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 로딩 컴포넌트
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-architect-gray-100/30 via-white to-architect-primary/5 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-architect-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-body text-architect-gray-700">로그인 페이지를 준비하고 있습니다...</p>
+      </div>
+    </div>
+  );
+}
+
+// 메인 컴포넌트 - Suspense 경계 제공
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
   );
 }
