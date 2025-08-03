@@ -33,6 +33,15 @@ export default function Home() {
       case 'diagnosis':
         router.push('/diagnosis');
         break;
+      case 'login':
+        router.push('/auth/login');
+        break;
+      case 'signup':
+        router.push('/auth/signup');
+        break;
+      case 'dashboard':
+        router.push('/dashboard');
+        break;
       default:
         router.push('/');
     }

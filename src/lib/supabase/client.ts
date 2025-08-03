@@ -1,8 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase 환경 변수
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// 비밀번호 정책 상수
+export const PASSWORD_MIN_LENGTH = 8;
+
+// Supabase 환경 변수 안전성 확인
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Missing Supabase environment variables. Please check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are properly set in your .env.local file.'
+  );
+}
 
 // Supabase 클라이언트 생성
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -89,7 +98,8 @@ export const getAuthErrorMessage = (error: any): string => {
     'Invalid login credentials': '잘못된 이메일 또는 비밀번호입니다.',
     'Email not confirmed': '이메일 인증이 필요합니다. 메일함을 확인해주세요.',
     'User already registered': '이미 가입된 이메일입니다.',
-    'Password should be at least 6 characters': '비밀번호는 최소 6자 이상이어야 합니다.',
+    'Password should be at least 6 characters': '비밀번호는 최소 8자 이상이어야 합니다.',
+    'Password should be at least 8 characters': '비밀번호는 최소 8자 이상이어야 합니다.',
     'Unable to validate email address: invalid format': '올바른 이메일 형식이 아닙니다.',
     'User not found': '존재하지 않는 사용자입니다.',
     'Email rate limit exceeded': '너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.',

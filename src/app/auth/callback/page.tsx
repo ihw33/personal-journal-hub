@@ -19,8 +19,8 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          // 로그인 성공 - 홈페이지로 리다이렉트
-          router.push('/');
+          // 로그인 성공 - 대시보드로 리다이렉트
+          router.push('/dashboard');
         } else {
           // 세션이 없는 경우 로그인 페이지로
           router.push('/auth/login');
