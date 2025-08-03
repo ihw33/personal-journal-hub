@@ -181,9 +181,9 @@ export default function SignupPage() {
       }
       
       if (data.user) {
-        setSuccess('회원가입이 완료되었습니다! 이메일 인증을 완료해주세요.');
+        setSuccess('회원가입이 완료되었습니다! 대시보드로 이동합니다.');
         setTimeout(() => {
-          router.push('/auth/login');
+          router.push('/dashboard');
         }, 2000);
       }
     } catch (error) {

@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { JournalListPage } from '@/components/journal/JournalListPage';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/lib/supabase/auth-context';
 
 export default function JournalPage() {
   const router = useRouter();

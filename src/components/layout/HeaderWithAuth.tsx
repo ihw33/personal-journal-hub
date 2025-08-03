@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/lib/supabase/auth-context';
 import ArchitectHeader from './ArchitectHeader';
 import { useState } from 'react';
 

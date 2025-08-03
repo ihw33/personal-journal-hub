@@ -103,9 +103,9 @@ export default function LoginPage() {
       }
       
       if (data.user) {
-        setSuccess('로그인 성공! 잠시 후 페이지로 이동합니다.');
+        setSuccess('로그인 성공! 대시보드로 이동합니다.');
         setTimeout(() => {
-          router.push('/');
+          router.push('/dashboard');
           router.refresh(); // 세션 상태 새로고침
         }, 1000);
       }
