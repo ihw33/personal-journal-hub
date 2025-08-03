@@ -1,0 +1,65 @@
+# .github/workflows/pr-notification-debug.yml
+
+name: PR Notification Debug
+
+on:
+  pull_request:
+    types: [opened, reopened, edited]
+  workflow_dispatch:
+
+jobs:
+  debug-slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug - Environment Check
+        run: |
+          echo "=== Environment Debug ==="
+          echo "Event Name: ${{ github.event_name }}"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          echo "PR Title: ${{ github.event.pull_request.title }}"
+          echo "PR URL: ${{ github.event.pull_request.html_url }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Actor: ${{ github.actor }}"
+          
+      - name: Debug - Secret Check
+        run: |
+          echo "=== Secret Debug ==="
+          if [ -z "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            echo "❌ SLACK_WEBHOOK_URL is EMPTY or NOT SET"
+          else
+            echo "✅ SLACK_WEBHOOK_URL exists"
+            echo "Webhook length: ${#SLACK_WEBHOOK_URL}"
+          fi
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          
+      - name: Test Direct Curl
+        run: |
+          echo "=== Direct Curl Test ==="
+          if [ ! -z "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            response=$(curl -X POST -H 'Content-type: application/json' \
+              --data '{"text":"🧪 Test message from GitHub Actions"}' \
+              ${{ secrets.SLACK_WEBHOOK_URL }} 2>&1)
+            echo "Curl response: $response"
+          else
+            echo "Cannot test - webhook URL is empty"
+          fi
+          
+      - name: Test with Simple Message
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MESSAGE: "Simple test message"
+          SLACK_TITLE: "Test"
+          
+      - name: Original Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_USERNAME: "IWL-Bot"
+          SLACK_ICON_EMOJI: ":robot_face:"
+          SLACK_COLOR: "#7C3AED"
+          SLACK_TITLE: "📬 New Pull Request Ready for Review!"
+          SLACK_MESSAGE: |
+            PM님, 새로운 PR이 생성되었습니다. 리뷰를 시작해주세요.
+            *PR Link:* ${{ github.event.pull_request.html_url }}
