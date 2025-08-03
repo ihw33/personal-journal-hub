@@ -17,6 +17,7 @@ const config: Config = {
         'architect-gray-500': '#757575',
         'architect-gray-300': '#bdbdbd',
         'architect-gray-100': '#f5f5f5',
+        'architect-gray-50': '#fafafa',
         'architect-success': '#2e7d32',
         'architect-warning': '#f57c00',
         'architect-error': '#c62828',
@@ -24,6 +25,10 @@ const config: Config = {
         'architect-ai-primary': '#00bcd4',
         'architect-ai-secondary': '#4fc3f7',
         'architect-ai-accent': '#00e676',
+        // IWL brand colors for gradients
+        'iwl-primary': '#1a237e',
+        'iwl-primary-50': '#e8eaf6',
+        'iwl-blue-50': '#e3f2fd',
       },
       fontFamily: {
         primary: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],

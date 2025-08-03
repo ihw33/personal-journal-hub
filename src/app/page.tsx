@@ -30,6 +30,9 @@ export default function Home() {
       case 'about':
         router.push('/about');
         break;
+      case 'diagnosis':
+        router.push('/diagnosis');
+        break;
       default:
         router.push('/');
     }
