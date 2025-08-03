@@ -8,6 +8,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { DiagnosisTestPage } from '@/components/diagnosis/DiagnosisTestPage';
+import { secureSessionStorage } from '@/lib/security';
 
 interface TestAnswer {
   questionId: string;
@@ -21,9 +22,14 @@ export default function DiagnosisTestPageRoute() {
   const router = useRouter();
 
   const handleComplete = (answers: TestAnswer[]) => {
-    // Store results in sessionStorage for the results page
+    // Store encrypted results in sessionStorage for the results page
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('diagnosisAnswers', JSON.stringify(answers));
+      try {
+        secureSessionStorage.setItem('diagnosisAnswers', answers);
+      } catch (error) {
+        console.error('Failed to save diagnosis answers:', error);
+        // Continue to results page even if storage fails
+      }
     }
     router.push('/diagnosis/results');
   };

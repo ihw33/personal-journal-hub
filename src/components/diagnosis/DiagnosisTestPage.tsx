@@ -191,9 +191,9 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-iwl-primary-50 to-iwl-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+          <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-architect-primary to-architect-secondary rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
             <Brain className="w-10 h-10 md:w-12 md:h-12 text-white" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
@@ -208,7 +208,7 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-iwl-primary-50 to-iwl-blue-50">
       {/* Header */}
       <div className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-gray-200 z-10">
         <div className="container mx-auto py-4">
@@ -224,7 +224,7 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
                 이전
               </Button>
               
-              <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
+              <Badge variant="outline" className="bg-iwl-primary-50 text-architect-primary border-architect-gray-300">
                 {currentQuestion + 1} / {questions.length}
               </Badge>
             </div>
@@ -245,12 +245,12 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
           <Card className="bg-white/80 backdrop-blur-sm border-gray-200 shadow-lg">
             <CardHeader className="pb-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-architect-primary to-architect-secondary rounded-xl flex items-center justify-center">
                   <Target className="w-6 h-6 text-white" />
                 </div>
                 <Badge 
                   variant="outline" 
-                  className="bg-purple-50 text-purple-600 border-purple-200 text-sm font-medium"
+                  className="bg-iwl-primary-50 text-architect-primary border-architect-gray-300 text-sm font-medium"
                 >
                   {question.category} 단계
                 </Badge>
@@ -260,7 +260,7 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
                 {question.question}
               </CardTitle>
 
-              <div className="p-4 bg-gray-50 rounded-lg border-l-4 border-purple-500">
+              <div className="p-4 bg-gray-50 rounded-lg border-l-4 border-architect-primary">
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed">
                   <strong>상황:</strong> {question.scenario}
                 </p>
@@ -275,14 +275,14 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
                     onClick={() => handleOptionSelect(option.id)}
                     className={`w-full p-4 md:p-6 text-left rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
                       selectedOption === option.id
-                        ? 'border-purple-500 bg-purple-50 shadow-md'
+                        ? 'border-architect-primary bg-iwl-primary-50 shadow-md'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-start gap-4">
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                         selectedOption === option.id
-                          ? 'border-purple-500 bg-purple-500'
+                          ? 'border-architect-primary bg-architect-primary'
                           : 'border-gray-300'
                       }`}>
                         {selectedOption === option.id && (
@@ -292,7 +292,7 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
                       
                       <div className="flex-1">
                         <p className={`text-base md:text-lg font-medium mb-2 ${
-                          selectedOption === option.id ? 'text-purple-900' : 'text-gray-900'
+                          selectedOption === option.id ? 'text-architect-gray-900' : 'text-gray-900'
                         }`}>
                           {option.text}
                         </p>
@@ -300,7 +300,7 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
                           variant="outline" 
                           className={`text-xs ${
                             selectedOption === option.id 
-                              ? 'bg-purple-100 text-purple-700 border-purple-300' 
+                              ? 'bg-iwl-primary-50 text-architect-primary border-architect-gray-300' 
                               : 'bg-gray-100 text-gray-600 border-gray-300'
                           }`}
                         >
@@ -317,7 +317,7 @@ export const DiagnosisTestPage: React.FC<DiagnosisTestPageProps> = ({
                   onClick={handleNext}
                   disabled={!selectedOption}
                   size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-architect-primary to-architect-secondary hover:from-architect-primary hover:to-architect-secondary hover:opacity-90 text-white px-8 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {currentQuestion < questions.length - 1 ? '다음 질문' : '진단 완료'}
                   <ChevronRight className="w-5 h-5 ml-2" />

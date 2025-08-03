@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DiagnosisResultPage } from '@/components/diagnosis/DiagnosisResultPage';
+import { secureSessionStorage } from '@/lib/security';
 
 interface TestAnswer {
   questionId: string;
@@ -119,20 +120,19 @@ export default function DiagnosisResultsPageRoute() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const answersData = sessionStorage.getItem('diagnosisAnswers');
-      
-      if (answersData) {
-        try {
-          const answers: TestAnswer[] = JSON.parse(answersData);
-          const calculatedResults = calculateResults(answers);
+      try {
+        const answers = secureSessionStorage.getItem('diagnosisAnswers');
+        
+        if (answers && Array.isArray(answers)) {
+          const calculatedResults = calculateResults(answers as TestAnswer[]);
           setResults(calculatedResults);
-        } catch (error) {
-          console.error('Error parsing diagnosis answers:', error);
+        } else {
+          // No test data found, redirect to diagnosis start
           router.push('/diagnosis');
           return;
         }
-      } else {
-        // No test data found, redirect to diagnosis start
+      } catch (error) {
+        console.error('Error retrieving diagnosis answers:', error);
         router.push('/diagnosis');
         return;
       }
@@ -159,16 +159,16 @@ export default function DiagnosisResultsPageRoute() {
   const handleRetake = () => {
     // Clear previous results
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('diagnosisAnswers');
+      secureSessionStorage.removeItem('diagnosisAnswers');
     }
     router.push('/diagnosis');
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-iwl-primary-50 to-iwl-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="w-16 h-16 border-4 border-architect-primary border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-lg text-gray-600">결과를 불러오는 중...</p>
         </div>
       </div>
@@ -177,12 +177,12 @@ export default function DiagnosisResultsPageRoute() {
 
   if (!results) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-iwl-primary-50 to-iwl-blue-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg text-gray-600 mb-4">진단 결과를 찾을 수 없습니다.</p>
           <button 
             onClick={() => router.push('/diagnosis')}
-            className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+            className="bg-architect-primary text-white px-6 py-3 rounded-lg hover:bg-architect-secondary transition-colors"
           >
             새로 진단하기
           </button>

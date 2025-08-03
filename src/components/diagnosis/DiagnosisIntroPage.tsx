@@ -19,25 +19,25 @@ const features = [
     icon: Brain,
     title: '8단계 사고 분석',
     description: '관찰→질문→분석→연결→상상→종합→평가→실행 단계별 사고력 측정',
-    gradient: 'from-purple-500 to-blue-500'
+    gradient: 'from-architect-primary to-architect-secondary'
   },
   {
     icon: Target,
     title: '개인 맞춤 진단',
     description: '당신만의 고유한 사고 패턴과 강점을 정확히 파악',
-    gradient: 'from-blue-500 to-cyan-500'
+    gradient: 'from-architect-secondary to-architect-ai-primary'
   },
   {
     icon: Lightbulb,
     title: 'AI 기반 분석',
     description: '최신 AI 기술로 정밀하고 객관적인 사고력 평가',
-    gradient: 'from-cyan-500 to-teal-500'
+    gradient: 'from-architect-ai-primary to-architect-ai-secondary'
   },
   {
     icon: TrendingUp,
     title: '성장 로드맵 제공',
     description: '진단 결과를 바탕으로 한 구체적인 발전 방향 제시',
-    gradient: 'from-teal-500 to-green-500'
+    gradient: 'from-architect-ai-secondary to-architect-success'
   }
 ];
 
@@ -52,20 +52,20 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
   onNavigate = () => {}
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-iwl-primary-50 to-iwl-blue-50">
       {/* Hero Section */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <div className="mb-6 md:mb-8">
-              <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-xl">
+              <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-architect-primary to-architect-secondary rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-xl">
                 <Brain className="w-10 h-10 md:w-12 md:h-12 text-white" />
               </div>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-4 md:mb-6 leading-tight">
               나의 사고 유형을 
-              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"> 정확히 </span>
+              <span className="bg-gradient-to-r from-architect-primary to-architect-secondary bg-clip-text text-transparent"> 정확히 </span>
               알아보세요
             </h1>
             
@@ -78,7 +78,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
               <Button 
                 size="lg"
                 onClick={onStartDiagnosis}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+                className="bg-gradient-to-r from-architect-primary to-architect-secondary hover:from-architect-primary hover:to-architect-secondary hover:opacity-90 text-white px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
               >
                 <Brain className="w-6 h-6 mr-3" />
                 무료 진단 시작하기
@@ -88,7 +88,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
                 size="lg"
                 variant="outline"
                 onClick={() => onNavigate('about')}
-                className="border-purple-600 text-purple-600 hover:bg-purple-50 px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-semibold w-full sm:w-auto"
+                className="border-architect-primary text-architect-primary hover:bg-architect-gray-50 px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-semibold w-full sm:w-auto"
               >
                 더 자세히 알아보기
                 <ChevronRight className="w-5 h-5 ml-2" />
@@ -102,7 +102,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
                 return (
                   <div key={index} className="text-center">
                     <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-3 shadow-lg">
-                      <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
+                      <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-architect-primary" />
                     </div>
                     <div className="text-xl md:text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
                     <div className="text-xs md:text-sm text-gray-600">{stat.label}</div>
@@ -136,7 +136,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
                       <IconComponent className="w-7 h-7 md:w-8 md:h-8 text-white" />
                     </div>
                     
-                    <CardTitle className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors leading-tight">
+                    <CardTitle className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-architect-primary transition-colors leading-tight">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
@@ -167,7 +167,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-architect-primary to-architect-secondary rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-xl md:text-2xl font-bold text-white">1</span>
               </div>
               <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">질문 응답</h3>
@@ -177,7 +177,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-architect-secondary to-architect-ai-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-xl md:text-2xl font-bold text-white">2</span>
               </div>
               <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">AI 분석</h3>
@@ -187,7 +187,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-architect-ai-primary to-architect-ai-secondary rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-xl md:text-2xl font-bold text-white">3</span>
               </div>
               <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">결과 확인</h3>
@@ -200,7 +200,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-purple-500 to-blue-500">
+      <section className="py-16 md:py-24 bg-gradient-to-br from-architect-primary to-architect-secondary">
         <div className="container mx-auto">
           <div className="max-w-3xl mx-auto text-center text-white">
             <h2 className="text-3xl md:text-4xl font-black mb-4 md:mb-6">
@@ -214,7 +214,7 @@ export const DiagnosisIntroPage: React.FC<DiagnosisIntroPageProps> = ({
             <Button 
               size="lg"
               onClick={onStartDiagnosis}
-              className="bg-white text-purple-600 hover:bg-gray-100 px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+              className="bg-white text-architect-primary hover:bg-gray-100 px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
             >
               <Brain className="w-6 h-6 mr-3" />
               진단 테스트 시작하기

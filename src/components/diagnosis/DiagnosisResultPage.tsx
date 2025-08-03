@@ -53,8 +53,8 @@ const thinkingStyles: Record<string, ThinkingStyle> = {
     description: '논리적이고 구조적인 사고로 문제를 해결하는 전략가입니다.',
     strength: '복잡한 문제를 단계별로 분해하여 체계적으로 해결',
     weakness: '때로는 과도한 분석으로 실행이 늦어질 수 있음',
-    color: 'text-blue-600',
-    gradient: 'from-blue-500 to-cyan-500',
+    color: 'text-architect-secondary',
+    gradient: 'from-architect-secondary to-architect-ai-primary',
     icon: BarChart3
   },
   '창의적탐험가': {
@@ -62,8 +62,8 @@ const thinkingStyles: Record<string, ThinkingStyle> = {
     description: '새로운 아이디어와 혁신적인 해결책을 찾아내는 혁신가입니다.',
     strength: '독창적인 아이디어 발굴과 창의적 문제 해결',
     weakness: '때로는 실현 가능성을 간과할 수 있음',
-    color: 'text-purple-600',
-    gradient: 'from-purple-500 to-pink-500',
+    color: 'text-architect-primary',
+    gradient: 'from-architect-primary to-architect-accent',
     icon: Lightbulb
   },
   '실용적실행가': {
@@ -71,8 +71,8 @@ const thinkingStyles: Record<string, ThinkingStyle> = {
     description: '아이디어를 현실로 만드는 뛰어난 실행력을 가진 행동가입니다.',
     strength: '빠른 의사결정과 효과적인 실행력',
     weakness: '때로는 충분한 계획 없이 성급하게 행동할 수 있음',
-    color: 'text-green-600',
-    gradient: 'from-green-500 to-teal-500',
+    color: 'text-architect-success',
+    gradient: 'from-architect-success to-architect-ai-secondary',
     icon: Target
   },
   '협력적조율가': {
@@ -80,8 +80,8 @@ const thinkingStyles: Record<string, ThinkingStyle> = {
     description: '팀워크와 소통을 통해 시너지를 만들어내는 리더입니다.',
     strength: '뛰어난 소통 능력과 팀 조율 역량',
     weakness: '때로는 결정을 내리는데 시간이 오래 걸릴 수 있음',
-    color: 'text-orange-600',
-    gradient: 'from-orange-500 to-red-500',
+    color: 'text-architect-accent',
+    gradient: 'from-architect-accent to-architect-error',
     icon: Users
   }
 };
@@ -140,9 +140,9 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-iwl-primary-50 to-iwl-blue-50">
       {/* Header */}
-      <section className="py-12 md:py-16 bg-gradient-to-br from-purple-500 to-blue-500 text-white relative overflow-hidden">
+      <section className="py-12 md:py-16 bg-gradient-to-br from-architect-primary to-architect-secondary text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-32 h-32 rounded-full bg-white/20"></div>
           <div className="absolute bottom-10 right-10 w-24 h-24 rounded-full bg-white/15"></div>
@@ -202,7 +202,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
                     activeTab === tab.id
-                      ? 'border-purple-500 text-purple-600'
+                      ? 'border-architect-primary text-architect-primary'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
@@ -225,7 +225,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
                 <CardTitle className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                   종합 사고력 지수
                 </CardTitle>
-                <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-architect-primary to-architect-secondary rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-4xl md:text-5xl font-black text-white">{overallScore}</span>
                 </div>
                 <p className="text-lg text-gray-600">
@@ -243,7 +243,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
                       <PrimaryIcon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 mb-2">
+                      <Badge variant="outline" className="bg-iwl-primary-50 text-architect-primary border-architect-gray-300 mb-2">
                         주요 유형
                       </Badge>
                       <CardTitle className={`text-xl font-bold ${primaryStyle.color}`}>
@@ -276,7 +276,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
                       <SecondaryIcon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 mb-2">
+                      <Badge variant="outline" className="bg-iwl-blue-50 text-architect-secondary border-architect-gray-300 mb-2">
                         보조 유형
                       </Badge>
                       <CardTitle className={`text-xl font-bold ${secondaryStyle.color}`}>
@@ -327,7 +327,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
                           <p className="text-sm text-gray-600">{category.description}</p>
                         </div>
                         <div className="text-right">
-                          <span className="text-2xl font-bold text-purple-600">{score}</span>
+                          <span className="text-2xl font-bold text-architect-primary">{score}</span>
                           <span className="text-sm text-gray-500">/100</span>
                         </div>
                       </div>
@@ -356,7 +356,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
                 <div className="space-y-4">
                   {results.recommendations.map((recommendation, index) => (
                     <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 text-architect-success flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <p className="text-gray-900 font-medium">{recommendation}</p>
                       </div>
@@ -384,7 +384,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
                 <div className="space-y-4">
                   {results.growthAreas.map((area, index) => (
                     <div key={index} className="flex items-center gap-3 p-4 border border-orange-200 bg-orange-50 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                      <TrendingUp className="w-5 h-5 text-architect-accent flex-shrink-0" />
                       <span className="text-gray-900 font-medium">{area}</span>
                     </div>
                   ))}
@@ -399,7 +399,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
           <Button
             onClick={() => onNavigate('courses')}
             size="lg"
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 font-semibold"
+            className="bg-gradient-to-r from-architect-primary to-architect-secondary hover:from-architect-primary hover:to-architect-secondary hover:opacity-90 text-white px-8 py-4 font-semibold"
           >
             <BookOpen className="w-5 h-5 mr-2" />
             추천 강의 보기
@@ -410,7 +410,7 @@ export const DiagnosisResultPage: React.FC<DiagnosisResultPageProps> = ({
             onClick={onRetake}
             size="lg"
             variant="outline"
-            className="border-purple-600 text-purple-600 hover:bg-purple-50 px-8 py-4 font-semibold"
+            className="border-architect-primary text-architect-primary hover:bg-architect-gray-50 px-8 py-4 font-semibold"
           >
             <Brain className="w-5 h-5 mr-2" />
             다시 진단하기
