@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Github, Chrome, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ interface FormData {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -26,8 +27,25 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string>('/dashboard');
 
   const language = 'ko'; // Default language
+
+  // 리다이렉트 URL 처리
+  useEffect(() => {
+    const redirect = searchParams.get('redirect');
+    if (redirect) {
+      try {
+        const decodedUrl = decodeURIComponent(redirect);
+        // 안전한 리다이렉트인지 확인 (내부 URL만 허용)
+        if (decodedUrl.startsWith('/') && !decodedUrl.startsWith('//')) {
+          setRedirectUrl(decodedUrl);
+        }
+      } catch (e) {
+        console.warn('Invalid redirect URL:', redirect);
+      }
+    }
+  }, [searchParams]);
 
   // 다국어 콘텐츠
   const content = {
@@ -103,9 +121,9 @@ export default function LoginPage() {
       }
       
       if (data.user) {
-        setSuccess('로그인 성공! 대시보드로 이동합니다.');
+        setSuccess('로그인 성공! 페이지로 이동합니다.');
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push(redirectUrl);
           router.refresh(); // 세션 상태 새로고침
         }, 1000);
       }

@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { redirect } from 'next/navigation';
-import DashboardPage from '@/components/user/DashboardPage';
+import PaymentPage from '@/components/user/PaymentPage';
 import { useAuth } from '@/lib/supabase/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
 
-export default function DashboardPageWrapper() {
+export default function PaymentPageWrapper() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [isValidating, setIsValidating] = useState(true);
@@ -19,7 +19,8 @@ export default function DashboardPageWrapper() {
     if (!authLoading) {
       if (!user) {
         // 로그인하지 않은 경우 로그인 페이지로 리디렉션
-        redirect('/auth/login');
+        const currentUrl = window.location.pathname + window.location.search;
+        redirect(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`);
       } else {
         setIsValidating(false);
       }
@@ -32,7 +33,7 @@ export default function DashboardPageWrapper() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-architect-gray-100/30 via-white to-architect-primary/5">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-architect-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-body text-architect-gray-700">대시보드를 준비하고 있습니다...</p>
+          <p className="text-body text-architect-gray-700">결제 페이지를 준비하고 있습니다...</p>
         </div>
       </div>
     );
@@ -41,20 +42,20 @@ export default function DashboardPageWrapper() {
   // 네비게이션 핸들러
   const handleNavigate = (page: string, params?: any) => {
     switch (page) {
+      case 'dashboard':
+        router.push('/dashboard');
+        break;
+      case 'payment-confirmation':
+        // URL 파라미터로 결제 정보 전달
+        const queryParams = new URLSearchParams();
+        if (params?.plan) queryParams.set('plan', params.plan);
+        if (params?.amount) queryParams.set('amount', params.amount.toString());
+        if (params?.paymentMethod) queryParams.set('paymentMethod', params.paymentMethod);
+        
+        router.push(`/payment-confirmation?${queryParams.toString()}`);
+        break;
       case 'courses':
         router.push('/courses');
-        break;
-      case 'diagnosis':
-        router.push('/diagnosis');
-        break;
-      case 'journal':
-        router.push('/journal');
-        break;
-      case 'settings':
-        router.push('/settings');
-        break;
-      case 'payment':
-        router.push('/payment');
         break;
       case 'home':
         router.push('/');
@@ -67,7 +68,7 @@ export default function DashboardPageWrapper() {
 
   try {
     return (
-      <DashboardPage
+      <PaymentPage
         user={user}
         onNavigate={handleNavigate}
       />
@@ -85,14 +86,14 @@ export default function DashboardPageWrapper() {
               오류 발생
             </h2>
             <p className="text-body text-architect-gray-700 mb-6">
-              {err instanceof Error ? err.message : '대시보드를 불러오는 중 문제가 발생했습니다.'}
+              {err instanceof Error ? err.message : '결제 페이지를 불러오는 중 문제가 발생했습니다.'}
             </p>
             <div className="flex flex-col gap-3">
               <Button 
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/dashboard')}
                 className="w-full"
               >
-                홈으로 돌아가기
+                대시보드로 돌아가기
               </Button>
               <Button 
                 variant="outline"
