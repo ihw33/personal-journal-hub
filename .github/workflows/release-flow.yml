@@ -34,6 +34,13 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      - name: Debug - Check Event
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Actor: ${{ github.actor }}"
+          
       - name: Checkout code
         uses: actions/checkout@v3
         with:
@@ -48,6 +55,13 @@ jobs:
           config-name: release-drafter.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Debug - Release Output
+        run: |
+          echo "Release ID: ${{ steps.release.outputs.id }}"
+          echo "Release Name: ${{ steps.release.outputs.name }}"
+          echo "Release Tag: ${{ steps.release.outputs.tag_name }}"
+          echo "Release URL: ${{ steps.release.outputs.html_url }}"
 
       - name: Send Release Slack Notification
         if: steps.release.outputs.tag_name != '' # 새 릴리즈가 생성되었을 때만 실행
