@@ -234,7 +234,14 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
                         style={{ width: `${course.overallProgress}%` }}
                       />
                     </div>
-                    <Button className="w-full bg-white text-architect-primary hover:bg-white/90">
+                    <Button 
+                      className="w-full bg-white text-architect-primary hover:bg-white/90"
+                      onClick={() => {
+                        // 강의 세션 페이지로 이동
+                        const sessionUrl = `/course-session?courseId=${courseId}&sessionId=session-1-1&targetAudience=youth`;
+                        window.location.href = sessionUrl;
+                      }}
+                    >
                       <Play className="w-4 h-4 mr-2" />
                       학습 계속하기
                     </Button>
