@@ -247,12 +247,24 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
                     </Button>
                   </div>
                 ) : (
-                  <Button 
-                    onClick={handleEnroll}
-                    className="w-full bg-white text-architect-primary hover:bg-white/90"
-                  >
-                    지금 시작하기
-                  </Button>
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={handleEnroll}
+                      className="w-full bg-white text-architect-primary hover:bg-white/90"
+                    >
+                      지금 시작하기
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        // 결제 페이지로 이동
+                        window.location.href = '/payment';
+                      }}
+                      variant="outline"
+                      className="w-full border-white text-white hover:bg-white/10"
+                    >
+                      프리미엄으로 업그레이드
+                    </Button>
+                  </div>
                 )}
               </Card>
             </div>

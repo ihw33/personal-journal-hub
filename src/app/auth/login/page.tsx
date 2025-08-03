@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Github, Chrome, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -9,14 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { auth, getAuthErrorMessage, PASSWORD_MIN_LENGTH } from '@/lib/supabase/client';
+import { getSafeRedirectFromParams } from '@/lib/security/redirectSecurity';
 
 interface FormData {
   email: string;
   password: string;
 }
 
-export default function LoginPage() {
+// LoginContent 컴포넌트 - useSearchParams 사용
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -26,8 +29,15 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string>('/dashboard');
 
   const language = 'ko'; // Default language
+
+  // 리다이렉트 URL 처리
+  useEffect(() => {
+    const safeRedirectUrl = getSafeRedirectFromParams(searchParams);
+    setRedirectUrl(safeRedirectUrl);
+  }, [searchParams]);
 
   // 다국어 콘텐츠
   const content = {
@@ -103,9 +113,9 @@ export default function LoginPage() {
       }
       
       if (data.user) {
-        setSuccess('로그인 성공! 대시보드로 이동합니다.');
+        setSuccess('로그인 성공! 페이지로 이동합니다.');
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push(redirectUrl);
           router.refresh(); // 세션 상태 새로고침
         }, 1000);
       }
@@ -422,5 +432,26 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 로딩 컴포넌트
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-architect-gray-100/30 via-white to-architect-primary/5 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-architect-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-body text-architect-gray-700">로그인 페이지를 준비하고 있습니다...</p>
+      </div>
+    </div>
+  );
+}
+
+// 메인 컴포넌트 - Suspense 경계 제공
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
   );
 }

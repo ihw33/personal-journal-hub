@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { redirect } from 'next/navigation';
 import CourseSessionPage from '@/components/course/CourseSessionPage';
@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/supabase/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import { getCurrentSafeUrl } from '@/lib/security/redirectSecurity';
 
 // 타입 정의
 type TargetAudience = 'junior' | 'youth' | 'pro';
@@ -47,7 +48,8 @@ function validateParams(searchParams: URLSearchParams): SessionParams {
   };
 }
 
-export default function CourseSessionPageWrapper() {
+// CourseSessionContent 컴포넌트 - useSearchParams 사용
+function CourseSessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -59,8 +61,8 @@ export default function CourseSessionPageWrapper() {
     if (!authLoading) {
       if (!user) {
         // 로그인하지 않은 경우 로그인 페이지로 리디렉션
-        const currentUrl = window.location.pathname + window.location.search;
-        redirect(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`);
+        const safeRedirectUrl = getCurrentSafeUrl();
+        redirect(`/auth/login?redirect=${encodeURIComponent(safeRedirectUrl)}`);
       } else {
         setIsValidating(false);
       }
@@ -149,4 +151,25 @@ export default function CourseSessionPageWrapper() {
       </div>
     );
   }
+}
+
+// 로딩 컴포넌트
+function CourseSessionLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-architect-gray-100/30 via-white to-architect-primary/5">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-architect-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-body text-architect-gray-700">세션을 준비하고 있습니다...</p>
+      </div>
+    </div>
+  );
+}
+
+// 메인 컴포넌트 - Suspense 경계 제공
+export default function CourseSessionPageWrapper() {
+  return (
+    <Suspense fallback={<CourseSessionLoading />}>
+      <CourseSessionContent />
+    </Suspense>
+  );
 }
