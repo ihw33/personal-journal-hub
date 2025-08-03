@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { auth, getAuthErrorMessage } from '@/lib/supabase/client';
+import { auth, getAuthErrorMessage, PASSWORD_MIN_LENGTH } from '@/lib/supabase/client';
 
 interface FormData {
   name: string;
@@ -65,7 +65,7 @@ export default function SignupPage() {
       secureSignup: '안전한 회원가입',
       namePlaceholder: '홍길동',
       emailPlaceholder: 'your@email.com',
-      passwordPlaceholder: '8자 이상의 비밀번호',
+      passwordPlaceholder: `${PASSWORD_MIN_LENGTH}자 이상의 비밀번호`,
       confirmPasswordPlaceholder: '비밀번호를 다시 입력하세요',
       agreements: {
         terms: '서비스 이용약관에 동의합니다',
@@ -90,7 +90,7 @@ export default function SignupPage() {
         emailRequired: '이메일을 입력해주세요',
         emailInvalid: '올바른 이메일 형식을 입력해주세요',
         passwordRequired: '비밀번호를 입력해주세요',
-        passwordMinLength: '비밀번호는 최소 8자 이상이어야 합니다',
+        passwordMinLength: `비밀번호는 최소 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다`,
         passwordWeak: '비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다',
         confirmPasswordRequired: '비밀번호 확인을 입력해주세요',
         passwordMismatch: '비밀번호가 일치하지 않습니다',
@@ -105,7 +105,7 @@ export default function SignupPage() {
   // 비밀번호 강도 검사
   const getPasswordStrength = (password: string) => {
     let strength = 0;
-    if (password.length >= 8) strength++;
+    if (password.length >= PASSWORD_MIN_LENGTH) strength++;
     if (/[a-zA-Z]/.test(password)) strength++;
     if (/\d/.test(password)) strength++;
     if (/[^a-zA-Z\d]/.test(password)) strength++;
@@ -130,7 +130,7 @@ export default function SignupPage() {
     
     if (!formData.password) {
       errors.push(t.validation.passwordRequired);
-    } else if (formData.password.length < 8) {
+    } else if (formData.password.length < PASSWORD_MIN_LENGTH) {
       errors.push(t.validation.passwordMinLength);
     } else if (getPasswordStrength(formData.password) < 3) {
       errors.push(t.validation.passwordWeak);

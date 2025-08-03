@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { auth, getAuthErrorMessage } from '@/lib/supabase/client';
+import { auth, getAuthErrorMessage, PASSWORD_MIN_LENGTH } from '@/lib/supabase/client';
 
 interface FormData {
   email: string;
@@ -53,7 +53,7 @@ export default function LoginPage() {
         emailRequired: '이메일을 입력해주세요',
         emailInvalid: '올바른 이메일 형식을 입력해주세요',
         passwordRequired: '비밀번호를 입력해주세요',
-        passwordMinLength: '비밀번호는 최소 8자 이상이어야 합니다'
+        passwordMinLength: `비밀번호는 최소 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다`
       }
     }
   };
@@ -72,7 +72,7 @@ export default function LoginPage() {
     
     if (!formData.password) {
       errors.push(t.validation.passwordRequired);
-    } else if (formData.password.length < 8) {
+    } else if (formData.password.length < PASSWORD_MIN_LENGTH) {
       errors.push(t.validation.passwordMinLength);
     }
     
