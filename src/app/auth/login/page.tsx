@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { auth, getAuthErrorMessage, PASSWORD_MIN_LENGTH } from '@/lib/supabase/client';
+import { getSafeRedirectFromParams } from '@/lib/security/redirectSecurity';
 
 interface FormData {
   email: string;
@@ -33,18 +34,8 @@ export default function LoginPage() {
 
   // 리다이렉트 URL 처리
   useEffect(() => {
-    const redirect = searchParams.get('redirect');
-    if (redirect) {
-      try {
-        const decodedUrl = decodeURIComponent(redirect);
-        // 안전한 리다이렉트인지 확인 (내부 URL만 허용)
-        if (decodedUrl.startsWith('/') && !decodedUrl.startsWith('//')) {
-          setRedirectUrl(decodedUrl);
-        }
-      } catch (e) {
-        console.warn('Invalid redirect URL:', redirect);
-      }
-    }
+    const safeRedirectUrl = getSafeRedirectFromParams(searchParams);
+    setRedirectUrl(safeRedirectUrl);
   }, [searchParams]);
 
   // 다국어 콘텐츠

@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/supabase/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import { getCurrentSafeUrl } from '@/lib/security/redirectSecurity';
 
 export default function PaymentPageWrapper() {
   const router = useRouter();
@@ -19,8 +20,8 @@ export default function PaymentPageWrapper() {
     if (!authLoading) {
       if (!user) {
         // 로그인하지 않은 경우 로그인 페이지로 리디렉션
-        const currentUrl = window.location.pathname + window.location.search;
-        redirect(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`);
+        const safeRedirectUrl = getCurrentSafeUrl();
+        redirect(`/auth/login?redirect=${encodeURIComponent(safeRedirectUrl)}`);
       } else {
         setIsValidating(false);
       }

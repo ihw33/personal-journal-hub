@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 import { 
@@ -16,7 +16,8 @@ import {
   BookOpen,
   Brain,
   Sparkles,
-  Crown
+  Crown,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,6 +108,52 @@ const pricingPlans: PricingPlan[] = [
   }
 ];
 
+// 입력값 새니타이징 함수
+const sanitizeInput = (input: string): string => {
+  return input.replace(/[<>\"']/g, '').trim();
+};
+
+// 신용카드 번호 유효성 검사
+const validateCardNumber = (cardNumber: string): boolean => {
+  const cleaned = cardNumber.replace(/\s/g, '');
+  return /^[0-9]{13,19}$/.test(cleaned);
+};
+
+// CVV 유효성 검사
+const validateCVV = (cvv: string): boolean => {
+  return /^[0-9]{3,4}$/.test(cvv);
+};
+
+// 만료일 유효성 검사 (MM/YY 형식)
+const validateExpiryDate = (expiryDate: string): boolean => {
+  const regex = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
+  if (!regex.test(expiryDate)) return false;
+  
+  const [month, year] = expiryDate.split('/');
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear() % 100;
+  const currentMonth = currentDate.getMonth() + 1;
+  
+  const expYear = parseInt(year);
+  const expMonth = parseInt(month);
+  
+  if (expYear < currentYear) return false;
+  if (expYear === currentYear && expMonth < currentMonth) return false;
+  
+  return true;
+};
+
+// 카드 소유자 이름 유효성 검사
+const validateCardHolder = (name: string): boolean => {
+  const cleaned = name.trim();
+  return cleaned.length >= 2 && /^[a-zA-Z가-힣\s]+$/.test(cleaned);
+};
+
+// 이메일 유효성 검사
+const validateEmail = (email: string): boolean => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
 export const PaymentPage: React.FC<PaymentPageProps> = ({
   user,
   onNavigate,
@@ -124,8 +171,91 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
     email: user?.email || '',
     agreement: false
   });
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [touched, setTouched] = useState<{[key: string]: boolean}>({});
 
   const selectedPlanData = pricingPlans.find(plan => plan.id === currentPlan)!;
+
+  // 실시간 유효성 검사
+  const validateField = (field: string, value: string): string => {
+    const sanitized = sanitizeInput(value);
+    
+    switch (field) {
+      case 'cardNumber':
+        if (!sanitized) return '카드 번호를 입력해주세요.';
+        if (!validateCardNumber(sanitized)) return '올바른 카드 번호를 입력해주세요. (13-19자리 숫자)';
+        break;
+      case 'expiryDate':
+        if (!sanitized) return '만료일을 입력해주세요.';
+        if (!validateExpiryDate(sanitized)) return '올바른 만료일을 입력해주세요. (MM/YY)';
+        break;
+      case 'cvv':
+        if (!sanitized) return 'CVV를 입력해주세요.';
+        if (!validateCVV(sanitized)) return '올바른 CVV를 입력해주세요. (3-4자리 숫자)';
+        break;
+      case 'cardHolder':
+        if (!sanitized) return '카드 소유자 이름을 입력해주세요.';
+        if (!validateCardHolder(sanitized)) return '올바른 이름을 입력해주세요. (2자 이상, 문자만)';
+        break;
+      case 'email':
+        if (!sanitized) return '이메일을 입력해주세요.';
+        if (!validateEmail(sanitized)) return '올바른 이메일 형식을 입력해주세요.';
+        break;
+    }
+    return '';
+  };
+
+  // 모든 필드 유효성 검사
+  const validateAllFields = (): boolean => {
+    const errors: {[key: string]: string} = {};
+    
+    Object.keys(paymentForm).forEach(field => {
+      if (field !== 'agreement') {
+        const error = validateField(field, paymentForm[field as keyof typeof paymentForm] as string);
+        if (error) errors[field] = error;
+      }
+    });
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // 입력값 변경 처리
+  const handleInputChange = (field: string, value: string) => {
+    const sanitized = sanitizeInput(value);
+    
+    // 카드 번호 포맷팅 (4자리마다 공백 추가)
+    let formattedValue = sanitized;
+    if (field === 'cardNumber') {
+      formattedValue = sanitized.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+    }
+    // 만료일 포맷팅 (MM/YY)
+    else if (field === 'expiryDate') {
+      formattedValue = sanitized.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').substring(0, 5);
+    }
+    // CVV는 숫자만
+    else if (field === 'cvv') {
+      formattedValue = sanitized.replace(/\D/g, '').substring(0, 4);
+    }
+    
+    setPaymentForm(prev => ({
+      ...prev,
+      [field]: formattedValue
+    }));
+    
+    // 터치 상태 업데이트
+    setTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+    
+    // 실시간 유효성 검사
+    const error = validateField(field, formattedValue);
+    setValidationErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+  };
 
   const handleNavigation = (page: string, params?: any) => {
     if (onNavigate) {
@@ -145,22 +275,39 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   };
 
   const handlePayment = async () => {
+    // 이용약관 동의 확인
     if (!paymentForm.agreement) {
-      alert('이용약관에 동의해주세요.');
+      setValidationErrors(prev => ({
+        ...prev,
+        agreement: '이용약관에 동의해주세요.'
+      }));
+      return;
+    }
+
+    // 전체 필드 유효성 검사
+    if (!validateAllFields()) {
       return;
     }
 
     setIsProcessing(true);
+    setValidationErrors({});
     
-    // 결제 처리 시뮬레이션
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      // 결제 처리 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       handleNavigation('payment-confirmation', {
         plan: currentPlan,
         amount: selectedPlanData.price,
         paymentMethod
       });
-    }, 2000);
+    } catch (error) {
+      setValidationErrors({
+        payment: '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -283,6 +430,16 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* 전체 에러 메시지 */}
+                {validationErrors.payment && (
+                  <div className="p-4 bg-architect-error/10 border border-architect-error/20 rounded-lg flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-architect-error flex-shrink-0" />
+                    <span className="text-small text-architect-error">
+                      {validationErrors.payment}
+                    </span>
+                  </div>
+                )}
+
                 {/* 이메일 */}
                 <div className="space-y-2">
                   <Label htmlFor="email">이메일 주소</Label>
@@ -290,59 +447,119 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                     id="email"
                     type="email"
                     value={paymentForm.email}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="이메일을 입력하세요"
+                    className={`${validationErrors.email && touched.email ? 'border-architect-error' : ''}`}
                   />
+                  {validationErrors.email && touched.email && (
+                    <p className="text-xs text-architect-error flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {validationErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* 카드 정보 */}
                 <div className="space-y-4">
                   <Label>카드 정보</Label>
                   <div className="grid grid-cols-1 gap-4">
-                    <Input
-                      placeholder="카드 번호 (1234 5678 9012 3456)"
-                      value={paymentForm.cardNumber}
-                      onChange={(e) => setPaymentForm(prev => ({ ...prev, cardNumber: e.target.value }))}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
                       <Input
-                        placeholder="MM/YY"
-                        value={paymentForm.expiryDate}
-                        onChange={(e) => setPaymentForm(prev => ({ ...prev, expiryDate: e.target.value }))}
+                        placeholder="카드 번호 (1234 5678 9012 3456)"
+                        value={paymentForm.cardNumber}
+                        onChange={(e) => handleInputChange('cardNumber', e.target.value)}
+                        maxLength={19}
+                        className={`${validationErrors.cardNumber && touched.cardNumber ? 'border-architect-error' : ''}`}
                       />
-                      <Input
-                        placeholder="CVV"
-                        value={paymentForm.cvv}
-                        onChange={(e) => setPaymentForm(prev => ({ ...prev, cvv: e.target.value }))}
-                      />
+                      {validationErrors.cardNumber && touched.cardNumber && (
+                        <p className="text-xs text-architect-error flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {validationErrors.cardNumber}
+                        </p>
+                      )}
                     </div>
-                    <Input
-                      placeholder="카드 소유자 이름"
-                      value={paymentForm.cardHolder}
-                      onChange={(e) => setPaymentForm(prev => ({ ...prev, cardHolder: e.target.value }))}
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Input
+                          placeholder="MM/YY"
+                          value={paymentForm.expiryDate}
+                          onChange={(e) => handleInputChange('expiryDate', e.target.value)}
+                          maxLength={5}
+                          className={`${validationErrors.expiryDate && touched.expiryDate ? 'border-architect-error' : ''}`}
+                        />
+                        {validationErrors.expiryDate && touched.expiryDate && (
+                          <p className="text-xs text-architect-error flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors.expiryDate}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <Input
+                          placeholder="CVV"
+                          value={paymentForm.cvv}
+                          onChange={(e) => handleInputChange('cvv', e.target.value)}
+                          maxLength={4}
+                          type="password"
+                          className={`${validationErrors.cvv && touched.cvv ? 'border-architect-error' : ''}`}
+                        />
+                        {validationErrors.cvv && touched.cvv && (
+                          <p className="text-xs text-architect-error flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors.cvv}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Input
+                        placeholder="카드 소유자 이름"
+                        value={paymentForm.cardHolder}
+                        onChange={(e) => handleInputChange('cardHolder', e.target.value)}
+                        className={`${validationErrors.cardHolder && touched.cardHolder ? 'border-architect-error' : ''}`}
+                      />
+                      {validationErrors.cardHolder && touched.cardHolder && (
+                        <p className="text-xs text-architect-error flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {validationErrors.cardHolder}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* 이용약관 동의 */}
-                <div className="flex items-start gap-3 p-4 bg-architect-gray-50 rounded-lg">
-                  <input
-                    type="checkbox"
-                    id="agreement"
-                    checked={paymentForm.agreement}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, agreement: e.target.checked }))}
-                    className="mt-1"
-                  />
-                  <div>
-                    <Label htmlFor="agreement" className="text-small">
-                      <span className="text-architect-gray-900">
-                        이용약관 및 개인정보처리방침에 동의합니다
-                      </span>
-                    </Label>
-                    <p className="text-xs text-architect-gray-600 mt-1">
-                      결제 진행을 위해 약관 동의가 필요합니다
-                    </p>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-3 p-4 bg-architect-gray-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="agreement"
+                      checked={paymentForm.agreement}
+                      onChange={(e) => {
+                        setPaymentForm(prev => ({ ...prev, agreement: e.target.checked }));
+                        if (validationErrors.agreement) {
+                          setValidationErrors(prev => ({ ...prev, agreement: '' }));
+                        }
+                      }}
+                      className="mt-1"
+                    />
+                    <div>
+                      <Label htmlFor="agreement" className="text-small">
+                        <span className="text-architect-gray-900">
+                          이용약관 및 개인정보처리방침에 동의합니다
+                        </span>
+                      </Label>
+                      <p className="text-xs text-architect-gray-600 mt-1">
+                        결제 진행을 위해 약관 동의가 필요합니다
+                      </p>
+                    </div>
                   </div>
+                  {validationErrors.agreement && (
+                    <p className="text-xs text-architect-error flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {validationErrors.agreement}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
