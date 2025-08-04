@@ -15,6 +15,16 @@ DECLARE
 BEGIN
   -- 트랜잭션 시작 (함수 내부에서 자동으로 처리됨)
   
+  -- 0. 중복 처리 방지: 동일한 payment_intent_id가 이미 처리되었는지 확인
+  IF EXISTS (SELECT 1 FROM payment_history WHERE payment_intent_id = p_payment_intent_id) THEN
+    -- 이미 처리된 결제이면 성공 상태로 반환 (중복 처리 방지)
+    RETURN json_build_object(
+      'success', true,
+      'message', 'Payment already processed (duplicate prevented)',
+      'duplicate', true
+    );
+  END IF;
+  
   -- 1. 기존 활성 구독이 있는지 확인
   SELECT id INTO v_subscription_id
   FROM subscriptions 
