@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { 
   CreditCard, 
   Check, 
@@ -108,50 +110,178 @@ const pricingPlans: PricingPlan[] = [
   }
 ];
 
+// Stripe 초기화
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
 // 입력값 새니타이징 함수
 const sanitizeInput = (input: string): string => {
   return input.replace(/[<>\"']/g, '').trim();
 };
 
-// 신용카드 번호 유효성 검사
-const validateCardNumber = (cardNumber: string): boolean => {
-  const cleaned = cardNumber.replace(/\s/g, '');
-  return /^[0-9]{13,19}$/.test(cleaned);
-};
-
-// CVV 유효성 검사
-const validateCVV = (cvv: string): boolean => {
-  return /^[0-9]{3,4}$/.test(cvv);
-};
-
-// 만료일 유효성 검사 (MM/YY 형식)
-const validateExpiryDate = (expiryDate: string): boolean => {
-  const regex = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
-  if (!regex.test(expiryDate)) return false;
-  
-  const [month, year] = expiryDate.split('/');
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear() % 100;
-  const currentMonth = currentDate.getMonth() + 1;
-  
-  const expYear = parseInt(year);
-  const expMonth = parseInt(month);
-  
-  if (expYear < currentYear) return false;
-  if (expYear === currentYear && expMonth < currentMonth) return false;
-  
-  return true;
-};
-
-// 카드 소유자 이름 유효성 검사
-const validateCardHolder = (name: string): boolean => {
-  const cleaned = name.trim();
-  return cleaned.length >= 2 && /^[a-zA-Z가-힣\s]+$/.test(cleaned);
-};
-
 // 이메일 유효성 검사
 const validateEmail = (email: string): boolean => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+// Stripe 결제 폼 컴포넌트
+const StripePaymentForm: React.FC<{
+  selectedPlan: PricingPlan;
+  onPaymentSuccess: (paymentIntent: any) => void;
+  onPaymentError: (error: string) => void;
+  paymentForm: { email: string; agreement: boolean };
+  setPaymentForm: React.Dispatch<React.SetStateAction<{ email: string; agreement: boolean }>>;
+  validationErrors: {[key: string]: string};
+  setValidationErrors: React.Dispatch<React.SetStateAction<{[key: string]: string}>>
+}> = ({ selectedPlan, onPaymentSuccess, onPaymentError, paymentForm, setPaymentForm, validationErrors, setValidationErrors }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    // 이용약관 동의 확인
+    if (!paymentForm.agreement) {
+      setValidationErrors(prev => ({
+        ...prev,
+        agreement: '이용약관에 동의해주세요.'
+      }));
+      return;
+    }
+
+    // 이메일 검증
+    const sanitizedEmail = sanitizeInput(paymentForm.email);
+    if (!sanitizedEmail || !validateEmail(sanitizedEmail)) {
+      setValidationErrors(prev => ({
+        ...prev,
+        email: '올바른 이메일을 입력해주세요.'
+      }));
+      return;
+    }
+
+    setIsProcessing(true);
+    setValidationErrors({});
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/payment-confirmation`,
+          receipt_email: sanitizedEmail,
+        },
+        redirect: 'if_required'
+      });
+
+      if (error) {
+        onPaymentError(error.message || '결제 처리 중 오류가 발생했습니다.');
+      } else if (paymentIntent) {
+        onPaymentSuccess(paymentIntent);
+      }
+    } catch (err) {
+      onPaymentError('결제 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="space-y-6">
+        {/* 이메일 */}
+        <div className="space-y-2">
+          <Label htmlFor="email">이메일 주소</Label>
+          <Input
+            id="email"
+            type="email"
+            value={paymentForm.email}
+            onChange={(e) => {
+              const sanitized = sanitizeInput(e.target.value);
+              setPaymentForm(prev => ({ ...prev, email: sanitized }));
+              if (validationErrors.email) {
+                setValidationErrors(prev => ({ ...prev, email: '' }));
+              }
+            }}
+            placeholder="이메일을 입력하세요"
+            className={validationErrors.email ? 'border-architect-error' : ''}
+          />
+          {validationErrors.email && (
+            <p className="text-xs text-architect-error flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {validationErrors.email}
+            </p>
+          )}
+        </div>
+
+        {/* Stripe Payment Element */}
+        <div className="space-y-2">
+          <Label>결제 정보</Label>
+          <div className="p-4 border border-architect-gray-200 rounded-lg">
+            <PaymentElement 
+              options={{
+                layout: 'tabs'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* 이용약관 동의 */}
+        <div className="space-y-2">
+          <div className="flex items-start gap-3 p-4 bg-architect-gray-50 rounded-lg">
+            <input
+              type="checkbox"
+              id="agreement"
+              checked={paymentForm.agreement}
+              onChange={(e) => {
+                setPaymentForm(prev => ({ ...prev, agreement: e.target.checked }));
+                if (validationErrors.agreement) {
+                  setValidationErrors(prev => ({ ...prev, agreement: '' }));
+                }
+              }}
+              className="mt-1"
+            />
+            <div>
+              <Label htmlFor="agreement" className="text-small">
+                <span className="text-architect-gray-900">
+                  이용약관 및 개인정보처리방침에 동의합니다
+                </span>
+              </Label>
+              <p className="text-xs text-architect-gray-600 mt-1">
+                결제 진행을 위해 약관 동의가 필요합니다
+              </p>
+            </div>
+          </div>
+          {validationErrors.agreement && (
+            <p className="text-xs text-architect-error flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {validationErrors.agreement}
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          disabled={!stripe || isProcessing || !paymentForm.agreement}
+          className="w-full h-12 bg-architect-primary hover:bg-architect-primary/90"
+        >
+          {isProcessing ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              결제 처리 중...
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              ₩{Math.round(selectedPlan.price * 1.1).toLocaleString()} 안전하게 결제하기
+            </div>
+          )}
+        </Button>
+      </div>
+    </form>
+  );
 };
 
 export const PaymentPage: React.FC<PaymentPageProps> = ({
@@ -164,97 +294,50 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'account'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardHolder: '',
     email: user?.email || '',
     agreement: false
   });
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
-  const [touched, setTouched] = useState<{[key: string]: boolean}>({});
+  const [clientSecret, setClientSecret] = useState<string>('');
+  const [stripeLoading, setStripeLoading] = useState(false);
 
   const selectedPlanData = pricingPlans.find(plan => plan.id === currentPlan)!;
 
-  // 실시간 유효성 검사
-  const validateField = (field: string, value: string): string => {
-    const sanitized = sanitizeInput(value);
-    
-    switch (field) {
-      case 'cardNumber':
-        if (!sanitized) return '카드 번호를 입력해주세요.';
-        if (!validateCardNumber(sanitized)) return '올바른 카드 번호를 입력해주세요. (13-19자리 숫자)';
-        break;
-      case 'expiryDate':
-        if (!sanitized) return '만료일을 입력해주세요.';
-        if (!validateExpiryDate(sanitized)) return '올바른 만료일을 입력해주세요. (MM/YY)';
-        break;
-      case 'cvv':
-        if (!sanitized) return 'CVV를 입력해주세요.';
-        if (!validateCVV(sanitized)) return '올바른 CVV를 입력해주세요. (3-4자리 숫자)';
-        break;
-      case 'cardHolder':
-        if (!sanitized) return '카드 소유자 이름을 입력해주세요.';
-        if (!validateCardHolder(sanitized)) return '올바른 이름을 입력해주세요. (2자 이상, 문자만)';
-        break;
-      case 'email':
-        if (!sanitized) return '이메일을 입력해주세요.';
-        if (!validateEmail(sanitized)) return '올바른 이메일 형식을 입력해주세요.';
-        break;
+  // Stripe Payment Intent 생성
+  useEffect(() => {
+    if (selectedPlanData) {
+      createPaymentIntent();
     }
-    return '';
-  };
+  }, [currentPlan, selectedPlanData]);
 
-  // 모든 필드 유효성 검사
-  const validateAllFields = (): boolean => {
-    const errors: {[key: string]: string} = {};
-    
-    Object.keys(paymentForm).forEach(field => {
-      if (field !== 'agreement') {
-        const error = validateField(field, paymentForm[field as keyof typeof paymentForm] as string);
-        if (error) errors[field] = error;
+  const createPaymentIntent = async () => {
+    try {
+      setStripeLoading(true);
+      const response = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan: currentPlan,
+          amount: selectedPlanData.price
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('결제 초기화에 실패했습니다.');
       }
-    });
-    
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
 
-  // 입력값 변경 처리
-  const handleInputChange = (field: string, value: string) => {
-    const sanitized = sanitizeInput(value);
-    
-    // 카드 번호 포맷팅 (4자리마다 공백 추가)
-    let formattedValue = sanitized;
-    if (field === 'cardNumber') {
-      formattedValue = sanitized.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
+    } catch (error) {
+      console.error('Payment Intent 생성 오류:', error);
+      setValidationErrors({
+        payment: '결제 시스템 초기화에 실패했습니다. 페이지를 새로고침해주세요.'
+      });
+    } finally {
+      setStripeLoading(false);
     }
-    // 만료일 포맷팅 (MM/YY)
-    else if (field === 'expiryDate') {
-      formattedValue = sanitized.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').substring(0, 5);
-    }
-    // CVV는 숫자만
-    else if (field === 'cvv') {
-      formattedValue = sanitized.replace(/\D/g, '').substring(0, 4);
-    }
-    
-    setPaymentForm(prev => ({
-      ...prev,
-      [field]: formattedValue
-    }));
-    
-    // 터치 상태 업데이트
-    setTouched(prev => ({
-      ...prev,
-      [field]: true
-    }));
-    
-    // 실시간 유효성 검사
-    const error = validateField(field, formattedValue);
-    setValidationErrors(prev => ({
-      ...prev,
-      [field]: error
-    }));
   };
 
   const handleNavigation = (page: string, params?: any) => {
@@ -274,40 +357,43 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
     }
   };
 
-  const handlePayment = async () => {
-    // 이용약관 동의 확인
-    if (!paymentForm.agreement) {
-      setValidationErrors(prev => ({
-        ...prev,
-        agreement: '이용약관에 동의해주세요.'
-      }));
-      return;
-    }
-
-    // 전체 필드 유효성 검사
-    if (!validateAllFields()) {
-      return;
-    }
-
-    setIsProcessing(true);
-    setValidationErrors({});
-    
+  const handlePaymentSuccess = async (paymentIntent: any) => {
     try {
-      // 결제 처리 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // 결제 성공 후 DB 업데이트
+      const response = await fetch('/api/confirm-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          paymentIntentId: paymentIntent.id
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '서버 오류가 발생했습니다.');
+      }
+
+      // 성공적으로 DB 업데이트 후 확인 페이지로 이동
       handleNavigation('payment-confirmation', {
         plan: currentPlan,
         amount: selectedPlanData.price,
-        paymentMethod
+        paymentMethod: 'card',
+        paymentIntentId: paymentIntent.id
       });
     } catch (error) {
+      console.error('결제 성공 처리 오류:', error);
       setValidationErrors({
-        payment: '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.'
+        payment: '결제는 완료되었지만 처리 중 오류가 발생했습니다. 고객센터에 문의해주세요.'
       });
-    } finally {
-      setIsProcessing(false);
     }
+  };
+
+  const handlePaymentError = (error: string) => {
+    setValidationErrors({
+      payment: error
+    });
   };
 
   return (
@@ -440,127 +526,53 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                   </div>
                 )}
 
-                {/* 이메일 */}
-                <div className="space-y-2">
-                  <Label htmlFor="email">이메일 주소</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={paymentForm.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="이메일을 입력하세요"
-                    className={`${validationErrors.email && touched.email ? 'border-architect-error' : ''}`}
-                  />
-                  {validationErrors.email && touched.email && (
-                    <p className="text-xs text-architect-error flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {validationErrors.email}
-                    </p>
-                  )}
-                </div>
-
-                {/* 카드 정보 */}
-                <div className="space-y-4">
-                  <Label>카드 정보</Label>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-1">
-                      <Input
-                        placeholder="카드 번호 (1234 5678 9012 3456)"
-                        value={paymentForm.cardNumber}
-                        onChange={(e) => handleInputChange('cardNumber', e.target.value)}
-                        maxLength={19}
-                        className={`${validationErrors.cardNumber && touched.cardNumber ? 'border-architect-error' : ''}`}
-                      />
-                      {validationErrors.cardNumber && touched.cardNumber && (
-                        <p className="text-xs text-architect-error flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {validationErrors.cardNumber}
-                        </p>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Input
-                          placeholder="MM/YY"
-                          value={paymentForm.expiryDate}
-                          onChange={(e) => handleInputChange('expiryDate', e.target.value)}
-                          maxLength={5}
-                          className={`${validationErrors.expiryDate && touched.expiryDate ? 'border-architect-error' : ''}`}
-                        />
-                        {validationErrors.expiryDate && touched.expiryDate && (
-                          <p className="text-xs text-architect-error flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {validationErrors.expiryDate}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-1">
-                        <Input
-                          placeholder="CVV"
-                          value={paymentForm.cvv}
-                          onChange={(e) => handleInputChange('cvv', e.target.value)}
-                          maxLength={4}
-                          type="password"
-                          className={`${validationErrors.cvv && touched.cvv ? 'border-architect-error' : ''}`}
-                        />
-                        {validationErrors.cvv && touched.cvv && (
-                          <p className="text-xs text-architect-error flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {validationErrors.cvv}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Input
-                        placeholder="카드 소유자 이름"
-                        value={paymentForm.cardHolder}
-                        onChange={(e) => handleInputChange('cardHolder', e.target.value)}
-                        className={`${validationErrors.cardHolder && touched.cardHolder ? 'border-architect-error' : ''}`}
-                      />
-                      {validationErrors.cardHolder && touched.cardHolder && (
-                        <p className="text-xs text-architect-error flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {validationErrors.cardHolder}
-                        </p>
-                      )}
-                    </div>
+                {/* Stripe 로딩 중 */}
+                {stripeLoading && (
+                  <div className="p-4 bg-architect-primary/10 border border-architect-primary/20 rounded-lg flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-architect-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="text-small text-architect-primary">
+                      결제 시스템을 초기화하고 있습니다...
+                    </span>
                   </div>
-                </div>
+                )}
 
-                {/* 이용약관 동의 */}
-                <div className="space-y-2">
-                  <div className="flex items-start gap-3 p-4 bg-architect-gray-50 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="agreement"
-                      checked={paymentForm.agreement}
-                      onChange={(e) => {
-                        setPaymentForm(prev => ({ ...prev, agreement: e.target.checked }));
-                        if (validationErrors.agreement) {
-                          setValidationErrors(prev => ({ ...prev, agreement: '' }));
+                {/* Stripe Elements 폼 */}
+                {clientSecret && !stripeLoading ? (
+                  <Elements 
+                    stripe={stripePromise} 
+                    options={{
+                      clientSecret,
+                      appearance: {
+                        theme: 'stripe',
+                        variables: {
+                          colorPrimary: '#6366f1',
+                          colorBackground: '#ffffff',
+                          colorText: '#1f2937',
+                          colorDanger: '#ef4444',
+                          fontFamily: 'system-ui, sans-serif',
+                          spacingUnit: '4px',
+                          borderRadius: '8px'
                         }
-                      }}
-                      className="mt-1"
+                      }
+                    }}
+                  >
+                    <StripePaymentForm
+                      selectedPlan={selectedPlanData}
+                      onPaymentSuccess={handlePaymentSuccess}
+                      onPaymentError={handlePaymentError}
+                      paymentForm={paymentForm}
+                      setPaymentForm={setPaymentForm}
+                      validationErrors={validationErrors}
+                      setValidationErrors={setValidationErrors}
                     />
-                    <div>
-                      <Label htmlFor="agreement" className="text-small">
-                        <span className="text-architect-gray-900">
-                          이용약관 및 개인정보처리방침에 동의합니다
-                        </span>
-                      </Label>
-                      <p className="text-xs text-architect-gray-600 mt-1">
-                        결제 진행을 위해 약관 동의가 필요합니다
-                      </p>
-                    </div>
-                  </div>
-                  {validationErrors.agreement && (
-                    <p className="text-xs text-architect-error flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {validationErrors.agreement}
+                  </Elements>
+                ) : !stripeLoading ? (
+                  <div className="p-4 bg-architect-warning/10 border border-architect-warning/20 rounded-lg">
+                    <p className="text-small text-architect-warning">
+                      결제 시스템을 초기화하는 중입니다. 잠시만 기다려주세요.
                     </p>
-                  )}
-                </div>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           </div>
@@ -616,23 +628,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                   </span>
                 </div>
 
-                <Button
-                  onClick={handlePayment}
-                  disabled={isProcessing || !paymentForm.agreement}
-                  className="w-full h-12 bg-architect-primary hover:bg-architect-primary/90"
-                >
-                  {isProcessing ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      결제 처리 중...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-4 h-4" />
-                      안전하게 결제하기
-                    </div>
-                  )}
-                </Button>
+                {/* 결제 버튼은 StripePaymentForm 내부로 이동 */}
 
                 <div className="text-center">
                   <p className="text-xs text-architect-gray-600">
