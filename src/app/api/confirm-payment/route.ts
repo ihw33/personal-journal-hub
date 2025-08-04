@@ -55,88 +55,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 구독 정보를 데이터베이스에 저장
-    const subscriptionData = {
-      user_id: user.id,
-      plan_type: plan,
-      status: 'active',
-      amount: parseInt(originalAmount),
-      total_amount: parseInt(totalAmount),
-      payment_intent_id: paymentIntentId,
-      stripe_customer_id: paymentIntent.customer as string,
-      current_period_start: new Date(),
-      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30일 후
-      created_at: new Date(),
-      updated_at: new Date()
-    };
-
-    // 기존 활성 구독이 있는지 확인
-    const { data: existingSubscription } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single();
-
-    if (existingSubscription) {
-      // 기존 구독 업데이트
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({
-          plan_type: plan,
-          amount: parseInt(originalAmount),
-          total_amount: parseInt(totalAmount),
-          payment_intent_id: paymentIntentId,
-          current_period_start: new Date(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          updated_at: new Date()
-        })
-        .eq('id', existingSubscription.id);
-
-      if (updateError) {
-        console.error('구독 업데이트 오류:', updateError);
-        return NextResponse.json(
-          { error: '구독 업데이트에 실패했습니다.' },
-          { status: 500 }
-        );
+    // RPC 함수를 통한 원자적 트랜잭션 처리
+    // 구독 정보 업데이트와 결제 기록 저장을 하나의 트랜잭션으로 처리
+    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+      'update_subscription_with_payment',
+      {
+        p_user_id: user.id,
+        p_plan: plan,
+        p_payment_intent_id: paymentIntentId,
+        p_amount: parseInt(originalAmount),
+        p_total_amount: parseInt(totalAmount),
+        p_stripe_customer_id: paymentIntent.customer as string
       }
-    } else {
-      // 새 구독 생성
-      const { error: insertError } = await supabase
-        .from('subscriptions')
-        .insert(subscriptionData);
+    );
 
-      if (insertError) {
-        console.error('구독 생성 오류:', insertError);
-        return NextResponse.json(
-          { error: '구독 생성에 실패했습니다.' },
-          { status: 500 }
-        );
-      }
+    if (rpcError) {
+      console.error('RPC 함수 실행 오류:', rpcError);
+      return NextResponse.json(
+        { error: 'RPC 함수 실행에 실패했습니다: ' + rpcError.message },
+        { status: 500 }
+      );
     }
 
-    // 결제 기록 저장
-    const { error: paymentRecordError } = await supabase
-      .from('payment_history')
-      .insert({
-        user_id: user.id,
-        payment_intent_id: paymentIntentId,
-        amount: parseInt(originalAmount),
-        total_amount: parseInt(totalAmount),
-        plan_type: plan,
-        status: 'completed',
-        payment_method: 'stripe',
-        created_at: new Date()
-      });
-
-    if (paymentRecordError) {
-      console.warn('결제 기록 저장 실패:', paymentRecordError);
-      // 결제 기록 저장 실패는 치명적이지 않으므로 계속 진행
+    // RPC 함수 결과 확인
+    if (!rpcResult || !rpcResult.success) {
+      console.error('RPC 함수 실행 실패:', rpcResult);
+      return NextResponse.json(
+        { error: rpcResult?.message || '구독 및 결제 기록 업데이트에 실패했습니다.' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      subscription: subscriptionData
+      result: rpcResult,
+      message: '결제가 성공적으로 처리되었습니다.'
     });
 
   } catch (error) {
