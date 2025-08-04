@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-});
+function createStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY is not defined');
+  }
+  return new Stripe(secretKey, {
+    apiVersion: '2024-11-20.acacia',
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +23,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 환경변수 확인
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json(
+        { error: '서버 설정 오류입니다.' },
+        { status: 500 }
+      );
+    }
+
     // PaymentIntent 정보 조회 (먼저 Stripe에서 검증)
+    const stripe = createStripeClient();
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     
     if (paymentIntent.status !== 'succeeded') {

@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-});
+function createStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY is not defined');
+  }
+  return new Stripe(secretKey, {
+    apiVersion: '2024-11-20.acacia',
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,6 +66,7 @@ export async function POST(request: NextRequest) {
     const totalAmount = Math.round(amount * 1.1);
 
     // Stripe PaymentIntent 생성
+    const stripe = createStripeClient();
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
       currency: 'krw',
