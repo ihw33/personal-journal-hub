@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient } from '@/lib/supabase/server';
-import { headers } from 'next/headers';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-11-20.acacia',
@@ -11,31 +10,14 @@ export async function POST(request: NextRequest) {
   try {
     const { paymentIntentId } = await request.json();
     
-    // 요청 헤더에서 사용자 정보 추출
-    const headersList = headers();
-    const authorization = headersList.get('authorization');
-    
-    if (!authorization) {
+    if (!paymentIntentId) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
+        { error: 'Payment Intent ID가 필요합니다.' },
+        { status: 400 }
       );
     }
 
-    // Supabase 클라이언트 생성
-    const supabase = createClient();
-    
-    // 사용자 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: '유효하지 않은 사용자입니다.' },
-        { status: 401 }
-      );
-    }
-
-    // PaymentIntent 정보 조회
+    // PaymentIntent 정보 조회 (먼저 Stripe에서 검증)
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     
     if (paymentIntent.status !== 'succeeded') {
@@ -48,12 +30,15 @@ export async function POST(request: NextRequest) {
     // 메타데이터에서 정보 추출
     const { userId, plan, originalAmount, totalAmount } = paymentIntent.metadata;
     
-    if (userId !== user.id) {
+    if (!userId || !plan || !originalAmount || !totalAmount) {
       return NextResponse.json(
-        { error: '권한이 없습니다.' },
-        { status: 403 }
+        { error: '결제 메타데이터가 유효하지 않습니다.' },
+        { status: 400 }
       );
     }
+
+    // Supabase Admin 클라이언트 생성 (Service Role 사용)
+    const supabase = createAdminClient();
 
     // RPC 함수를 통한 원자적 트랜잭션 처리
     // 구독 정보 업데이트와 결제 기록 저장을 하나의 트랜잭션으로 처리
