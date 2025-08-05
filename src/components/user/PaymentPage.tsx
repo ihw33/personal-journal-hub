@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
+import { useAuth } from '@/lib/supabase/auth-context';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { 
@@ -290,6 +291,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   selectedPlan = 'premium'
 }) => {
   const router = useRouter();
+  const { session } = useAuth();
   const [currentPlan, setCurrentPlan] = useState<'basic' | 'premium' | 'pro'>(selectedPlan);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'account'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -315,7 +317,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
       setStripeLoading(true);
       
       // 인증 토큰 가져오기
-      const token = await user?.getIdToken();
+      const token = session?.access_token;
       
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
@@ -365,7 +367,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   const handlePaymentSuccess = async (paymentIntent: any) => {
     try {
       // 인증 토큰 가져오기
-      const token = await user?.getIdToken();
+      const token = session?.access_token;
       
       // 결제 성공 후 DB 업데이트
       const response = await fetch('/api/confirm-payment', {
