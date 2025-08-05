@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 
 function createStripeClient() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -52,6 +53,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 보안 검증: 현재 인증된 사용자와 결제 정보의 사용자가 일치하는지 확인
+    const supabaseAuth = createClient();
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    // 결제 정보의 사용자 ID와 현재 인증된 사용자 ID가 일치하는지 확인
+    if (user.id !== userId) {
+      return NextResponse.json(
+        { error: '결제 권한이 없습니다.' },
+        { status: 403 }
+      );
+    }
+
     // Supabase Admin 클라이언트 생성 (Service Role 사용)
     const supabase = createAdminClient();
 
@@ -60,7 +80,7 @@ export async function POST(request: NextRequest) {
     const { data: rpcResult, error: rpcError } = await supabase.rpc(
       'update_subscription_with_payment',
       {
-        p_user_id: user.id,
+        p_user_id: userId,
         p_plan: plan,
         p_payment_intent_id: paymentIntentId,
         p_amount: parseInt(originalAmount),
