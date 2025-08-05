@@ -313,10 +313,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   const createPaymentIntent = async () => {
     try {
       setStripeLoading(true);
+      
+      // 인증 토큰 가져오기
+      const token = await user?.getIdToken();
+      
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
           plan: currentPlan,
@@ -359,11 +364,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
 
   const handlePaymentSuccess = async (paymentIntent: any) => {
     try {
+      // 인증 토큰 가져오기
+      const token = await user?.getIdToken();
+      
       // 결제 성공 후 DB 업데이트
       const response = await fetch('/api/confirm-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
           paymentIntentId: paymentIntent.id

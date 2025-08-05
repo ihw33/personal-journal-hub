@@ -81,12 +81,14 @@ export const PaymentConfirmationPage: React.FC<PaymentConfirmationPageProps> = (
     const plan = searchParams.get('plan') as 'basic' | 'premium' | 'pro' || 'premium';
     const amount = parseInt(searchParams.get('amount') || '49000');
     const paymentMethod = searchParams.get('paymentMethod') || 'card';
+    const paymentIntentId = searchParams.get('paymentIntentId') || '';
     
     setPaymentDetails(prev => ({
       ...prev,
       plan,
       amount,
-      paymentMethod
+      paymentMethod,
+      transactionId: paymentIntentId || prev.transactionId
     }));
 
     // 축하 효과 제거
