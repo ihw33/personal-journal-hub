@@ -121,53 +121,64 @@ const ComingSoonPage: React.FC<ComingSoonPageProps> = ({ onEmailSubmit }) => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-architect-gray-900 mb-6">
-              현대인의 생각정리, 왜 이렇게 어려울까요?
+              혹시 이런 경험, 있으신가요?
             </h2>
-            <p className="text-xl text-architect-gray-700 max-w-3xl mx-auto">
-              디지털 시대에 우리는 더 많은 정보와 아이디어에 노출되지만, 
-              정작 깊이 있는 사고는 더 어려워졌습니다.
+            <p className="text-xl text-architect-gray-700 max-w-4xl mx-auto leading-relaxed">
+              "아이디어는 많은데 정작 제대로 정리해서 실행으로 옮기기는 어렵다..."<br />
+              "생각이 머릿속에서만 맴돌고, 명확한 결론에 도달하지 못한다..."<br />
+              현대를 살아가는 우리 모두가 공감하는 이야기입니다.
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border-l-4 border-red-400">
               <div className="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mb-6">
                 <Clock className="h-8 w-8 text-red-600" />
               </div>
               <h3 className="text-xl font-semibold text-architect-gray-900 mb-4">
-                시간 부족
+                "시간이 없어서..."
               </h3>
-              <p className="text-architect-gray-700">
-                바쁜 일상 속에서 깊이 있게 생각할 시간을 찾기 어렵습니다. 
-                급하게 결정하고, 표면적으로만 이해하게 됩니다.
+              <p className="text-architect-gray-700 leading-relaxed">
+                <span className="italic">"회의가 끝나고 나서도 뭔가 놓친 게 있는 것 같은데..."</span><br />
+                바쁜 일상 속, 깊이 생각할 여유도 없이 급하게 결정하고 지나가버린 순간들. 
+                나중에 후회하며 '그때 좀 더 생각해볼걸...' 하고 아쉬워했던 경험들.
               </p>
             </div>
             
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border-l-4 border-orange-400">
               <div className="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
                 <Brain className="h-8 w-8 text-orange-600" />
               </div>
               <h3 className="text-xl font-semibold text-architect-gray-900 mb-4">
-                정보 과부하
+                "정보가 너무 많아서..."
               </h3>
-              <p className="text-architect-gray-700">
-                무수히 많은 정보 속에서 정말 중요한 것을 골라내고 
-                체계적으로 정리하는 것이 점점 더 어려워집니다.
+              <p className="text-architect-gray-700 leading-relaxed">
+                <span className="italic">"유튜브, 블로그, 책... 다 봤는데 정작 내 결론은?"</span><br />
+                인터넷 검색 한 번이면 수만 개의 정보가 쏟아지는 시대. 
+                정말 중요한 핵심을 찾기도 전에 정보의 바다에서 길을 잃어버린 느낌.
               </p>
             </div>
             
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border-l-4 border-purple-400">
               <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
                 <Target className="h-8 w-8 text-purple-600" />
               </div>
               <h3 className="text-xl font-semibold text-architect-gray-900 mb-4">
-                체계 부족
+                "어떻게 정리해야 할지..."
               </h3>
-              <p className="text-architect-gray-700">
-                생각을 효과적으로 정리하고 발전시킬 수 있는 
-                체계적인 방법론이나 도구가 부족합니다.
+              <p className="text-architect-gray-700 leading-relaxed">
+                <span className="italic">"노트에 적긴 했는데, 나중에 보니 뭔 소린지 모르겠어..."</span><br />
+                메모장은 가득 차 있지만 체계도 없고, 연결점도 보이지 않고. 
+                내가 뭘 생각했는지조차 다시 찾아보기 어려운 그런 경험들.
               </p>
             </div>
+          </div>
+          
+          <div className="text-center mt-16">
+            <p className="text-2xl font-medium text-architect-gray-800 max-w-3xl mx-auto">
+              이런 고민, <span className="text-architect-primary font-bold">당신만의 문제가 아닙니다.</span><br />
+              <span className="text-lg text-architect-gray-600 mt-2 block">하지만 이제 달라질 수 있습니다.</span>
+            </p>
           </div>
         </div>
       </section>
@@ -277,73 +288,228 @@ const ComingSoonPage: React.FC<ComingSoonPageProps> = ({ onEmailSubmit }) => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-architect-gray-900 mb-6">
-              어떻게 작동하나요?
+              아키와 함께하는 3단계 여정
             </h2>
-            <p className="text-xl text-architect-gray-700 max-w-3xl mx-auto">
-              3단계로 간단하게 시작하여, AI와 함께 더 깊은 생각의 세계로 들어가세요.
+            <p className="text-xl text-architect-gray-700 max-w-4xl mx-auto">
+              복잡한 설정도, 어려운 학습도 필요 없습니다. 
+              그저 평소처럼 생각을 적기만 하면, 아키가 함께합니다.
             </p>
+          </div>
+
+          {/* 아키와의 상호작용 시연 */}
+          <div className="mb-20">
+            <div className="bg-gradient-to-br from-architect-primary/5 to-architect-ai-primary/5 rounded-3xl p-8 border border-architect-primary/20">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-3 bg-white rounded-full px-6 py-3 shadow-lg">
+                  <div className="w-8 h-8 bg-gradient-to-r from-architect-primary to-architect-ai-primary rounded-full flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-lg font-semibold text-architect-gray-900">아키와의 실제 대화</span>
+                </div>
+              </div>
+              
+              <div className="grid lg:grid-cols-2 gap-8 items-center">
+                <div className="space-y-4">
+                  {/* 사용자 메시지 */}
+                  <div className="flex justify-end">
+                    <div className="bg-architect-primary/10 rounded-2xl rounded-br-md p-4 max-w-sm">
+                      <p className="text-architect-gray-800">
+                        "새로운 프로젝트 아이디어가 있는데, 어떻게 시작해야 할지 모르겠어."
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* 아키 응답 */}
+                  <div className="flex justify-start items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-architect-primary to-architect-ai-primary rounded-full flex items-center justify-center flex-shrink-0">
+                      <Brain className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="bg-white rounded-2xl rounded-bl-md p-4 shadow-lg max-w-lg">
+                      <p className="text-architect-gray-800 mb-3">
+                        흥미로운 프로젝트네요! 먼저 세 가지 질문으로 시작해볼까요:
+                      </p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-architect-gray-700">
+                          <div className="w-1.5 h-1.5 bg-architect-primary rounded-full"></div>
+                          이 프로젝트로 해결하고 싶은 문제는 무엇인가요?
+                        </div>
+                        <div className="flex items-center gap-2 text-architect-gray-700">
+                          <div className="w-1.5 h-1.5 bg-architect-secondary rounded-full"></div>
+                          누구를 위한 프로젝트인가요?
+                        </div>
+                        <div className="flex items-center gap-2 text-architect-gray-700">
+                          <div className="w-1.5 h-1.5 bg-architect-ai-primary rounded-full"></div>
+                          성공했다면 어떤 모습일까요?
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 사용자 후속 */}
+                  <div className="flex justify-end">
+                    <div className="bg-architect-primary/10 rounded-2xl rounded-br-md p-4 max-w-sm">
+                      <p className="text-architect-gray-800">
+                        "아, 이렇게 질문을 받으니까 훨씬 명확해지네!"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 시각적 설명 */}
+                <div className="lg:pl-8">
+                  <div className="bg-white rounded-2xl p-6 shadow-xl">
+                    <h4 className="text-lg font-semibold text-architect-gray-900 mb-4">
+                      🎯 이런 식으로 도와드려요
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 bg-architect-primary/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Zap className="h-3 w-3 text-architect-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-architect-gray-900">맥락 파악</p>
+                          <p className="text-sm text-architect-gray-600">상황을 이해하고 핵심을 찾아냅니다</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 bg-architect-secondary/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Target className="h-3 w-3 text-architect-secondary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-architect-gray-900">핵심 질문</p>
+                          <p className="text-sm text-architect-gray-600">생각을 정리하는 핵심 질문들을 제안</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 bg-architect-ai-primary/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Lightbulb className="h-3 w-3 text-architect-ai-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-architect-gray-900">새로운 관점</p>
+                          <p className="text-sm text-architect-gray-600">놓쳤을 수도 있는 새로운 아이디어 제안</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connection Lines */}
-            <div className="hidden md:block absolute top-24 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-architect-primary via-architect-secondary to-architect-ai-primary" />
+            {/* Enhanced Connection Lines with Animation */}
+            <div className="hidden md:block absolute top-24 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-architect-primary via-architect-secondary to-architect-ai-primary opacity-60" />
+            <div className="hidden md:block absolute top-24 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-architect-primary via-architect-secondary to-architect-ai-primary animate-pulse" />
             
-            <div className="relative bg-white rounded-3xl p-8 shadow-xl border border-architect-gray-200">
+            {/* Step 1 - Enhanced */}
+            <div className="relative bg-white rounded-3xl p-8 shadow-xl border border-architect-gray-200 hover:shadow-2xl transition-all duration-300 group">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                <div className="w-12 h-12 bg-architect-primary rounded-full flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 bg-gradient-to-r from-architect-primary to-architect-primary/80 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
                   1
                 </div>
               </div>
               <div className="pt-8">
-                <div className="w-16 h-16 bg-architect-primary/10 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                  <Brain className="h-8 w-8 text-architect-primary" />
+                <div className="w-20 h-20 bg-gradient-to-br from-architect-primary/10 to-architect-primary/5 rounded-3xl flex items-center justify-center mb-6 mx-auto group-hover:scale-105 transition-transform duration-300">
+                  <div className="relative">
+                    <Brain className="h-10 w-10 text-architect-primary" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-architect-accent rounded-full flex items-center justify-center">
+                      <Sparkles className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  </div>
                 </div>
                 <h3 className="text-xl font-semibold text-architect-gray-900 mb-4 text-center">
-                  AI와 함께 시작하기
+                  🤝 아키와 첫 만남
                 </h3>
-                <p className="text-architect-gray-700 text-center">
-                  생각을 자유롭게 적어보세요. AI가 맥락을 이해하고 
-                  더 깊이 탐구할 수 있는 질문들을 제안합니다.
+                <p className="text-architect-gray-700 text-center leading-relaxed">
+                  <span className="font-medium text-architect-primary">"오늘 뭘 생각해보고 싶으세요?"</span><br />
+                  평소처럼 자유롭게 생각을 적어보세요. 
+                  아키가 바로 맥락을 파악하고 함께 탐구할 방향을 제안합니다.
                 </p>
+                <div className="mt-4 p-3 bg-architect-gray-50 rounded-lg">
+                  <p className="text-xs text-architect-gray-600 text-center">
+                    💡 예: "요즘 일이 너무 복잡해서 정리가 안 돼"
+                  </p>
+                </div>
               </div>
             </div>
             
-            <div className="relative bg-white rounded-3xl p-8 shadow-xl border border-architect-gray-200">
+            {/* Step 2 - Enhanced */}
+            <div className="relative bg-white rounded-3xl p-8 shadow-xl border border-architect-gray-200 hover:shadow-2xl transition-all duration-300 group">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                <div className="w-12 h-12 bg-architect-secondary rounded-full flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 bg-gradient-to-r from-architect-secondary to-architect-secondary/80 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
                   2
                 </div>
               </div>
               <div className="pt-8">
-                <div className="w-16 h-16 bg-architect-secondary/10 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                  <Lightbulb className="h-8 w-8 text-architect-secondary" />
+                <div className="w-20 h-20 bg-gradient-to-br from-architect-secondary/10 to-architect-secondary/5 rounded-3xl flex items-center justify-center mb-6 mx-auto group-hover:scale-105 transition-transform duration-300">
+                  <div className="relative">
+                    <Lightbulb className="h-10 w-10 text-architect-secondary" />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                      <Star className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  </div>
                 </div>
                 <h3 className="text-xl font-semibold text-architect-gray-900 mb-4 text-center">
-                  함께 생각해보기
+                  💭 깊이 있는 대화
                 </h3>
-                <p className="text-architect-gray-700 text-center">
-                  AI와 대화하며 아이디어를 발전시키고, 새로운 관점을 
-                  발견하며, 더 체계적으로 정리해나갑니다.
+                <p className="text-architect-gray-700 text-center leading-relaxed">
+                  <span className="font-medium text-architect-secondary">"이 부분을 좀 더 자세히 살펴볼까요?"</span><br />
+                  아키가 핵심 질문들을 던지고, 새로운 관점을 제안하며, 
+                  여러분의 생각을 체계적으로 정리해나갑니다.
                 </p>
+                <div className="mt-4 p-3 bg-architect-gray-50 rounded-lg">
+                  <p className="text-xs text-architect-gray-600 text-center">
+                    🎯 연결고리 발견 → 우선순위 정리 → 실행 계획
+                  </p>
+                </div>
               </div>
             </div>
             
-            <div className="relative bg-white rounded-3xl p-8 shadow-xl border border-architect-gray-200">
+            {/* Step 3 - Enhanced */}
+            <div className="relative bg-white rounded-3xl p-8 shadow-xl border border-architect-gray-200 hover:shadow-2xl transition-all duration-300 group">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                <div className="w-12 h-12 bg-architect-ai-primary rounded-full flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 bg-gradient-to-r from-architect-ai-primary to-architect-ai-primary/80 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
                   3
                 </div>
               </div>
               <div className="pt-8">
-                <div className="w-16 h-16 bg-architect-ai-primary/10 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                  <Sparkles className="h-8 w-8 text-architect-ai-primary" />
+                <div className="w-20 h-20 bg-gradient-to-br from-architect-ai-primary/10 to-architect-ai-primary/5 rounded-3xl flex items-center justify-center mb-6 mx-auto group-hover:scale-105 transition-transform duration-300">
+                  <div className="relative">
+                    <Sparkles className="h-10 w-10 text-architect-ai-primary" />
+                    <div className="absolute -top-1 -left-1 w-4 h-4 bg-green-400 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  </div>
                 </div>
                 <h3 className="text-xl font-semibold text-architect-gray-900 mb-4 text-center">
-                  멋진 결과 만들기
+                  ✨ 놀라운 결과
                 </h3>
-                <p className="text-architect-gray-700 text-center">
-                  혼자서는 못 만드는 깊이 있는 통찰과 창의적인 
-                  해결책을 AI와 함께 만들어냅니다.
+                <p className="text-architect-gray-700 text-center leading-relaxed">
+                  <span className="font-medium text-architect-ai-primary">"이제 명확해졌네요!"</span><br />
+                  혼자서는 몇 시간이 걸렸을 생각 정리가 
+                  아키와 함께라면 몇 분 만에 깔끔하게 완성됩니다.
+                </p>
+                <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg">
+                  <p className="text-xs text-architect-gray-600 text-center">
+                    🎉 명확한 방향 + 구체적 실행안 + 새로운 아이디어
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action for this section */}
+          <div className="text-center mt-16">
+            <div className="inline-flex items-center gap-4 bg-gradient-to-r from-architect-primary/10 to-architect-ai-primary/10 rounded-2xl p-6">
+              <div className="w-12 h-12 bg-gradient-to-r from-architect-primary to-architect-ai-primary rounded-full flex items-center justify-center">
+                <Heart className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-lg font-semibold text-architect-gray-900">
+                  이런 경험, 함께 해보고 싶지 않으세요?
+                </p>
+                <p className="text-architect-gray-600">
+                  아키는 이미 준비되어 있습니다. 여러분을 기다리고 있어요.
                 </p>
               </div>
             </div>
