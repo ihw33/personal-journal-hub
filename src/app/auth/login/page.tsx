@@ -104,7 +104,38 @@ function LoginContent() {
     setSuccess(null);
     
     try {
-      // Supabase 로그인
+      // 테스트용 하드코딩 로그인
+      const testAccounts = [
+        { email: 'admin@test.com', password: 'admin123', role: 'admin', name: '관리자' },
+        { email: 'beta@test.com', password: 'beta123', role: 'beta_tester', name: '베타테스터' },
+        { email: 'user@test.com', password: 'user123', role: 'user', name: '일반사용자' }
+      ];
+
+      const matchedAccount = testAccounts.find(
+        account => account.email === formData.email && account.password === formData.password
+      );
+
+      if (matchedAccount) {
+        // 테스트 계정으로 로그인 성공
+        // localStorage에 임시로 사용자 정보 저장
+        localStorage.setItem('test_user', JSON.stringify({
+          id: `test-${matchedAccount.role}`,
+          email: matchedAccount.email,
+          user_metadata: { 
+            user_type: matchedAccount.role,
+            name: matchedAccount.name
+          }
+        }));
+
+        setSuccess('로그인 성공! 페이지로 이동합니다.');
+        setTimeout(() => {
+          router.push(redirectUrl);
+          router.refresh();
+        }, 1000);
+        return;
+      }
+
+      // 실제 Supabase 로그인 시도
       const { data, error } = await auth.signIn(formData.email, formData.password);
       
       if (error) {
@@ -353,6 +384,16 @@ function LoginContent() {
                   >
                     {t.forgotPassword}
                   </button>
+                </div>
+
+                {/* 테스트 계정 정보 */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold text-sm text-blue-900 mb-2">테스트 계정</h4>
+                  <div className="space-y-1 text-xs text-blue-800">
+                    <div>🔑 관리자: admin@test.com / admin123</div>
+                    <div>🧪 베타테스터: beta@test.com / beta123</div>
+                    <div>👤 일반사용자: user@test.com / user123</div>
+                  </div>
                 </div>
 
                 {/* 로그인 버튼 */}

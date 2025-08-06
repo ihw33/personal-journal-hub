@@ -22,6 +22,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 초기 세션 가져오기
     const getInitialSession = async () => {
       try {
+        // 테스트 계정 확인
+        const testUser = localStorage.getItem('test_user');
+        if (testUser) {
+          const userData = JSON.parse(testUser);
+          setUser(userData as User);
+          setSession(null); // 테스트 계정은 실제 세션이 없음
+          setLoading(false);
+          return;
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -63,6 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // 테스트 계정 로그아웃
+      if (localStorage.getItem('test_user')) {
+        localStorage.removeItem('test_user');
+        setUser(null);
+        setSession(null);
+        return;
+      }
+      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
