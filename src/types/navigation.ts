@@ -85,13 +85,24 @@ export const languageContent: Record<'ko' | 'en', LanguageContent> = {
   }
 };
 
-export const getMainNavigation = (language: 'ko' | 'en' = 'ko'): NavigationItem[] => [
-  { label: languageContent[language].nav.home, href: '/', description: language === 'ko' ? '메인 페이지' : 'Main page' },
-  { label: languageContent[language].nav.methodology, href: '/methodology', description: language === 'ko' ? '사고 확장 8단계 모델' : '8-step thinking expansion model' },
-  { label: languageContent[language].nav.assessment, href: '/assessment', description: language === 'ko' ? '개인 맞춤 사고력 측정' : 'Personalized thinking assessment' },
-  { label: languageContent[language].nav.enterprise, href: '/enterprise', description: language === 'ko' ? '조직 사고력 향상 프로그램' : 'Organizational thinking improvement program' },
-  { label: languageContent[language].nav.contact, href: '/contact', description: language === 'ko' ? '고객 지원 및 문의' : 'Customer support and inquiries' }
-];
+export const getMainNavigation = (language: 'ko' | 'en' = 'ko', isAuthenticated: boolean = false): NavigationItem[] => {
+  if (!isAuthenticated) {
+    // 비회원 메뉴
+    return [
+      { label: language === 'ko' ? 'IWL 소개' : 'About IWL', href: '/about', description: language === 'ko' ? 'IdeaWorkLab 소개' : 'About IdeaWorkLab' },
+      { label: language === 'ko' ? '수업' : 'Courses', href: '/courses', description: language === 'ko' ? '수업 목록' : 'Course List' },
+      { label: language === 'ko' ? '저널' : 'Journal', href: '/journal', description: language === 'ko' ? '전문가 콘텐츠' : 'Expert Content' }
+    ];
+  } else {
+    // 로그인 후 메뉴
+    return [
+      { label: language === 'ko' ? '대시보드' : 'Dashboard', href: '/dashboard', description: language === 'ko' ? '개인 대시보드' : 'Personal Dashboard' },
+      { label: language === 'ko' ? '내 수업' : 'My Courses', href: '/learn', description: language === 'ko' ? '수강 중인 수업' : 'Enrolled Courses' },
+      { label: language === 'ko' ? '저널' : 'Journal', href: '/journal', description: language === 'ko' ? '전문가 콘텐츠' : 'Expert Content' },
+      { label: language === 'ko' ? '커뮤니티' : 'Community', href: '/community', description: language === 'ko' ? '학습자 커뮤니티' : 'Learning Community' }
+    ];
+  }
+};
 
 export const mainNavigation: NavigationItem[] = getMainNavigation('ko');
 

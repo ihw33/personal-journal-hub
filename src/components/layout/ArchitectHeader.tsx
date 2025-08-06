@@ -84,7 +84,7 @@ const ArchitectHeader = ({
     }
   }, [error]);
 
-  const navigation = getMainNavigation(language);
+  const navigation = getMainNavigation(language, !!user);
   const t = languageContent[language];
 
   return (
@@ -236,7 +236,7 @@ const ArchitectHeader = ({
                   href="/auth/signup"
                   className="px-6 py-2 bg-architect-gradient-main text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
-                  {t.auth.signup}
+                  {language === 'ko' ? '베타 신청하기' : 'Apply for Beta'}
                 </Link>
               </div>
             )}
@@ -297,7 +297,7 @@ const ArchitectHeader = ({
                   className="px-4 py-3 bg-architect-gradient-main text-white text-center rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {t.auth.signup}
+                  {language === 'ko' ? '베타 신청하기' : 'Apply for Beta'}
                 </Link>
               </div>
             )}
