@@ -1,51 +1,31 @@
 
 'use client';
 
-import { HomePage } from '@/components/HomePage';
-import { useRouter } from 'next/navigation';
+import ComingSoonPage from '@/components/coming-soon/ComingSoonPage';
 
 export default function Home() {
-  const router = useRouter();
-  
-  const handleNavigate = (page: string, params?: any) => {
-    switch (page) {
-      case 'courses':
-        if (params?.courseId) {
-          router.push(`/courses/${params.courseId}`);
-        } else {
-          router.push('/courses');
-        }
-        break;
-      case 'journal':
-        router.push('/journal');
-        break;
-      case 'journal-detail':
-        if (params?.journalId) {
-          router.push(`/journal/${params.journalId}`);
-        }
-        break;
-      case 'trial-course':
-        router.push('/trial-course');
-        break;
-      case 'about':
-        router.push('/about');
-        break;
-      case 'diagnosis':
-        router.push('/diagnosis');
-        break;
-      case 'login':
-        router.push('/auth/login');
-        break;
-      case 'signup':
-        router.push('/auth/signup');
-        break;
-      case 'dashboard':
-        router.push('/dashboard');
-        break;
-      default:
-        router.push('/');
+  const handleEmailSubmit = async (email: string) => {
+    try {
+      const response = await fetch('/api/beta-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '등록 중 오류가 발생했습니다.');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Email submission error:', error);
+      throw error;
     }
   };
 
-  return <HomePage language="ko" onNavigate={handleNavigate} />;
+  return <ComingSoonPage onEmailSubmit={handleEmailSubmit} />;
 }
