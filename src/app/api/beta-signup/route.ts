@@ -85,33 +85,17 @@ export async function POST(request: NextRequest) {
     logData.userAgent = request.headers.get('user-agent') || '';
     logData.referer = request.headers.get('referer') || '';
 
-    // Rate limiting 체크 (Redis 기반)
-    const rateLimiter = getRateLimiter();
-    const rateLimit = await rateLimiter.checkLimitRedis(ip, 5, 15 * 60 * 1000);
+    // Rate limiting 체크 (임시 비활성화)
+    // const rateLimiter = getRateLimiter();
+    // const rateLimit = await rateLimiter.checkLimitRedis(ip, 5, 15 * 60 * 1000);
     
-    if (!rateLimit.success) {
-      logData.rateLimitExceeded = true;
-      logData.rateLimitInfo = rateLimit;
-      console.warn('Rate limit exceeded:', JSON.stringify(logData));
-      
-      return NextResponse.json(
-        { 
-          error: '너무 많은 요청이 발생했습니다. 15분 후에 다시 시도해주세요.',
-          code: 'RATE_LIMIT_EXCEEDED',
-          retryAfter: rateLimit.retryAfter
-        },
-        { 
-          status: 429,
-          headers: {
-            ...corsHeaders,
-            'Retry-After': rateLimit.retryAfter?.toString() || '900',
-            'X-RateLimit-Limit': rateLimit.limit.toString(),
-            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
-            'X-RateLimit-Reset': rateLimit.reset.toString(),
-          }
-        }
-      );
-    }
+    // Rate limiting 임시 비활성화 - 테스트용
+    const rateLimit = {
+      success: true,
+      limit: 5,
+      remaining: 4,
+      reset: Date.now() + 15 * 60 * 1000
+    };
 
     logData.rateLimitInfo = rateLimit;
 
