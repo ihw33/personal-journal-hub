@@ -1,7 +1,7 @@
 
 'use client';
 
-import ComingSoonPage from '@/components/ComingSoonPage';
+import ComingSoonPage from '@/components/coming-soon/ComingSoonPage';
 
 export default function Home() {
   const handleEmailSubmit = async (email: string) => {
