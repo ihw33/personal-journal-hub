@@ -129,9 +129,8 @@ function LoginContent() {
 
         setSuccess('로그인 성공! 페이지로 이동합니다.');
         setTimeout(() => {
-          router.push(redirectUrl);
-          router.refresh();
-        }, 1000);
+          window.location.href = redirectUrl; // 강제 페이지 새로고침
+        }, 500);
         return;
       }
 
