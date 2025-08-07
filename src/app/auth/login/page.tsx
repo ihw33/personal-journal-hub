@@ -94,23 +94,17 @@ function LoginContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validationErrors = validateForm();
-    if (validationErrors.length > 0) {
-      setError(validationErrors.join(', '));
-      return;
-    }
-
     setIsSubmitting(true);
     setError(null);
     setSuccess(null);
     
     try {
-      // 테스트용 하드코딩 로그인
+      // 테스트용 하드코딩 로그인 (검증 없이 우선 처리)
       const testAccounts = [
-        { email: 'admin@test.com', password: 'admin123', role: 'admin', name: '관리자' },
-        { email: 'instructor@test.com', password: 'instructor123', role: 'instructor', name: '강사' },
-        { email: 'beta@test.com', password: 'beta123', role: 'beta_tester', name: '베타테스터' },
-        { email: 'user@test.com', password: 'user123', role: 'user', name: '일반사용자' }
+        { email: 'admin@test.com', password: 'admin12345678', role: 'admin', name: '관리자' },
+        { email: 'instructor@test.com', password: 'instructor12345678', role: 'instructor', name: '강사' },
+        { email: 'beta@test.com', password: 'beta12345678', role: 'beta_tester', name: '베타테스터' },
+        { email: 'user@test.com', password: 'user12345678', role: 'user', name: '일반사용자' }
       ];
 
       const matchedAccount = testAccounts.find(
@@ -124,7 +118,8 @@ function LoginContent() {
           email: matchedAccount.email,
           user_metadata: { 
             user_type: matchedAccount.role,
-            name: matchedAccount.name
+            name: matchedAccount.name,
+            role: matchedAccount.role
           }
         };
 
@@ -137,6 +132,13 @@ function LoginContent() {
         setTimeout(() => {
           window.location.href = redirectUrl;
         }, 300);
+        return;
+      }
+
+      // 실제 계정의 경우에만 폼 검증 실행
+      const validationErrors = validateForm();
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join(', '));
         return;
       }
 
@@ -395,10 +397,10 @@ function LoginContent() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <h4 className="font-semibold text-sm text-blue-900 mb-2">테스트 계정</h4>
                   <div className="space-y-1 text-xs text-blue-800">
-                    <div>🔑 관리자: admin@test.com / admin123</div>
-                    <div>👨‍🏫 강사: instructor@test.com / instructor123</div>
-                    <div>🧪 베타테스터: beta@test.com / beta123</div>
-                    <div>👤 일반사용자: user@test.com / user123</div>
+                    <div>🔑 관리자: admin@test.com / admin12345678</div>
+                    <div>👨‍🏫 강사: instructor@test.com / instructor12345678</div>
+                    <div>🧪 베타테스터: beta@test.com / beta12345678</div>
+                    <div>👤 일반사용자: user@test.com / user12345678</div>
                   </div>
                 </div>
 

@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  userProfile: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     // 초기 세션 가져오기
@@ -27,6 +29,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (testUser) {
           const userData = JSON.parse(testUser);
           setUser(userData as User);
+          setUserProfile({
+            role: userData.user_metadata?.role || userData.user_metadata?.user_type,
+            full_name: userData.user_metadata?.name
+          });
           setSession(null); // 테스트 계정은 실제 세션이 없음
           setLoading(false);
           return;
@@ -102,6 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('test_user');
         setUser(null);
         setSession(null);
+        setUserProfile(null);
+        // 페이지 새로고침 또는 홈으로 리다이렉션
+        window.location.href = '/';
         return;
       }
       
@@ -126,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     loading,
     signOut,
+    userProfile,
   };
 
   return (
