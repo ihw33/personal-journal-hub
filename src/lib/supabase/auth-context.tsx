@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from './client';
+import { supabase, signIn, signOut as enhancedSignOut, getCurrentUser } from './enhanced-client';
 
 interface AuthContextType {
   user: User | null;
@@ -32,13 +32,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
+        // Enhanced client를 사용한 세션 가져오기
+        if (supabase) {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error getting session:', error);
+          } else {
+            setSession(session);
+            setUser(session?.user ?? null);
+          }
         } else {
-          setSession(session);
-          setUser(session?.user ?? null);
+          // Demo mode - no actual session
+          const currentUser = await getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+            setSession(null);
+          }
         }
       } catch (error) {
         console.error('Session initialization error:', error);
@@ -49,30 +59,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getInitialSession();
 
-    // 인증 상태 변경 리스너
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        // 테스트 계정이 있으면 Supabase 세션을 무시
-        const testUser = localStorage.getItem('test_user');
-        if (testUser) {
-          return;
-        }
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    // 인증 상태 변경 리스너 (Enhanced client 호환)
+    let subscription: any = null;
+    
+    if (supabase) {
+      const { data } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          console.log('Auth state changed:', event, session?.user?.email);
+          
+          // 테스트 계정이 있으면 Supabase 세션을 무시
+          const testUser = localStorage.getItem('test_user');
+          if (testUser) {
+            return;
+          }
+          
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
 
-        // 페이지 새로고침이 필요한 경우
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          // 필요시 페이지 새로고침 로직 추가
+          // 페이지 새로고침이 필요한 경우
+          if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+            // 필요시 페이지 새로고침 로직 추가
+          }
         }
-      }
-    );
+      );
+      subscription = data.subscription;
+    }
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, []); // 컴포넌트 마운트 시에만 실행 (의도적으로 빈 배열)
 
@@ -88,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      const { error } = await supabase.auth.signOut();
+      const { error } = await enhancedSignOut();
       
       if (error) {
         console.error('Sign out error:', error);

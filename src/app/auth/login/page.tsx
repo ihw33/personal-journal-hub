@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { auth, getAuthErrorMessage, PASSWORD_MIN_LENGTH } from '@/lib/supabase/client';
+import { signIn, signInWithProvider } from '@/lib/supabase/enhanced-client';
+import { getAuthErrorMessage, PASSWORD_MIN_LENGTH } from '@/lib/supabase/client';
 import { getSafeRedirectFromParams } from '@/lib/security/redirectSecurity';
 
 interface FormData {
@@ -138,8 +139,8 @@ function LoginContent() {
         return;
       }
 
-      // 실제 Supabase 로그인 시도
-      const { data, error } = await auth.signIn(formData.email, formData.password);
+      // Enhanced client로 로그인 시도
+      const { data, error } = await signIn(formData.email, formData.password);
       
       if (error) {
         setError(getAuthErrorMessage(error));
@@ -167,7 +168,7 @@ function LoginContent() {
     setError(null);
     
     try {
-      const { error } = await auth.signInWithOAuth(provider);
+      const { error } = await signInWithProvider(provider);
       
       if (error) {
         setError(getAuthErrorMessage(error));

@@ -1,0 +1,339 @@
+/**
+ * IWL 4.0 Helena/Rio 디자인 모드 CSS
+ * 각 모드별 고유한 시각적 스타일 정의
+ */
+
+/* Helena 모드 - 탐구와 발견을 위한 자유로운 디자인 */
+.helena-mode {
+  /* 레이아웃 */
+  --iwl-layout-flow: fluid;
+  --iwl-container-max-width: none;
+  --iwl-grid-columns: repeat(auto-fit, minmax(300px, 1fr));
+  
+  /* 간격 및 패딩 */
+  --iwl-spacing-base: 1.2rem;
+  --iwl-spacing-sm: 0.75rem;
+  --iwl-spacing-lg: 2rem;
+  --iwl-spacing-xl: 3rem;
+  --iwl-content-padding: 2rem;
+  
+  /* 색상 시스템 (따뜻한 톤) */
+  --iwl-design-primary: #FF6B47;
+  --iwl-design-secondary: #FFB347;
+  --iwl-design-accent: #FF8E71;
+  --iwl-design-surface: #FFF8F5;
+  --iwl-design-surface-elevated: #FFEEE8;
+  --iwl-design-text: #2D1810;
+  --iwl-design-text-muted: #8B4513;
+  --iwl-design-border: #FFD4C4;
+  
+  /* 타이포그래피 (유쾌한 스타일) */
+  --iwl-font-family-primary: 'Pretendard Variable', -apple-system, system-ui;
+  --iwl-font-weight-base: 400;
+  --iwl-font-weight-medium: 500;
+  --iwl-font-weight-bold: 600;
+  --iwl-line-height-relaxed: 1.7;
+  --iwl-letter-spacing: 0.01em;
+  
+  /* 컴포넌트 스타일 (둥근 모서리) */
+  --iwl-border-radius-sm: 8px;
+  --iwl-border-radius: 12px;
+  --iwl-border-radius-lg: 20px;
+  --iwl-border-radius-xl: 28px;
+  --iwl-shadow-sm: 0 2px 8px rgba(255, 107, 71, 0.1);
+  --iwl-shadow: 0 4px 16px rgba(255, 107, 71, 0.15);
+  --iwl-shadow-lg: 0 8px 32px rgba(255, 107, 71, 0.2);
+  
+  /* 애니메이션 (부드러운 전환) */
+  --iwl-transition-duration: 0.3s;
+  --iwl-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --iwl-hover-scale: 1.02;
+  --iwl-active-scale: 0.98;
+}
+
+/* Rio 모드 - 학습과 집중을 위한 구조화된 디자인 */
+.rio-mode {
+  /* 레이아웃 */
+  --iwl-layout-flow: structured;
+  --iwl-container-max-width: 1200px;
+  --iwl-grid-columns: repeat(12, 1fr);
+  
+  /* 간격 및 패딩 */
+  --iwl-spacing-base: 0.8rem;
+  --iwl-spacing-sm: 0.5rem;
+  --iwl-spacing-lg: 1.5rem;
+  --iwl-spacing-xl: 2rem;
+  --iwl-content-padding: 1.5rem;
+  
+  /* 색상 시스템 (차가운 톤) */
+  --iwl-design-primary: #4A90E2;
+  --iwl-design-secondary: #7BB3F0;
+  --iwl-design-accent: #5BA0F2;
+  --iwl-design-surface: #F8FAFE;
+  --iwl-design-surface-elevated: #EBF4FE;
+  --iwl-design-text: #1A2332;
+  --iwl-design-text-muted: #4A5568;
+  --iwl-design-border: #C3D9FF;
+  
+  /* 타이포그래피 (진중한 스타일) */
+  --iwl-font-family-primary: 'Pretendard Variable', -apple-system, system-ui;
+  --iwl-font-weight-base: 500;
+  --iwl-font-weight-medium: 600;
+  --iwl-font-weight-bold: 700;
+  --iwl-line-height-relaxed: 1.5;
+  --iwl-letter-spacing: -0.01em;
+  
+  /* 컴포넌트 스타일 (각진 모서리) */
+  --iwl-border-radius-sm: 2px;
+  --iwl-border-radius: 4px;
+  --iwl-border-radius-lg: 8px;
+  --iwl-border-radius-xl: 12px;
+  --iwl-shadow-sm: 0 1px 3px rgba(74, 144, 226, 0.1);
+  --iwl-shadow: 0 2px 8px rgba(74, 144, 226, 0.15);
+  --iwl-shadow-lg: 0 4px 16px rgba(74, 144, 226, 0.2);
+  
+  /* 애니메이션 (빠른 전환) */
+  --iwl-transition-duration: 0.15s;
+  --iwl-transition-timing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --iwl-hover-scale: 1.01;
+  --iwl-active-scale: 0.99;
+}
+
+/* 공통 디자인 모드 전환 효과 */
+.design-mode-transition {
+  transition: all var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+/* Helena 모드 전용 컴포넌트 스타일 */
+.helena-mode .iwl-card {
+  background: var(--iwl-design-surface);
+  border: 1px solid var(--iwl-design-border);
+  border-radius: var(--iwl-border-radius);
+  box-shadow: var(--iwl-shadow);
+  padding: var(--iwl-content-padding);
+  transition: transform var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.helena-mode .iwl-card:hover {
+  transform: scale(var(--iwl-hover-scale));
+  box-shadow: var(--iwl-shadow-lg);
+}
+
+.helena-mode .iwl-button {
+  background: var(--iwl-design-primary);
+  color: white;
+  border: none;
+  border-radius: var(--iwl-border-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: var(--iwl-font-weight-medium);
+  transition: all var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.helena-mode .iwl-button:hover {
+  background: var(--iwl-design-accent);
+  transform: translateY(-1px);
+  box-shadow: var(--iwl-shadow);
+}
+
+.helena-mode .iwl-input {
+  border: 2px solid var(--iwl-design-border);
+  border-radius: var(--iwl-border-radius);
+  padding: 0.875rem 1rem;
+  background: var(--iwl-design-surface);
+  transition: border-color var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.helena-mode .iwl-input:focus {
+  border-color: var(--iwl-design-primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 71, 0.1);
+}
+
+/* Rio 모드 전용 컴포넌트 스타일 */
+.rio-mode .iwl-card {
+  background: var(--iwl-design-surface);
+  border: 1px solid var(--iwl-design-border);
+  border-radius: var(--iwl-border-radius);
+  box-shadow: var(--iwl-shadow);
+  padding: var(--iwl-content-padding);
+  transition: box-shadow var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.rio-mode .iwl-card:hover {
+  box-shadow: var(--iwl-shadow-lg);
+}
+
+.rio-mode .iwl-button {
+  background: var(--iwl-design-primary);
+  color: white;
+  border: none;
+  border-radius: var(--iwl-border-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: var(--iwl-font-weight-medium);
+  transition: background-color var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.rio-mode .iwl-button:hover {
+  background: var(--iwl-design-accent);
+}
+
+.rio-mode .iwl-button:active {
+  transform: scale(var(--iwl-active-scale));
+}
+
+.rio-mode .iwl-input {
+  border: 1px solid var(--iwl-design-border);
+  border-radius: var(--iwl-border-radius);
+  padding: 0.75rem 1rem;
+  background: var(--iwl-design-surface);
+  transition: border-color var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.rio-mode .iwl-input:focus {
+  border-color: var(--iwl-design-primary);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+/* 레이아웃 컨테이너 스타일 */
+.helena-mode .iwl-container {
+  max-width: var(--iwl-container-max-width);
+  padding: var(--iwl-content-padding);
+  display: grid;
+  grid-template-columns: var(--iwl-grid-columns);
+  gap: var(--iwl-spacing-lg);
+}
+
+.rio-mode .iwl-container {
+  max-width: var(--iwl-container-max-width);
+  margin: 0 auto;
+  padding: var(--iwl-content-padding);
+  display: grid;
+  grid-template-columns: var(--iwl-grid-columns);
+  gap: var(--iwl-spacing-base);
+}
+
+/* 채팅 인터페이스 모드별 스타일 */
+.helena-mode .iwl4-chat-interface {
+  background: linear-gradient(135deg, var(--iwl-design-surface) 0%, var(--iwl-design-surface-elevated) 100%);
+  border-radius: var(--iwl-border-radius-lg);
+  box-shadow: var(--iwl-shadow-lg);
+}
+
+.rio-mode .iwl4-chat-interface {
+  background: var(--iwl-design-surface);
+  border: 1px solid var(--iwl-design-border);
+  border-radius: var(--iwl-border-radius);
+  box-shadow: var(--iwl-shadow);
+}
+
+/* 캐릭터 아바타 모드별 스타일 */
+.helena-mode .character-avatar {
+  border-radius: 50%;
+  box-shadow: 0 4px 20px rgba(255, 107, 71, 0.3);
+  transition: transform var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.helena-mode .character-avatar:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+.rio-mode .character-avatar {
+  border-radius: var(--iwl-border-radius);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+  transition: box-shadow var(--iwl-transition-duration) var(--iwl-transition-timing);
+}
+
+.rio-mode .character-avatar:hover {
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);
+}
+
+/* 진도 표시기 모드별 스타일 */
+.helena-mode .progress-indicator {
+  background: linear-gradient(90deg, var(--iwl-design-secondary) 0%, var(--iwl-design-primary) 100%);
+  border-radius: var(--iwl-border-radius-xl);
+  height: 12px;
+}
+
+.rio-mode .progress-indicator {
+  background: var(--iwl-design-primary);
+  border-radius: var(--iwl-border-radius-sm);
+  height: 8px;
+}
+
+/* 메시지 버블 모드별 스타일 */
+.helena-mode .message-bubble.user {
+  background: var(--iwl-design-primary);
+  color: white;
+  border-radius: var(--iwl-border-radius) var(--iwl-border-radius) var(--iwl-border-radius-sm) var(--iwl-border-radius);
+  box-shadow: var(--iwl-shadow);
+}
+
+.helena-mode .message-bubble.ai {
+  background: var(--iwl-design-surface-elevated);
+  color: var(--iwl-design-text);
+  border-radius: var(--iwl-border-radius) var(--iwl-border-radius) var(--iwl-border-radius) var(--iwl-border-radius-sm);
+  border: 1px solid var(--iwl-design-border);
+}
+
+.rio-mode .message-bubble.user {
+  background: var(--iwl-design-primary);
+  color: white;
+  border-radius: var(--iwl-border-radius) var(--iwl-border-radius) var(--iwl-border-radius-sm) var(--iwl-border-radius);
+}
+
+.rio-mode .message-bubble.ai {
+  background: var(--iwl-design-surface-elevated);
+  color: var(--iwl-design-text);
+  border-radius: var(--iwl-border-radius) var(--iwl-border-radius) var(--iwl-border-radius) var(--iwl-border-radius-sm);
+  border: 1px solid var(--iwl-design-border);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .helena-mode {
+    --iwl-content-padding: 1.5rem;
+    --iwl-spacing-base: 1rem;
+  }
+  
+  .rio-mode {
+    --iwl-content-padding: 1rem;
+    --iwl-spacing-base: 0.75rem;
+  }
+  
+  .helena-mode .iwl-container,
+  .rio-mode .iwl-container {
+    grid-template-columns: 1fr;
+    gap: var(--iwl-spacing-base);
+  }
+}
+
+/* 접근성 개선 */
+@media (prefers-reduced-motion: reduce) {
+  .helena-mode,
+  .rio-mode {
+    --iwl-transition-duration: 0.01ms;
+  }
+  
+  .helena-mode .iwl-card:hover,
+  .helena-mode .character-avatar:hover {
+    transform: none;
+  }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .helena-mode {
+    --iwl-design-surface: #2D1810;
+    --iwl-design-surface-elevated: #3D241A;
+    --iwl-design-text: #FFF8F5;
+    --iwl-design-text-muted: #D4A574;
+    --iwl-design-border: #4A2E1D;
+  }
+  
+  .rio-mode {
+    --iwl-design-surface: #1A2332;
+    --iwl-design-surface-elevated: #243142;
+    --iwl-design-text: #F8FAFE;
+    --iwl-design-text-muted: #A0AEC0;
+    --iwl-design-border: #2D3748;
+  }
+}

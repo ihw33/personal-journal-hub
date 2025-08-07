@@ -91,7 +91,8 @@ export const getMainNavigation = (language: 'ko' | 'en' = 'ko', isAuthenticated:
     return [
       { label: language === 'ko' ? 'IWL 소개' : 'About IWL', href: '/about', description: language === 'ko' ? 'IdeaWorkLab 소개' : 'About IdeaWorkLab' },
       { label: language === 'ko' ? '수업' : 'Courses', href: '/courses', description: language === 'ko' ? '수업 목록' : 'Course List' },
-      { label: language === 'ko' ? '저널' : 'Journal', href: '/journal', description: language === 'ko' ? '전문가 콘텐츠' : 'Expert Content' }
+      { label: language === 'ko' ? '저널' : 'Journal', href: '/journal', description: language === 'ko' ? '전문가 콘텐츠' : 'Expert Content' },
+      { label: language === 'ko' ? 'AI 채팅' : 'AI Chat', href: '/chat', description: language === 'ko' ? 'AI와 함께하는 학습' : 'Learning with AI' }
     ];
   } else {
     // 로그인 후 메뉴
@@ -99,6 +100,7 @@ export const getMainNavigation = (language: 'ko' | 'en' = 'ko', isAuthenticated:
       { label: language === 'ko' ? '대시보드' : 'Dashboard', href: '/dashboard', description: language === 'ko' ? '개인 대시보드' : 'Personal Dashboard' },
       { label: language === 'ko' ? '내 수업' : 'My Courses', href: '/learn', description: language === 'ko' ? '수강 중인 수업' : 'Enrolled Courses' },
       { label: language === 'ko' ? '저널' : 'Journal', href: '/journal', description: language === 'ko' ? '전문가 콘텐츠' : 'Expert Content' },
+      { label: language === 'ko' ? 'AI 채팅' : 'AI Chat', href: '/chat', description: language === 'ko' ? 'AI와 함께하는 학습' : 'Learning with AI' },
       { label: language === 'ko' ? '커뮤니티' : 'Community', href: '/community', description: language === 'ko' ? '학습자 커뮤니티' : 'Learning Community' }
     ];
   }
