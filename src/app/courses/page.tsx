@@ -20,8 +20,8 @@ export default function CoursesPage() {
     // 실제 구현에서는 Supabase를 통한 수강 등록 로직
     console.log('Enrolling in course:', courseId);
     
-    // 임시로 코스 상세 페이지로 이동
-    router.push(`/courses/${courseId}`);
+    // 수강 등록 후 바로 학습 페이지로 이동
+    router.push(`/learn/${courseId}`);
   };
 
   return (

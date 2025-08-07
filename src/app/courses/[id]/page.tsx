@@ -18,8 +18,8 @@ export default function CourseDetailPageRoute() {
     // 실제 구현에서는 세션 시작 로직
     console.log('Starting session:', sessionId);
     
-    // 세션 페이지로 이동하거나 모달 열기 등
-    // router.push(`/courses/${courseId}/sessions/${sessionId}`);
+    // 학습 페이지로 이동
+    router.push(`/learn/${courseId}`);
   };
 
   const handleSessionComplete = (sessionId: string) => {
@@ -31,8 +31,8 @@ export default function CourseDetailPageRoute() {
     // 실제 구현에서는 Supabase를 통한 수강 등록 로직
     console.log('Enrolling in course:', courseId);
     
-    // 등록 후 페이지 새로고침 또는 상태 업데이트
-    window.location.reload();
+    // 수강 등록 후 바로 학습 페이지로 이동
+    router.push(`/learn/${courseId}`);
   };
 
   if (!courseId) {
