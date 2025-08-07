@@ -30,9 +30,12 @@ export default function HeaderWithAuth() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
-    setShowUserMenu(false);
+    try {
+      await signOut();
+      // signOut에서 이미 리다이렉션을 처리하므로 추가 처리 불필요
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   const isInstructor = userProfile?.role === 'instructor';
@@ -190,13 +193,14 @@ export default function HeaderWithAuth() {
                 {/* 드롭다운 메뉴 */}
                 {showUserMenu && (
                   <div 
-                    className="absolute right-0 mt-2 w-56 py-2 shadow-lg border design-mode-transition"
+                    className="absolute right-0 mt-2 w-56 py-2 shadow-lg border design-mode-transition z-50"
                     style={{ 
                       backgroundColor: 'var(--iwl-design-surface)',
                       borderColor: 'var(--iwl-design-border)',
                       borderRadius: 'var(--iwl-border-radius)',
                       boxShadow: 'var(--iwl-shadow)'
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div className="px-4 py-2 border-b" style={{ borderColor: 'var(--iwl-design-border)' }}>
                       <p 
@@ -235,7 +239,10 @@ export default function HeaderWithAuth() {
 
                     <div className="border-t mt-2 pt-2" style={{ borderColor: 'var(--iwl-design-border)' }}>
                       <button
-                        onClick={handleSignOut}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSignOut();
+                        }}
                         className="flex items-center gap-2 px-4 py-2 w-full text-left text-sm hover:bg-opacity-80 transition-colors"
                         style={{ color: 'var(--iwl-design-text)' }}
                       >
