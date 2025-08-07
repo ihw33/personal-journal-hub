@@ -105,9 +105,13 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
         setCourses(coursesData);
         setTotalPages(Math.ceil(totalCount / coursesPerPage));
         
-      } catch (err) {
-        setError('코스 목록을 불러오는데 실패했습니다.');
+      } catch (err: any) {
+        const errorMessage = err?.message || '코스 목록을 불러오는데 실패했습니다.';
+        setError(errorMessage);
         console.error('Failed to load courses:', err);
+        // 더미 데이터로 폴백
+        setCourses([]);
+        setTotalPages(1);
       } finally {
         setIsLoading(false);
       }
