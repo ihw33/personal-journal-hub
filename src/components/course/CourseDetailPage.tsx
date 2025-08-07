@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/supabase/auth-context';
 import { 
   ArrowLeft, 
   Play, 
@@ -69,18 +68,10 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({
   const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [showChatbot, setShowChatbot] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  // Get current user
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
 
   // Load course from Supabase
   useEffect(() => {

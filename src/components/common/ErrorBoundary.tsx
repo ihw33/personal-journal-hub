@@ -36,6 +36,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     
     // 에러를 외부 로깅 서비스에 전송 (예: Sentry, LogRocket)
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('Error stack:', error.stack);
+    console.error('Component stack:', errorInfo.componentStack);
     
     // props로 전달된 onError 콜백 실행
     this.props.onError?.(error, errorInfo);
@@ -102,18 +104,16 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
             문제가 지속되면 고객 지원팀에 문의해 주세요.
           </p>
 
-          {/* 개발 환경에서만 에러 상세 정보 표시 */}
-          {isDevelopment && (
-            <div className="mb-6 p-4 bg-architect-gray-100 rounded-xl text-left">
-              <h3 className="text-h5 font-bold text-architect-gray-900 mb-2">
-                개발자 정보:
-              </h3>
-              <pre className="text-xs text-architect-gray-700 overflow-auto max-h-32">
-                {error.name}: {error.message}
-                {error.stack && `\n\n${error.stack}`}
-              </pre>
-            </div>
-          )}
+          {/* 에러 상세 정보 표시 (임시로 프로덕션에서도 표시) */}
+          <div className="mb-6 p-4 bg-architect-gray-100 rounded-xl text-left">
+            <h3 className="text-h5 font-bold text-architect-gray-900 mb-2">
+              에러 정보:
+            </h3>
+            <pre className="text-xs text-architect-gray-700 overflow-auto max-h-48">
+              {error.name}: {error.message}
+              {error.stack && `\n\nStack trace:\n${error.stack}`}
+            </pre>
+          </div>
 
           {/* 액션 버튼들 */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

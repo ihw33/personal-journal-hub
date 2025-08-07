@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/supabase/auth-context';
+import { useDesignMode } from '@/components/design-mode/DesignModeProvider';
+import { DesignModeCard } from '@/components/design-mode/DesignModeAwareComponent';
 import { 
   Search, 
   Filter, 
@@ -18,7 +20,6 @@ import {
   Award
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -57,6 +58,7 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
   onEnroll
 }) => {
   const { user } = useAuth();
+  const { currentMode } = useDesignMode();
   const [courses, setCourses] = useState<Course[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -280,7 +282,7 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
     const difficultyInfo = getDifficultyInfo(course.difficulty);
 
     return (
-      <Card 
+      <DesignModeCard 
         key={course.id}
         className="group hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden"
         onClick={() => handleCourseClick(course.id)}
@@ -369,7 +371,7 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
             </Button>
           )}
         </div>
-      </Card>
+      </DesignModeCard>
     );
   };
 
@@ -391,7 +393,7 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
               </p>
             </div>
 
-            <Card className="p-8 bg-gradient-to-br from-architect-primary/5 to-architect-secondary/5">
+            <DesignModeCard className="p-8 bg-gradient-to-br from-architect-primary/5 to-architect-secondary/5">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {mainCourse.levels.map((level, index) => (
                   <div key={level.id} className="relative">
@@ -400,7 +402,7 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
                       <div className="hidden lg:block absolute top-12 left-full w-6 h-0.5 bg-architect-gray-300 z-0" />
                     )}
                     
-                    <Card 
+                    <DesignModeCard 
                       className="relative z-10 p-6 text-center hover:shadow-lg transition-all duration-300 cursor-pointer"
                       style={{ borderTop: `4px solid ${level.color}` }}
                       onClick={() => handleCourseClick(mainCourse.id)}
@@ -435,7 +437,7 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
                           />
                         </div>
                       )}
-                    </Card>
+                    </DesignModeCard>
                   </div>
                 ))}
               </div>
@@ -460,7 +462,7 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
                   </Button>
                 )}
               </div>
-            </Card>
+            </DesignModeCard>
           </div>
         )}
 
