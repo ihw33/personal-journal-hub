@@ -117,20 +117,24 @@ function LoginContent() {
 
       if (matchedAccount) {
         // 테스트 계정으로 로그인 성공
-        // localStorage에 임시로 사용자 정보 저장
-        localStorage.setItem('test_user', JSON.stringify({
+        const testUserData = {
           id: `test-${matchedAccount.role}`,
           email: matchedAccount.email,
           user_metadata: { 
             user_type: matchedAccount.role,
             name: matchedAccount.name
           }
-        }));
+        };
+
+        // localStorage에 저장
+        localStorage.setItem('test_user', JSON.stringify(testUserData));
 
         setSuccess('로그인 성공! 페이지로 이동합니다.');
+        
+        // 조금 더 빠른 리다이렉션
         setTimeout(() => {
-          window.location.href = redirectUrl; // 강제 페이지 새로고침
-        }, 500);
+          window.location.href = redirectUrl;
+        }, 300);
         return;
       }
 

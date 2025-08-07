@@ -49,36 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getInitialSession();
 
-    // 테스트 계정 storage 이벤트 리스너
-    const handleStorageChange = () => {
-      const testUser = localStorage.getItem('test_user');
-      if (testUser) {
-        const userData = JSON.parse(testUser);
-        setUser(userData as User);
-        setSession(null);
-      } else {
-        // 테스트 사용자가 로그아웃한 경우
-        if (!session) {
-          setUser(null);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // 같은 탭에서의 변경도 감지
-    const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key, value) {
-      originalSetItem.apply(this, [key, value]);
-      if (key === 'test_user') {
-        handleStorageChange();
-      }
-    };
-
     // 인증 상태 변경 리스너
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        
+        // 테스트 계정이 있으면 Supabase 세션을 무시
+        const testUser = localStorage.getItem('test_user');
+        if (testUser) {
+          return;
+        }
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -93,8 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener('storage', handleStorageChange);
-      localStorage.setItem = originalSetItem;
     };
   }, []); // 컴포넌트 마운트 시에만 실행 (의도적으로 빈 배열)
 
