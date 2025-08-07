@@ -1,7 +1,7 @@
 // Supabase Course System Query Functions for IdeaWorkLab v3.0
 // 8-Phase Thinking Expansion Course System
 
-import { supabase } from './client';
+import { supabase } from './enhanced-client';
 import { User } from '@supabase/supabase-js';
 import { 
   Course, 
@@ -142,6 +142,11 @@ export async function getPublishedCourses(
   limit: number = 12
 ): Promise<{ courses: Course[]; totalCount: number }> {
   try {
+    // Check if supabase is available
+    if (!supabase) {
+      throw new Error('Supabase not configured - using demo mode');
+    }
+    
     // Validate and sanitize all inputs
     const validatedFilters = validateCourseFilters(filters);
     const validatedSortOptions = validateSortOptions(sortOptions);
@@ -328,6 +333,13 @@ export async function getPublishedCourses(
  */
 export async function getCourseById(courseId: string, user?: User): Promise<Course | null> {
   try {
+    // Check if supabase is available
+    if (!supabase) {
+      // Return dummy course if it matches
+      const dummyCourse = DUMMY_COURSES.find(c => c.id === courseId);
+      return dummyCourse || null;
+    }
+    
     // Validate courseId format (UUID)
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!courseId || !uuidRegex.test(courseId)) {

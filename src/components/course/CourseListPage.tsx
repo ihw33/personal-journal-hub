@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/supabase/auth-context';
 import { 
   Search, 
   Filter, 
@@ -57,11 +56,11 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
   onCourseClick,
   onEnroll
 }) => {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,15 +75,6 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
     order: 'desc'
   });
   const [activeView, setActiveView] = useState<'grid' | 'roadmap'>('roadmap');
-
-  // Get current user
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
 
   // Load courses from Supabase
   useEffect(() => {
