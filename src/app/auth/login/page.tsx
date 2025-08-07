@@ -108,6 +108,7 @@ function LoginContent() {
       // 테스트용 하드코딩 로그인
       const testAccounts = [
         { email: 'admin@test.com', password: 'admin123', role: 'admin', name: '관리자' },
+        { email: 'instructor@test.com', password: 'instructor123', role: 'instructor', name: '강사' },
         { email: 'beta@test.com', password: 'beta123', role: 'beta_tester', name: '베타테스터' },
         { email: 'user@test.com', password: 'user123', role: 'user', name: '일반사용자' }
       ];
@@ -395,6 +396,7 @@ function LoginContent() {
                   <h4 className="font-semibold text-sm text-blue-900 mb-2">테스트 계정</h4>
                   <div className="space-y-1 text-xs text-blue-800">
                     <div>🔑 관리자: admin@test.com / admin123</div>
+                    <div>👨‍🏫 강사: instructor@test.com / instructor123</div>
                     <div>🧪 베타테스터: beta@test.com / beta123</div>
                     <div>👤 일반사용자: user@test.com / user123</div>
                   </div>
