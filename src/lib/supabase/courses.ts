@@ -30,8 +30,8 @@ function sanitizeText(text: string, maxLength?: number): string {
 
 // Security validation functions
 function validateCourseFilters(filters: CourseFilters): CourseFilters {
-  const validCategories = ['thinking', 'creativity', 'problem-solving', 'communication', 'collaboration'];
-  const validDifficulties = ['beginner', 'intermediate', 'advanced'];
+  const validCategories = ['thinking-expansion', 'creativity', 'problem-solving', 'innovation', 'design-thinking', 'systems-thinking', 'critical-thinking', 'strategic-thinking'];
+  const validDifficulties = ['beginner', 'intermediate', 'advanced', 'expert'];
   
   return {
     category: filters.category && validCategories.includes(filters.category) ? filters.category : undefined,
@@ -70,7 +70,7 @@ const DUMMY_COURSES: Course[] = [
     id: 'course-main',
     title: '8단계 사고 확장 마스터 과정',
     description: '체계적인 8단계 프로세스를 통해 사고의 깊이와 폭을 확장하는 종합 과정입니다.',
-    category: 'thinking',
+    category: 'thinking-expansion',
     difficulty: 'intermediate',
     totalLevels: 8,
     estimatedDuration: '8주',
@@ -117,7 +117,7 @@ const DUMMY_COURSES: Course[] = [
     id: 'course-communication',
     title: '효과적인 커뮤니케이션 마스터',
     description: '생각을 명확하게 전달하고 소통하는 기술을 익히는 과정',
-    category: 'communication',
+    category: 'design-thinking',
     difficulty: 'intermediate',
     totalLevels: 5,
     estimatedDuration: '5주',

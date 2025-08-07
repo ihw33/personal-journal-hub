@@ -204,14 +204,14 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
 
           <div className="flex items-center space-x-4">
             <Select 
-              value={filters.category || ''} 
-              onValueChange={(value) => setFilters({...filters, category: value as any})}
+              value={filters.category || 'all'} 
+              onValueChange={(value) => setFilters({...filters, category: value === 'all' ? undefined : value as any})}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="카테고리" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">전체</SelectItem>
+                <SelectItem value="all">전체</SelectItem>
                 {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
                   <SelectItem key={key} value={key}>
                     {config.icon} {config.label}
@@ -221,14 +221,14 @@ export const CourseListPage: React.FC<CourseListPageProps> = ({
             </Select>
 
             <Select 
-              value={filters.difficulty || ''} 
-              onValueChange={(value) => setFilters({...filters, difficulty: value as any})}
+              value={filters.difficulty || 'all'} 
+              onValueChange={(value) => setFilters({...filters, difficulty: value === 'all' ? undefined : value as any})}
             >
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="난이도" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">전체</SelectItem>
+                <SelectItem value="all">전체</SelectItem>
                 {Object.entries(DIFFICULTY_CONFIG).map(([key, config]) => (
                   <SelectItem key={key} value={key}>
                     {config.icon} {config.label}
