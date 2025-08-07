@@ -108,6 +108,20 @@ export default function HeaderWithAuth() {
               코스
             </Link>
 
+            {user && (
+              <Link
+                href="/learn"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-opacity-80"
+                style={{ 
+                  color: 'var(--iwl-design-accent)',
+                  borderRadius: 'var(--iwl-border-radius)'
+                }}
+              >
+                <BookOpen className="w-4 h-4" />
+                수업하기
+              </Link>
+            )}
+
             <Link
               href="/journal"
               className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-opacity-80"
@@ -317,6 +331,18 @@ export default function HeaderWithAuth() {
                 <BookOpen className="w-4 h-4" />
                 코스
               </Link>
+
+              {user && (
+                <Link
+                  href="/learn"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                  style={{ color: 'var(--iwl-design-accent)' }}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  수업하기
+                </Link>
+              )}
 
               <Link
                 href="/journal"
