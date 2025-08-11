@@ -52,8 +52,10 @@ export interface ArchiContext {
 }
 
 // 상세 타입 정의
+/** 사용 가능한 사고 모드 */
 export type ArchiMode = 'guided' | 'self-directed';
 
+/** 강의/학습 맥락 정보 (선택적) */
 export interface CourseContext {
   courseId?: string;
   courseTitle?: string;
@@ -62,6 +64,7 @@ export interface CourseContext {
   learningObjectives?: string[];
 }
 
+/** 대화 세션 진행 상태 */
 export interface SessionContext {
   totalMessages: number;
   insights: number;
@@ -70,6 +73,7 @@ export interface SessionContext {
   courseContext?: CourseContext;
 }
 
+/** 입력 메시지에 대한 경량 분석 결과 */
 export interface AnalyzeMessageResult {
   patterns: string[];
   messageLength: number;
@@ -78,6 +82,7 @@ export interface AnalyzeMessageResult {
   complexity: 'simple' | 'complex';
 }
 
+/** 패턴 기반 응답 공통 구조 */
 export interface GeneratedResponse {
   content: string;
   isInsight: boolean;
