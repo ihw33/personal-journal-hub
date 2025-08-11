@@ -1,0 +1,209 @@
+name: Task Management Automation
+
+on:
+  issues:
+    types: [opened, closed, edited, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  update-task-logs:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.title, '[업무분담]') || contains(github.event.comment.body, '완료')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Install dependencies
+      run: |
+        npm install @octokit/rest
+        
+    - name: Update Task Status
+      uses: actions/github-script@v7
+      env:
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      with:
+        script: |
+          const { Octokit } = require('@octokit/rest');
+          const octokit = new Octokit({
+            auth: context.payload.installation.access_tokens_url ? undefined : process.env.GITHUB_TOKEN
+          });
+          
+          // Issue 정보 가져오기
+          const issue = context.payload.issue;
+          const action = context.payload.action;
+          
+          console.log(`Processing issue: ${issue.title}`);
+          console.log(`Action: ${action}`);
+          
+          // 업무분담 Issue인지 확인
+          if (!issue.title.includes('[업무분담]')) {
+            console.log('Not a task assignment issue, skipping');
+            return;
+          }
+          
+          // CLI 이름 추출
+          const cliMatch = issue.title.match(/(Gemini CLI|Codex CLI|Claude Code)/);
+          const cli = cliMatch ? cliMatch[1] : 'Unknown CLI';
+          
+          // 상태 결정
+          let status = 'pending';
+          if (action === 'closed') {
+            status = 'completed';
+          } else if (issue.assignees && issue.assignees.length > 0) {
+            status = 'in_progress';
+          }
+          
+          // 로그 업데이트 내용 생성
+          const logEntry = {
+            timestamp: new Date().toISOString(),
+            cli: cli,
+            task: issue.title.replace('[업무분담] ', ''),
+            status: status,
+            issue_url: issue.html_url,
+            action: action
+          };
+          
+          console.log('Log entry:', JSON.stringify(logEntry, null, 2));
+          
+          // GitHub에 파일 업데이트 (CLI_STATUS_DASHBOARD.md)
+          try {
+            const { data: fileData } = await octokit.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: 'CLI_STATUS_DASHBOARD.md'
+            });
+            
+            let content = Buffer.from(fileData.content, 'base64').toString();
+            
+            // 현재 시간 업데이트
+            const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+            content = content.replace(
+              /## ⏰ \*\*지금 이 순간\*\* \([^)]+\)/,
+              `## ⏰ **지금 이 순간** (${now})`
+            );
+            
+            // CLI별 작업 상태 업데이트
+            const statusEmoji = status === 'completed' ? '[완료]' : status === 'in_progress' ? '[진행중]' : '[대기중]';
+            const taskLine = `${cli}: ${statusEmoji} ${logEntry.task}`;
+            
+            // 기존 CLI 라인 찾아서 업데이트
+            const cliPattern = new RegExp(`${cli}: \\[[^\\]]+\\] [^\\n]+`, 'g');
+            if (content.match(cliPattern)) {
+              content = content.replace(cliPattern, taskLine);
+            } else {
+              // 새 CLI 라인 추가
+              content = content.replace(
+                /```\n([^`]*)\n```/,
+                `\`\`\`\n$1\n${taskLine}\n\`\`\``
+              );
+            }
+            
+            // 파일 업데이트
+            await octokit.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: 'CLI_STATUS_DASHBOARD.md',
+              message: `🤖 Task status updated: ${cli} - ${logEntry.task}`,
+              content: Buffer.from(content).toString('base64'),
+              sha: fileData.sha
+            });
+            
+            console.log('Successfully updated CLI_STATUS_DASHBOARD.md');
+            
+          } catch (error) {
+            console.error('Error updating dashboard:', error);
+          }
+          
+          // Notion 업데이트 (선택사항 - 토큰이 있는 경우만)
+          if (process.env.NOTION_TOKEN) {
+            try {
+              const notion = require('@notionhq/client');
+              const notionClient = new notion.Client({
+                auth: process.env.NOTION_TOKEN
+              });
+              
+              // Notion 데이터베이스에 작업 로그 추가
+              await notionClient.pages.create({
+                parent: { database_id: process.env.NOTION_DATABASE_ID },
+                properties: {
+                  'Task': {
+                    title: [{ text: { content: logEntry.task } }]
+                  },
+                  'CLI': {
+                    select: { name: cli }
+                  },
+                  'Status': {
+                    select: { name: status }
+                  },
+                  'Timestamp': {
+                    date: { start: logEntry.timestamp }
+                  },
+                  'GitHub Issue': {
+                    url: issue.html_url
+                  }
+                }
+              });
+              
+              console.log('Successfully updated Notion database');
+              
+            } catch (notionError) {
+              console.error('Error updating Notion:', notionError);
+            }
+          }
+
+  notify-task-assignment:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' && contains(github.event.issue.title, '[업무분담]')
+    
+    steps:
+    - name: Notify CLI Assignment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue = context.payload.issue;
+          
+          // CLI별 멘션 설정 (실제 GitHub 사용자명으로 변경 필요)
+          const mentions = {
+            'Gemini CLI': '@gemini-cli-user',
+            'Codex CLI': '@codex-cli-user',
+            'Claude Code': '@ihw33'
+          };
+          
+          // 담당자 추출 및 멘션
+          const title = issue.title;
+          let mentionList = [];
+          
+          Object.entries(mentions).forEach(([cli, mention]) => {
+            if (title.includes(cli)) {
+              mentionList.push(mention);
+            }
+          });
+          
+          const comment = `🎯 **새 업무가 할당되었습니다!**
+          
+${mentionList.join(' ')} 
+          
+위 업무를 확인하고 진행해주세요. 완료 후 이 Issue에 댓글로 보고해주시면 자동으로 상태가 업데이트됩니다.
+
+### 📋 빠른 확인
+- 현재 상태: CLI_STATUS_DASHBOARD.md
+- 전체 로그: INTEGRATED_WORK_LOG.md
+- 도움 필요시: 이 Issue에 댓글 작성
+
+---
+*🤖 자동 알림: Task Management System*`;
+          
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
