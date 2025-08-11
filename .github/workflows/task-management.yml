@@ -1,4 +1,4 @@
-name: Task Management Automation
+name: Task Management Automation v2
 
 on:
   issues:
