@@ -1,0 +1,96 @@
+name: CLI Notification System
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  notify-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse CLI mentions
+        id: parse
+        run: |
+          comment="${{ github.event.comment.body }}"
+          issue_number="${{ github.event.issue.number }}"
+          
+          # Check for CLI mentions
+          if echo "$comment" | grep -q "@Gemini CLI"; then
+            echo "gemini_mentioned=true" >> $GITHUB_OUTPUT
+          fi
+          
+          if echo "$comment" | grep -q "@Codex CLI"; then
+            echo "codex_mentioned=true" >> $GITHUB_OUTPUT
+          fi
+          
+          if echo "$comment" | grep -q "PM 피드백"; then
+            echo "pm_action_needed=true" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "issue_number=$issue_number" >> $GITHUB_OUTPUT
+          echo "comment_url=${{ github.event.comment.html_url }}" >> $GITHUB_OUTPUT
+
+      - name: Create PM notification
+        if: steps.parse.outputs.gemini_mentioned == 'true' || steps.parse.outputs.codex_mentioned == 'true' || steps.parse.outputs.pm_action_needed == 'true'
+        run: |
+          # Create notification comment for PM awareness
+          issue_num="${{ steps.parse.outputs.issue_number }}"
+          comment_url="${{ steps.parse.outputs.comment_url }}"
+          
+          notification_body="🔔 **자동 노티봇 알림**
+
+          **발생 이벤트:** Issue #${issue_num}에 새 댓글
+          **시간:** $(date '+%Y-%m-%d %H:%M:%S')
+          **링크:** ${comment_url}
+
+          **감지된 액션:**"
+          
+          if [[ "${{ steps.parse.outputs.gemini_mentioned }}" == "true" ]]; then
+            notification_body="$notification_body
+          - 🤖 Gemini CLI 호출됨"
+          fi
+          
+          if [[ "${{ steps.parse.outputs.codex_mentioned }}" == "true" ]]; then
+            notification_body="$notification_body
+          - 🤖 Codex CLI 호출됨"  
+          fi
+          
+          if [[ "${{ steps.parse.outputs.pm_action_needed }}" == "true" ]]; then
+            notification_body="$notification_body
+          - 👨‍💼 PM 의사결정 필요"
+          fi
+          
+          notification_body="$notification_body
+
+          ---
+          🤖 *자동 알림 시스템 by GitHub Actions*"
+          
+          # Add notification as issue comment
+          gh issue comment ${issue_num} --body "$notification_body"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create CLI wake-up files
+        if: steps.parse.outputs.gemini_mentioned == 'true' || steps.parse.outputs.codex_mentioned == 'true'
+        run: |
+          # Create notification files that CLIs can monitor
+          mkdir -p /tmp/cli-notifications
+          
+          if [[ "${{ steps.parse.outputs.gemini_mentioned }}" == "true" ]]; then
+            echo "{
+              \"type\": \"issue_comment\",
+              \"issue\": ${{ steps.parse.outputs.issue_number }},
+              \"timestamp\": \"$(date -Iseconds)\",
+              \"message\": \"Issue #${{ steps.parse.outputs.issue_number }} 댓글 확인 필요\",
+              \"url\": \"${{ steps.parse.outputs.comment_url }}\"
+            }" > /tmp/cli-notifications/gemini-notification.json
+          fi
+          
+          if [[ "${{ steps.parse.outputs.codex_mentioned }}" == "true" ]]; then
+            echo "{
+              \"type\": \"issue_comment\", 
+              \"issue\": ${{ steps.parse.outputs.issue_number }},
+              \"timestamp\": \"$(date -Iseconds)\",
+              \"message\": \"Issue #${{ steps.parse.outputs.issue_number }} 댓글 확인 필요\",
+              \"url\": \"${{ steps.parse.outputs.comment_url }}\"
+            }" > /tmp/cli-notifications/codex-notification.json
+          fi
