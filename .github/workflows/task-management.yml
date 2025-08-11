@@ -187,19 +187,15 @@ jobs:
             }
           });
           
-          const comment = `🎯 **새 업무가 할당되었습니다!**
-          
-${mentionList.join(' ')} 
-          
-위 업무를 확인하고 진행해주세요. 완료 후 이 Issue에 댓글로 보고해주시면 자동으로 상태가 업데이트됩니다.
-
-### 📋 빠른 확인
-- 현재 상태: CLI_STATUS_DASHBOARD.md
-- 전체 로그: INTEGRATED_WORK_LOG.md
-- 도움 필요시: 이 Issue에 댓글 작성
-
----
-*🤖 자동 알림: Task Management System*`;
+          const comment = '🎯 **새 업무가 할당되었습니다!**\\n\\n' +
+            mentionList.join(' ') + '\\n\\n' +
+            '위 업무를 확인하고 진행해주세요. 완료 후 이 Issue에 댓글로 보고해주시면 자동으로 상태가 업데이트됩니다.\\n\\n' +
+            '### 📋 빠른 확인\\n' +
+            '- 현재 상태: CLI_STATUS_DASHBOARD.md\\n' +
+            '- 전체 로그: INTEGRATED_WORK_LOG.md\\n' +
+            '- 도움 필요시: 이 Issue에 댓글 작성\\n\\n' +
+            '---\\n' +
+            '*🤖 자동 알림: Task Management System*';
           
           await github.rest.issues.createComment({
             issue_number: context.issue.number,
