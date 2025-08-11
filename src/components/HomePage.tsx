@@ -18,9 +18,9 @@ import { FinalCTASection } from './home/FinalCTASection';
 // TODO: HeroSectionV3 컴포넌트 생성 후 import
 // import { HeroSectionV3 } from './HeroSectionV3';
 
-interface HomePageProps {
+export interface HomePageProps {
   language?: 'ko' | 'en';
-  onNavigate?: (page: string, params?: any) => void;
+  onNavigate?: (page: 'diagnosis' | 'about' | string, params?: Record<string, unknown>) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
