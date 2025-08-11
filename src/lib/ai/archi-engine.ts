@@ -51,6 +51,43 @@ export interface ArchiContext {
   };
 }
 
+// 상세 타입 정의
+export type ArchiMode = 'guided' | 'self-directed';
+
+export interface CourseContext {
+  courseId?: string;
+  courseTitle?: string;
+  currentLevel?: string;
+  userProgress?: number;
+  learningObjectives?: string[];
+}
+
+export interface SessionContext {
+  totalMessages: number;
+  insights: number;
+  topics: string[];
+  emotionalState?: keyof typeof EMOTIONAL_ADJUSTMENTS | string;
+  courseContext?: CourseContext;
+}
+
+export interface AnalyzeMessageResult {
+  patterns: string[];
+  messageLength: number;
+  hasQuestion: boolean;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  complexity: 'simple' | 'complex';
+}
+
+export interface GeneratedResponse {
+  content: string;
+  isInsight: boolean;
+  isExercise: boolean;
+  isFeedback: boolean;
+  brainState: 'thinking' | 'ready' | 'insights';
+  resources: any[];
+  topics: string[];
+}
+
 // 8단계 사고 확장 시스템 패턴
 const THINKING_PATTERNS = {
   guided: {
@@ -136,7 +173,7 @@ const THINKING_PATTERNS = {
       '창의적 에너지가 느껴집니다! 어디로 이어질지 궁금하네요.'
     ]
   }
-};
+} as const;
 
 // 인사이트 생성 패턴
 const INSIGHT_PATTERNS = [
@@ -174,10 +211,13 @@ const EMOTIONAL_ADJUSTMENTS = {
     approach: 'patient_understanding',
     phrases: ['답답하실 만합니다', '다른 방향에서 접근해보겠습니다', '새로운 관점으로 바라보면 어떨까요']
   }
-};
+} as const;
 
 /**
  * 메인 AI 응답 생성 함수
+ */
+/**
+ * 사용자의 입력과 세션 컨텍스트를 바탕으로 AI 응답을 생성합니다.
  */
 export async function generateArchiResponse(context: ArchiContext): Promise<ArchiResponse> {
   try {
@@ -218,12 +258,22 @@ export async function generateArchiResponse(context: ArchiContext): Promise<Arch
       topics: extractTopics(aiResponse)
     };
   } catch (error) {
+    // 내부 에러는 콘솔에만 기록하고, 사용자에게는 친절한 메시지를 제공합니다.
     console.error('Error generating Archi response:', error);
-    
-    // 폴백 응답
+
+    const isProd = process.env.NODE_ENV === 'production';
+    const metadata: Record<string, any> = {
+      error: true,
+      fallback: true,
+      code: 'AI_RESPONSE_FAILURE'
+    };
+    if (!isProd) {
+      metadata.debugMessage = error instanceof Error ? error.message : 'Unknown error';
+    }
+
     return {
-      content: '죄송합니다. 잠시 생각을 정리할 시간이 필요합니다. 다시 시도해주세요.',
-      metadata: { error: true, fallback: true, errorMessage: error instanceof Error ? error.message : 'Unknown error' },
+      content: '죄송합니다. 잠시 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.',
+      metadata,
       brainState: 'ready',
       isInsight: false,
       isExercise: false,
@@ -338,7 +388,7 @@ async function generateContextualResponse(message: string, context: ArchiContext
 /**
  * 메시지 분석
  */
-function analyzeMessage(message: string, mode: string) {
+function analyzeMessage(message: string, mode: ArchiMode): AnalyzeMessageResult {
   const lowerMessage = message.toLowerCase();
   
   // 키워드 매칭
@@ -387,7 +437,7 @@ function analyzeSentiment(message: string) {
 /**
  * 가이드 모드 응답 생성
  */
-function generateGuidedResponse(message: string, analysis: any, sessionContext: any) {
+function generateGuidedResponse(message: string, analysis: AnalyzeMessageResult, sessionContext: SessionContext): GeneratedResponse {
   let content = '';
   let isInsight = false;
   let isExercise = false;
@@ -398,8 +448,8 @@ function generateGuidedResponse(message: string, analysis: any, sessionContext: 
 
   // 패턴 기반 응답 선택
   if (analysis.patterns.length > 0) {
-    const primaryPattern = analysis.patterns[0];
-    const patterns = THINKING_PATTERNS.guided[primaryPattern as keyof typeof THINKING_PATTERNS.guided];
+    const primaryPattern = analysis.patterns[0] as keyof typeof THINKING_PATTERNS.guided;
+    const patterns = THINKING_PATTERNS.guided[primaryPattern];
     
     if (patterns && 'responses' in patterns) {
       content = patterns.responses[Math.floor(Math.random() * patterns.responses.length)];
@@ -457,7 +507,7 @@ function generateGuidedResponse(message: string, analysis: any, sessionContext: 
 /**
  * 자유 수련 모드 응답 생성
  */
-function generateSelfDirectedResponse(message: string, analysis: any, sessionContext: any) {
+function generateSelfDirectedResponse(message: string, analysis: AnalyzeMessageResult, sessionContext: SessionContext): GeneratedResponse {
   let content = '';
   let isInsight = false;
   let isExercise = false;
@@ -561,7 +611,7 @@ function generateExercise(patterns: string[]) {
 /**
  * 피드백 생성
  */
-function generateFeedback(sessionContext: any) {
+function generateFeedback(sessionContext: SessionContext) {
   const feedbacks = [
     '지금까지의 사고 과정이 매우 체계적이네요! 논리적 연결이 잘 되어 있습니다.',
     '창의적 사고가 돋보입니다. 다양한 각도에서 접근하는 능력이 훌륭해요.',
@@ -576,7 +626,7 @@ function generateFeedback(sessionContext: any) {
 /**
  * 감정 상태에 따른 톤 조정
  */
-function adjustToneForEmotion(content: string, emotionalState: string) {
+function adjustToneForEmotion(content: string, emotionalState: keyof typeof EMOTIONAL_ADJUSTMENTS | string) {
   const adjustment = EMOTIONAL_ADJUSTMENTS[emotionalState as keyof typeof EMOTIONAL_ADJUSTMENTS];
   
   if (adjustment) {
